@@ -9,10 +9,14 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  useColorScheme,
 } from 'react-native'
 import { supabase } from '../lib/supabase'
 
 export default function AuthScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -64,19 +68,20 @@ export default function AuthScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, isDark && styles.containerDark]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>ki</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, isDark && styles.titleDark]}>ki</Text>
+        <Text style={[styles.subtitle, isDark && styles.subtitleDark]}>
           {isSignUp ? 'Create your account' : 'Sign in to continue'}
         </Text>
 
         <View style={styles.form}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, isDark && styles.inputDark]}
             placeholder="Email"
+            placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -85,8 +90,9 @@ export default function AuthScreen() {
           />
 
           <TextInput
-            style={styles.input}
+            style={[styles.input, isDark && styles.inputDark]}
             placeholder="Password"
+            placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -182,5 +188,20 @@ const styles = StyleSheet.create({
   toggleText: {
     color: '#2563eb',
     fontSize: 14,
+  },
+  // Dark mode styles
+  containerDark: {
+    backgroundColor: '#111827',
+  },
+  titleDark: {
+    color: '#f9fafb',
+  },
+  subtitleDark: {
+    color: '#9ca3af',
+  },
+  inputDark: {
+    backgroundColor: '#1f2937',
+    borderColor: '#374151',
+    color: '#f9fafb',
   },
 })

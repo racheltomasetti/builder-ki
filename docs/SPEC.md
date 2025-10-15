@@ -116,10 +116,11 @@ ki transforms scattered thinking into prompt-ready clarity:
 
 - ✅ **Quick Capture (no project selection)**
 
-  - One screen with three options:
-    - **Record Voice:** Tap → speak → tap stop → auto-upload
-    - **Take Photo:** Tap camera → snap → auto-upload
-    - **Record Video:** Tap video → record → stop → auto-upload
+  - One screen with three buttons (🎤 Voice | 📷 Photo | 🎥 Video)
+  - Each button opens modal with two options:
+    - **Voice:** "Record Now" (live recording) OR "Upload Recording" (from device storage: m4a, mp3, wav, aac)
+    - **Photo:** "Take Photo" (live camera) OR "Upload Photo" (from library: jpg, jpeg, png, heic)
+    - **Video:** "Record Video" (live recording) OR "Upload Video" (from storage: mp4, mov, m4v)
   - Visual upload progress
   - No preview, no editing, zero friction
 
@@ -470,10 +471,13 @@ Get better results →
 **Steps:**
 
 1. Open Ki mobile app → Login (first time only)
-2. Main screen shows three buttons: 🎤 Record Voice | 📷 Take Photo | 🎥 Record Video
-3. User taps one → Captures → Auto-uploads to Supabase Storage
-4. Success message: "Captured! Processing in ~30 seconds"
-5. n8n workflow triggered immediately
+2. Main screen shows three buttons: 🎤 Voice Note | 📷 Photo | 🎥 Video
+3. User taps one → Modal appears with two options:
+   - **Live Capture:** "Record Now" / "Take Photo" / "Record Video"
+   - **Upload:** "Upload Recording" / "Upload Photo" / "Upload Video"
+4. User selects option → Captures/selects file → Auto-uploads to Supabase Storage
+5. Success message: "Captured! Processing in ~30 seconds"
+6. n8n workflow triggered immediately
 
 **Success Criteria:**
 
