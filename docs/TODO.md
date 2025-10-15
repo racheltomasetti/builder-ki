@@ -9,6 +9,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 ## PART 1: Mobile Voice Capture (Live Only)
 
 ### ✅ COMPLETED
+
 - [x] Implement voice recording functionality
 - [x] Fix audio mode initialization and cleanup
 - [x] Fix deprecated FileSystem API usage
@@ -21,39 +22,31 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 ### 🔄 IN PROGRESS
 
 #### Task 1: Simplify Mobile UI (Remove Photo/Video)
-- [ ] Remove photo and video button components from CaptureScreen
-- [ ] Remove photo/video related imports (ImagePicker, DocumentPicker for non-audio)
-- [ ] Remove photo/video capture functions (takePhoto, pickPhoto, recordVideo, pickVideo)
-- [ ] Remove modal rendering logic (no longer needed)
-- [ ] Update screen title from "Quick Capture" to "Capture Thought"
+
+- [x] Remove photo and video button components from CaptureScreen
+- [x] Remove photo/video related imports (ImagePicker, DocumentPicker for non-audio)
+- [x] Remove photo/video capture functions (takePhoto, pickPhoto, recordVideo, pickVideo)
+- [x] Remove modal rendering logic (no longer needed)
+- [x] Remove screen title
 
 #### Task 2: Redesign Voice Recording UI
-- [ ] Remove voice button modal (direct tap-to-record)
-- [ ] Create large centered mic button (primary action)
-- [ ] Add "Tap to capture your thinking" subtitle
-- [ ] Design recording state UI:
-  - Pulsing red recording indicator
-  - "Recording..." text
-  - Optional: Simple waveform visualization
-  - Large "Stop Recording" button
-- [ ] Add visual feedback during upload (progress indicator)
-- [ ] Improve success message UX
+
+- [x] Remove voice button modal (direct tap-to-record)
+- [x] Create large centered circle (primary action, UI design is high priority once core heartbeat is working)
+- [x] Design recording state UI:
+- [x] Add visual feedback during upload (progress indicator)
+- [x] Improve success message UX
 
 #### Task 3: Remove Upload Functionality
-- [ ] Remove `pickVoiceFile` function (no file uploads)
-- [ ] Remove DocumentPicker import
-- [ ] Remove all file picker related code
-- [ ] Simplify upload logic to only handle live recordings
+
+- [x] Remove `pickVoiceFile` function (no file uploads)
+- [x] Remove DocumentPicker import
+- [x] Remove all file picker related code
+- [x] Simplify upload logic to only handle live recordings
 
 #### Task 4: Polish Recording Experience
-- [ ] Add haptic feedback on record start/stop (optional)
-- [ ] Improve error messages (user-friendly)
-- [ ] Add recording duration display
-- [ ] Test edge cases:
-  - Permission denied
-  - Recording while call in progress
-  - Low storage space
-  - Network errors during upload
+
+- [x] Add recording duration display
 
 **CHECKPOINT 1:** Simplified voice-only mobile UI complete and tested
 
@@ -62,6 +55,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 ## PART 2: n8n Processing Pipeline (Voice Only)
 
 ### Task 5: Webhook Setup
+
 - [ ] Open n8n dashboard (http://localhost:5678)
 - [ ] Create new workflow: "Voice Capture Processing"
 - [ ] Add Webhook trigger node
@@ -70,6 +64,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 - [ ] Add initial test node (HTTP Response) to verify webhook works
 
 ### Task 6: Configure Supabase Database Webhook
+
 - [ ] Go to Supabase Dashboard → Database → Webhooks
 - [ ] Create new webhook:
   - Name: "New Voice Capture Trigger"
@@ -84,6 +79,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 **CHECKPOINT 2:** Webhook triggers when new capture inserted
 
 ### Task 7: Download Voice File from Supabase Storage
+
 - [ ] Add "Supabase" node in n8n
 - [ ] Configure to download file from Storage
   - Bucket: `voice-notes`
@@ -91,6 +87,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 - [ ] Output file as binary data for next step
 
 ### Task 8: Whisper Transcription
+
 - [ ] Add "HTTP Request" node for OpenAI Whisper API
   - Method: POST
   - URL: `https://api.openai.com/v1/audio/transcriptions`
@@ -101,6 +98,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 - [ ] Add error handling (retry logic)
 
 ### Task 9: Update Capture with Transcription
+
 - [ ] Add "Supabase" node to update captures table
 - [ ] Set fields:
   - `transcription`: Text from Whisper response
@@ -110,12 +108,14 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 **CHECKPOINT 3:** Voice captures show transcription in database
 
 ### Task 10: Claude AI Synthesis
+
 - [ ] Add "HTTP Request" node for Anthropic Claude API
   - Method: POST
   - URL: `https://api.anthropic.com/v1/messages`
   - Authentication: x-api-key header (Anthropic API key)
   - Model: `claude-3-5-sonnet-20241022`
 - [ ] Construct prompt:
+
   ```
   Analyze this voice note transcription and extract:
   1. Key insights (realizations, observations)
@@ -133,11 +133,13 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
     "concepts": ["concept 1", ...]
   }
   ```
+
 - [ ] Parse JSON response from Claude
 
 **CHECKPOINT 4:** Claude returns structured insights JSON
 
 ### Task 11: Create Neo4j Graph Nodes
+
 - [ ] Add "Neo4j" node to create Capture node
   - Label: `Capture`
   - Properties: `{id: capture_id, type: 'voice', created_at: timestamp}`
@@ -157,6 +159,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 **CHECKPOINT 5:** Neo4j Browser shows graph data after capture
 
 ### Task 12: Insert Insights into Supabase
+
 - [ ] Add "Supabase" node to bulk insert into `insights` table
 - [ ] Map each insight/decision/question/concept to:
   ```json
@@ -169,6 +172,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 - [ ] Execute batch insert
 
 ### Task 13: Mark Processing Complete
+
 - [ ] Add final "Supabase" node to update captures table
 - [ ] Set fields:
   - `processing_status`: 'complete'
@@ -182,18 +186,20 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 ## PART 3: Web Pensieve Display (Voice Only)
 
 ### Task 14: Fetch Voice Captures
+
 - [ ] Create server component or API route: `/app/dashboard/page.tsx`
 - [ ] Query Supabase:
   ```typescript
   const { data: captures } = await supabase
-    .from('captures')
-    .select('*, insights(*)')
-    .eq('type', 'voice')
-    .order('created_at', { ascending: false })
+    .from("captures")
+    .select("*, insights(*)")
+    .eq("type", "voice")
+    .order("created_at", { ascending: false });
   ```
 - [ ] Pass captures to client component
 
 ### Task 15: Build VoiceCard Component
+
 - [ ] Create `components/VoiceCard.tsx`
 - [ ] Display:
   - Audio player (HTML5 `<audio>` with controls)
@@ -204,6 +210,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 - [ ] Style with Tailwind CSS
 
 ### Task 16: Display Insights
+
 - [ ] Group insights by type (insight, decision, question, concept)
 - [ ] Create expandable sections for each type
 - [ ] Visual hierarchy:
@@ -216,6 +223,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 **CHECKPOINT 7:** Dashboard displays voice captures beautifully
 
 ### Task 17: Add Search Functionality
+
 - [ ] Add search input at top of dashboard
 - [ ] Implement debounced search (300ms delay)
 - [ ] Filter captures by transcription text (SQL LIKE query)
@@ -223,6 +231,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 - [ ] Add "Clear search" button when active
 
 ### Task 18: Add Date Range Filter
+
 - [ ] Add filter buttons: Today | This Week | This Month | All Time
 - [ ] Update query based on selected filter
 - [ ] Highlight active filter
@@ -234,6 +243,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 ## PART 4: Agent Chat Interface
 
 ### Task 19: Create Chat Route
+
 - [ ] Create `/app/dashboard/chat/page.tsx`
 - [ ] Build chat UI:
   - Message list (scrollable, auto-scroll to bottom)
@@ -243,6 +253,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 - [ ] Style to feel conversational
 
 ### Task 20: Build Chat API Route
+
 - [ ] Create `/app/api/chat/route.ts`
 - [ ] Accept POST with message body
 - [ ] Query Neo4j for relevant captures based on message
@@ -251,6 +262,7 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 - [ ] Return streaming response
 
 ### Task 21: Implement Agent System Prompt
+
 ```
 You are Ki's Pensieve Agent. You help users query their captured thinking (voice notes) and formulate clear prompts for external AI assistants.
 
@@ -275,6 +287,7 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 ```
 
 ### Task 22: Implement Neo4j Querying
+
 - [ ] Create function to convert user message to Cypher query
 - [ ] Use keyword extraction for relevant concepts
 - [ ] Query graph for:
@@ -286,6 +299,7 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 **CHECKPOINT 9:** Agent provides relevant answers from voice corpus
 
 ### Task 23: Implement "Help Me Prompt" Behavior
+
 - [ ] Detect when user asks for prompt formulation
 - [ ] Query captures related to the task
 - [ ] Use Claude to synthesize requirements from captures
@@ -299,6 +313,7 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 ## PART 5: Polish & Ship
 
 ### Task 24: End-to-End Testing
+
 - [ ] Test full flow 10+ times:
   1. Open mobile app
   2. Record voice note (various lengths: 10s, 30s, 2min)
@@ -312,12 +327,14 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 - [ ] Document any bugs found
 
 ### Task 25: Performance Optimization
+
 - [ ] Measure processing time (should be < 60s)
 - [ ] Optimize Whisper API calls (use appropriate model)
 - [ ] Optimize Neo4j queries (add indexes if needed)
 - [ ] Optimize web dashboard loading (lazy load insights)
 
 ### Task 26: Bug Fixes
+
 - [ ] Fix any issues from testing
 - [ ] Handle edge cases:
   - Very short recordings (< 2 seconds)
@@ -326,6 +343,7 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
   - Network interruptions
 
 ### Task 27: Documentation
+
 - [ ] Update CLAUDE.md with voice-only focus
 - [ ] Update README with setup instructions
 - [ ] Document n8n workflow configuration
@@ -351,6 +369,7 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 10. ✅ Ready to use daily for 30+ consecutive days
 
 **Success Metrics:**
+
 - 10+ voice captures per day
 - Processing speed < 60 seconds average
 - Agent queries return relevant context in < 30 seconds
@@ -361,23 +380,27 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 ## MOVED TO PHASE 2 (Future)
 
 ### Camera Capture
+
 - Photo capture (live camera)
 - Photo annotation workflow
 - Video recording
 - Mixed media Pensieve
 
 ### Upload from Storage
+
 - Upload existing voice recordings
 - File format validation
 - Batch upload
 
 ### Projects
+
 - Create projects
 - Organize captures into projects
 - Project-filtered views
 - Agent project awareness
 
 ### Advanced Features
+
 - Semantic search
 - Auto-clustering of captures
 - Theme detection

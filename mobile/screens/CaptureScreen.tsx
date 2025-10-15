@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   useColorScheme,
+  Animated,
 } from "react-native";
 import { supabase } from "../lib/supabase";
 import { Audio } from "expo-av";
@@ -20,6 +21,15 @@ export default function CaptureScreen() {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [uploading, setUploading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+
+  // Animation values
+  const bobbingAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+
+  // Timer ref for recording duration
+  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get user on mount and setup audio mode
   useEffect(() => {
@@ -42,14 +52,82 @@ export default function CaptureScreen() {
     };
   }, []);
 
-  // Debug: Log color scheme changes
+  // Bobbing animation for idle state
   useEffect(() => {
-    console.log("Color scheme changed:", colorScheme);
-    console.log("isDark:", isDark);
-  }, [colorScheme, isDark]);
+    if (!recording && !uploading) {
+      const bobbing = Animated.loop(
+        Animated.sequence([
+          Animated.timing(bobbingAnim, {
+            toValue: -10,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(bobbingAnim, {
+            toValue: 0,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      bobbing.start();
+      return () => bobbing.stop();
+    }
+  }, [recording, uploading, bobbingAnim]);
+
+  // Pulsing animation for recording state
+  useEffect(() => {
+    if (recording) {
+      // Pulse the recording indicator
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.2,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      // Emanating glow effect
+      const glow = Animated.loop(
+        Animated.sequence([
+          Animated.timing(glowAnim, {
+            toValue: 1,
+            duration: 1500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glowAnim, {
+            toValue: 0,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+      pulse.start();
+      glow.start();
+
+      return () => {
+        pulse.stop();
+        glow.stop();
+      };
+    }
+  }, [recording, pulseAnim, glowAnim]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+  };
+
+  // Format duration as MM:SS
+  const formatDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   // === VOICE RECORDING ===
@@ -76,6 +154,13 @@ export default function CaptureScreen() {
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
       setRecording(recording);
+
+      // Start duration timer
+      setRecordingDuration(0);
+      durationIntervalRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+
       console.log("Recording started");
     } catch (err: any) {
       console.error("Start recording error:", err);
@@ -94,6 +179,13 @@ export default function CaptureScreen() {
 
     try {
       console.log("Stopping recording...");
+
+      // Stop duration timer
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+        durationIntervalRef.current = null;
+      }
+
       setUploading(true);
       await recording.stopAndUnloadAsync();
 
@@ -112,10 +204,19 @@ export default function CaptureScreen() {
       }
 
       setRecording(null);
+      setRecordingDuration(0);
     } catch (err: any) {
       console.error("Stop recording error:", err);
       Alert.alert("Error", "Failed to stop recording: " + err.message);
       setRecording(null);
+      setRecordingDuration(0);
+
+      // Stop timer on error too
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+        durationIntervalRef.current = null;
+      }
+
       // Reset audio mode on error too
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
@@ -239,38 +340,74 @@ export default function CaptureScreen() {
           </View>
         )}
 
-        {!recording && !uploading && (
+        {!uploading && (
           <View style={styles.mainContent}>
-            <TouchableOpacity
-              style={styles.micButton}
-              onPress={startRecording}
-              activeOpacity={0.8}
-            ></TouchableOpacity>
-            {/* <Text style={[styles.tapHint, isDark && styles.tapHintDark]}>
-              Tap to capture
-            </Text> */}
+            {/* Blue circle and emanating rings container */}
+            <Animated.View
+              style={{
+                transform: [{ translateY: recording ? 0 : bobbingAnim }],
+              }}
+            >
+              {/* Emanating glow rings - only show when recording */}
+              {recording && (
+                <View style={styles.glowContainer}>
+                  <Animated.View
+                    style={[
+                      styles.glowRing,
+                      {
+                        opacity: glowAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.6, 0],
+                        }),
+                        transform: [
+                          {
+                            scale: glowAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [1, 2],
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                  />
+                  <Animated.View
+                    style={[
+                      styles.glowRing,
+                      {
+                        opacity: glowAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.4, 0],
+                        }),
+                        transform: [
+                          {
+                            scale: glowAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [1, 2.5],
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                  />
+                </View>
+              )}
+
+              {/* Blue circle - always visible */}
+              <TouchableOpacity
+                style={styles.micButton}
+                onPress={recording ? stopRecording : startRecording}
+                activeOpacity={0.8}
+              />
+            </Animated.View>
           </View>
         )}
 
+        {/* Recording duration - fixed at bottom, only show when recording */}
         {recording && (
-          <View style={styles.recordingContent}>
-            <View
-              style={[
-                styles.recordingIndicator,
-                isDark && styles.recordingIndicatorDark,
-              ]}
-            >
-              <View style={styles.recordingPulse} />
-              <Text style={styles.recordingText}>Recording...</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.stopButton}
-              onPress={stopRecording}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.stopIcon}>⏹️</Text>
-              <Text style={styles.stopText}>Stop Recording</Text>
-            </TouchableOpacity>
+          <View style={styles.durationContainer}>
+            <Text style={[styles.durationText, isDark && styles.durationTextDark]}>
+              {formatDuration(recordingDuration)}
+            </Text>
           </View>
         )}
       </View>
@@ -303,8 +440,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 24,
-    justifyContent: "space-between",
+    justifyContent: "center",
+    position: "relative",
   },
   subtitle: {
     fontSize: 32,
@@ -334,79 +471,40 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     backgroundColor: "#3b82f6",
-    justifyContent: "center",
-    alignItems: "center",
     shadowColor: "#3b82f6",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
   },
-  tapHint: {
-    marginTop: 32,
-    fontSize: 18,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-  recordingContent: {
-    flex: 1,
+  glowContainer: {
+    position: "absolute",
+    width: 200,
+    height: 200,
     justifyContent: "center",
     alignItems: "center",
   },
-  recordingIndicator: {
+  glowRing: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 3,
+    borderColor: "#3b82f6",
+    backgroundColor: "transparent",
+  },
+  durationContainer: {
+    position: "absolute",
+    bottom: 60,
+    left: 0,
+    right: 0,
     alignItems: "center",
-    marginBottom: 48,
-    padding: 24,
-    backgroundColor: "#fef2f2",
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: "#ef4444",
   },
-  recordingPulse: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "#ef4444",
-    marginBottom: 12,
-  },
-  recordingText: {
-    fontSize: 20,
+  durationText: {
+    fontSize: 32,
     fontWeight: "600",
-    color: "#991b1b",
-  },
-  stopButton: {
-    paddingVertical: 20,
-    paddingHorizontal: 40,
-    backgroundColor: "#ef4444",
-    borderRadius: 16,
-    alignItems: "center",
-    shadowColor: "#ef4444",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  stopIcon: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  stopText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  infoBox: {
-    padding: 16,
-    backgroundColor: "#dbeafe",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#93c5fd",
-  },
-  infoText: {
-    color: "#1e40af",
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: "center",
+    color: "#3b82f6",
+    fontVariant: ["tabular-nums"],
   },
   // Dark mode styles
   containerDark: {
@@ -422,11 +520,7 @@ const styles = StyleSheet.create({
   uploadingTextDark: {
     color: "#9ca3af",
   },
-  tapHintDark: {
-    color: "#9ca3af",
-  },
-  recordingIndicatorDark: {
-    backgroundColor: "#7f1d1d",
-    borderColor: "#991b1b",
+  durationTextDark: {
+    color: "#60a5fa",
   },
 });
