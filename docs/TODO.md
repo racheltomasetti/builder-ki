@@ -220,15 +220,15 @@ KEY DECISION MADE SO THAT WE GET MVP WORKING --> IMPLEMENT KNOWLEDGE GRAPHS IN P
 **CHECKPOINT 7:** Dashboard displays voice captures beautifully
 
 - [x] implement flexoki color scheme in web and mobile
-- [ ] add delete functionality to voice card component
+- [x] add delete functionality to voice card component
 
 ### Task 17: Add Search Functionality
 
-- [ ] Add search input at top of dashboard
-- [ ] Implement debounced search (300ms delay)
-- [ ] Filter captures by transcription text (SQL LIKE query)
-- [ ] Show "No results" state when search returns empty
-- [ ] Add "Clear search" button when active
+- [x] Add search input at top of dashboard
+- [x] Implement debounced search (300ms delay)
+- [x] Filter captures by transcription text and insights(SQL LIKE query)
+- [x] Show "No results" state when search returns empty
+- [x] Add "Clear search" button when active
 
 ### Task 18: Add Date Range Filter
 
