@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import VoiceCard from "@/components/VoiceCard";
-import { useTheme } from "@/lib/theme";
+import TopNavigation from "@/components/TopNavigation";
 
 type Insight = {
   id: string;
@@ -33,7 +33,6 @@ export default function DashboardPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const router = useRouter();
   const supabase = createClient();
-  const { theme, toggleTheme } = useTheme();
 
   // Debounce search query with 300ms delay
   useEffect(() => {
@@ -106,11 +105,6 @@ export default function DashboardPage() {
     setAllCaptures(data || []);
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/auth");
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-flexoki-bg">
@@ -121,62 +115,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-flexoki-bg">
-      <nav className="bg-flexoki-ui shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-flexoki-tx italic">KI</h1>
-              <span className="ml-4 text-sm text-flexoki-tx-2 italic">
-                unlocking the mind
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-flexoki-tx-2">{user?.email}</span>
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg text-flexoki-tx-2 hover:bg-flexoki-ui-2 transition-colors"
-                title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-              >
-                {theme === "dark" ? (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                    />
-                  </svg>
-                )}
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="px-4 py-2 text-sm font-medium text-flexoki-tx hover:text-flexoki-tx transition-colors"
-              >
-                Sign out
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <TopNavigation user={user} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">

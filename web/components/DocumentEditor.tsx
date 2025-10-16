@@ -49,10 +49,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     },
   });
 
-  const saveDocument = async (updates: {
-    title?: string;
-    content?: any;
-  }) => {
+  const saveDocument = async (updates: { title?: string; content?: any }) => {
     setSaveStatus("saving");
 
     try {

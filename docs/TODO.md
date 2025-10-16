@@ -393,7 +393,6 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
     ```
   - On success: Navigate to `/dashboard/documents/[new-document-id]`
   - On error: Show toast/alert with error message
-- [ ] Add loading state during document creation (disable button, show spinner)
 - [x] Style button with flexoki colors:
   ```tsx
   className =
@@ -408,36 +407,36 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 
 **File:** `web/app/api/documents/route.ts`
 
-- [ ] Create API route for document operations
-- [ ] Implement `POST` handler (create document):
+- [x] Create API route for document operations
+- [x] Implement `POST` handler (create document):
   - Use `createServerClient()` for auth
   - Validate user is authenticated
   - Extract `capture_id`, `title`, `content` from request body
   - Auto-populate content with transcription + insights if capture_id provided
   - Insert into `documents` table
   - Return created document with 201 status
-- [ ] Implement `GET` handler (list all user's documents):
+- [x] Implement `GET` handler (list all user's documents):
   - Query documents ordered by `updated_at DESC`
   - Include basic pagination (limit 50 for MVP)
   - Return documents array with 200 status
-- [ ] Add error handling (400 for validation, 401 for auth, 500 for server errors)
-- [ ] Add TypeScript types for request/response
+- [x] Add error handling (400 for validation, 401 for auth, 500 for server errors)
+- [x] Add TypeScript types for request/response
 
 **File:** `web/app/api/documents/[id]/route.ts`
 
-- [ ] Create dynamic route for single document operations
-- [ ] Implement `GET` handler (retrieve document):
+- [x] Create dynamic route for single document operations
+- [x] Implement `GET` handler (retrieve document):
   - Verify user owns document (RLS handles this)
   - Return document with 200 status
   - Return 404 if not found
-- [ ] Implement `PATCH` handler (update document):
+- [x] Implement `PATCH` handler (update document):
   - Accept partial updates (`title`, `content`)
   - Update `updated_at` timestamp
   - Return updated document
-- [ ] Implement `DELETE` handler (delete document):
+- [x] Implement `DELETE` handler (delete document):
   - Soft delete or hard delete (hard delete for MVP)
   - Return 204 No Content on success
-- [ ] Add comprehensive error handling
+- [x] Add comprehensive error handling
 
 **CHECKPOINT 11:** API routes working (test with curl/Postman before building UI)
 
@@ -447,13 +446,13 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 
 **File:** `web/app/dashboard/documents/[id]/page.tsx`
 
-- [ ] Install Tiptap dependencies:
+- [x] Install Tiptap dependencies:
   ```bash
   cd web
   pnpm add @tiptap/react @tiptap/starter-kit @tiptap/extension-placeholder
   ```
-- [ ] Create dynamic route page component
-- [ ] Fetch document on page load using server component:
+- [x] Create dynamic route page component
+- [x] Fetch document on page load using server component:
   ```typescript
   const supabase = createServerClient();
   const { data: document } = await supabase
@@ -462,9 +461,9 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
     .eq("id", params.id)
     .single();
   ```
-- [ ] Pass document to client component `DocumentEditor`
-- [ ] Handle 404 if document not found
-- [ ] Add navigation breadcrumb (Dashboard > Documents > [Document Title])
+- [x] Pass document to client component `DocumentEditor`
+- [x] Handle 404 if document not found
+- [x] Add navigation breadcrumb (Dashboard > Documents > [Document Title])
 
 **File:** `web/components/DocumentEditor.tsx`
 
@@ -483,15 +482,15 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
     },
   });
   ```
-- [ ] Build editor toolbar (bold, italic, headings, lists, etc.)
-- [ ] Style with flexoki colors (see pattern below)
-- [ ] Implement debounced auto-save (1000ms delay):
+- [x] Build editor toolbar (bold, italic, headings, lists, etc.)
+- [x] Style with flexoki colors (see pattern below)
+- [x] Implement debounced auto-save (1000ms delay):
   - Call `PATCH /api/documents/[id]` with updated content
   - Show "Saving..." indicator
   - Show "Saved" confirmation
-- [ ] Add title input field above editor (editable, auto-saves)
-- [ ] Add "Back to Documents" button
-- [ ] Style editor container:
+- [x] Add title input field above editor (editable, auto-saves)
+- [x] Add "Back to Documents" button
+- [x] Style editor container:
   ```tsx
   <div className="max-w-4xl mx-auto p-6">
     <input
@@ -504,7 +503,7 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
     <EditorContent editor={editor} className="prose prose-flexoki" />
   </div>
   ```
-- [ ] Add custom prose styles for Tiptap in `globals.css`:
+- [x] Add custom prose styles for Tiptap in `globals.css`:
   ```css
   .prose-flexoki {
     @apply text-flexoki-tx;
