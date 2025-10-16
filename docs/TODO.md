@@ -219,6 +219,9 @@ KEY DECISION MADE SO THAT WE GET MVP WORKING --> IMPLEMENT KNOWLEDGE GRAPHS IN P
 
 **CHECKPOINT 7:** Dashboard displays voice captures beautifully
 
+- [x] implement flexoki color scheme in web and mobile
+- [ ] add delete functionality to voice card component
+
 ### Task 17: Add Search Functionality
 
 - [ ] Add search input at top of dashboard
@@ -283,7 +286,7 @@ When user asks "Help me prompt [AI] to [do something]":
 Be conversational but concise. Reference specific captures naturally (e.g., "In capture #47, you mentioned...").
 ```
 
-### Task 22: Implement Neo4j Querying
+<!-- ### Task 22: Implement Neo4j Querying -->
 
 - [ ] Create function to convert user message to Cypher query
 - [ ] Use keyword extraction for relevant concepts

@@ -157,10 +157,10 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-flexoki-tx">
-            Knowledge Garden
+            seeds of thought
           </h2>
           <p className="text-flexoki-tx-2 mt-1 italic">
-            where the mind goes to wander
+            where the mind is free to wander
           </p>
         </div>
 
@@ -186,7 +186,11 @@ export default function DashboardPage() {
         ) : (
           <div className="space-y-4">
             {captures.map((capture) => (
-              <VoiceCard key={capture.id} capture={capture} />
+              <VoiceCard
+                key={capture.id}
+                capture={capture}
+                onDelete={fetchCaptures}
+              />
             ))}
           </div>
         )}

@@ -334,7 +334,7 @@ export default function CaptureScreen() {
         <Text style={[styles.title, { color: colors.tx }]}>KI</Text>
         <TouchableOpacity onPress={handleSignOut}>
           <Text style={[styles.signOutText, { color: colors.tx2 }]}>
-            sign out
+            Sign Out
           </Text>
         </TouchableOpacity>
       </View>

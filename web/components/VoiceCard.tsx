@@ -1,3 +1,8 @@
+"use client";
+
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
 type Insight = {
   id: string;
   type: "insight" | "decision" | "question" | "concept";
@@ -18,27 +23,142 @@ type Capture = {
 
 type VoiceCardProps = {
   capture: Capture;
+  onDelete?: () => void;
 };
 
-export default function VoiceCard({ capture }: VoiceCardProps) {
+export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const supabase = createClient();
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+
+    try {
+      // Delete insights first (foreign key constraint)
+      const { error: insightsError } = await supabase
+        .from("insights")
+        .delete()
+        .eq("capture_id", capture.id);
+
+      if (insightsError) {
+        console.error("Error deleting insights:", insightsError);
+        alert("Failed to delete insights: " + insightsError.message);
+        setIsDeleting(false);
+        return;
+      }
+
+      // Delete the capture record
+      const { error: captureError } = await supabase
+        .from("captures")
+        .delete()
+        .eq("id", capture.id);
+
+      if (captureError) {
+        console.error("Error deleting capture:", captureError);
+        alert("Failed to delete capture: " + captureError.message);
+        setIsDeleting(false);
+        return;
+      }
+
+      // Optional: Delete the audio file from storage
+      // Extract the file path from the URL
+      const urlParts = capture.file_url.split("/voice-notes/");
+      if (urlParts.length === 2) {
+        const filePath = urlParts[1];
+        const { error: storageError } = await supabase.storage
+          .from("voice-notes")
+          .remove([filePath]);
+
+        if (storageError) {
+          console.error("Error deleting file from storage:", storageError);
+          // Continue anyway - the database record is deleted
+        }
+      }
+
+      // Call the onDelete callback to refresh the list
+      if (onDelete) {
+        onDelete();
+      }
+    } catch (error: any) {
+      console.error("Unexpected error during deletion:", error);
+      alert("An unexpected error occurred: " + error.message);
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="bg-flexoki-ui rounded-lg shadow-md p-6">
+    <div className="bg-flexoki-ui rounded-lg shadow-md p-6 relative">
+      {/* Confirmation Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-flexoki-ui border border-flexoki-ui-3 rounded-lg p-6 max-w-md mx-4 animate-scale-in">
+            <h3 className="text-lg font-semibold text-flexoki-tx mb-2">
+              Delete Voice Note?
+            </h3>
+            <p className="text-flexoki-tx-2 mb-4">
+              This will permanently delete this voice note, its transcription,
+              and all extracted insights. This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowConfirm(false)}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-lg text-flexoki-tx-2 hover:bg-flexoki-ui-2 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Status Badge */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm text-flexoki-tx-2">
           {new Date(capture.created_at).toLocaleString()}
         </span>
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${
-            capture.processing_status === "complete"
-              ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
-              : capture.processing_status === "synthesizing"
-              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
-              : "bg-flexoki-ui-2 text-flexoki-tx-2"
-          }`}
-        >
-          {capture.processing_status}
-        </span>
+        <div className="flex items-center gap-2">
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium ${
+              capture.processing_status === "complete"
+                ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                : capture.processing_status === "synthesizing"
+                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
+                : "bg-flexoki-ui-2 text-flexoki-tx-2"
+            }`}
+          >
+            {capture.processing_status}
+          </span>
+          <button
+            onClick={() => setShowConfirm(true)}
+            disabled={isDeleting}
+            className="p-2 rounded-lg text-flexoki-tx-3 hover:text-red-600 hover:bg-flexoki-ui-2 transition-colors disabled:opacity-50"
+            title="Delete voice note"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Audio Player */}
