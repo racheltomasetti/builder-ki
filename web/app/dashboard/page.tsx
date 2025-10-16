@@ -125,7 +125,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-flexoki-tx">KI</h1>
+              <h1 className="text-xl font-bold text-flexoki-tx italic">KI</h1>
               <span className="ml-4 text-sm text-flexoki-tx-2 italic">
                 unlocking the mind
               </span>
@@ -180,8 +180,8 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-flexoki-tx">
-            seeds of thought
+          <h2 className="text-2xl font-bold text-flexoki-tx italic">
+            THOUGHT CAPTURES
           </h2>
           <p className="text-flexoki-tx-2 mt-1 italic">
             where the mind is free to wander
