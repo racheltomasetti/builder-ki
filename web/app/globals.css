@@ -74,3 +74,83 @@ body {
 .animate-scale-in {
   animation: scale-in 0.3s ease-out;
 }
+
+/* Tiptap Editor Prose Styles */
+.prose-flexoki {
+  @apply text-flexoki-tx;
+}
+
+.prose-flexoki h1,
+.prose-flexoki h2,
+.prose-flexoki h3,
+.prose-flexoki h4,
+.prose-flexoki h5,
+.prose-flexoki h6 {
+  @apply text-flexoki-tx font-bold mt-6 mb-3;
+}
+
+.prose-flexoki h1 {
+  @apply text-3xl;
+}
+
+.prose-flexoki h2 {
+  @apply text-2xl;
+}
+
+.prose-flexoki h3 {
+  @apply text-xl;
+}
+
+.prose-flexoki p {
+  @apply text-flexoki-tx mb-4 leading-relaxed;
+}
+
+.prose-flexoki a {
+  @apply text-flexoki-accent underline hover:text-opacity-80;
+}
+
+.prose-flexoki ul,
+.prose-flexoki ol {
+  @apply text-flexoki-tx mb-4 pl-6;
+}
+
+.prose-flexoki ul {
+  @apply list-disc;
+}
+
+.prose-flexoki ol {
+  @apply list-decimal;
+}
+
+.prose-flexoki li {
+  @apply mb-2;
+}
+
+.prose-flexoki strong {
+  @apply font-bold text-flexoki-tx;
+}
+
+.prose-flexoki em {
+  @apply italic;
+}
+
+.prose-flexoki code {
+  @apply bg-flexoki-ui-2 text-flexoki-accent px-1 py-0.5 rounded text-sm;
+}
+
+.prose-flexoki pre {
+  @apply bg-flexoki-ui-2 text-flexoki-tx p-4 rounded-lg overflow-x-auto mb-4;
+}
+
+.prose-flexoki blockquote {
+  @apply border-l-4 border-flexoki-accent pl-4 italic text-flexoki-tx-2 mb-4;
+}
+
+/* Tiptap placeholder */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--tx-3);
+  pointer-events: none;
+  height: 0;
+}

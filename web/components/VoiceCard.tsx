@@ -29,7 +29,98 @@ type VoiceCardProps = {
 export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isExpanding, setIsExpanding] = useState(false);
   const supabase = createClient();
+
+  const handleExpandThought = async () => {
+    setIsExpanding(true);
+
+    try {
+      // Build Tiptap document structure with transcription and insights
+      const content = {
+        type: "doc",
+        content: [
+          // Original transcription as first paragraph
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: capture.transcription || "No transcription available.",
+              },
+            ],
+          },
+          // Add spacing
+          {
+            type: "paragraph",
+            content: [],
+          },
+          // Insights section
+          ...(capture.insights && capture.insights.length > 0
+            ? [
+                {
+                  type: "heading",
+                  attrs: { level: 2 },
+                  content: [{ type: "text", text: "Insights" }],
+                },
+                {
+                  type: "bulletList",
+                  content: capture.insights.map((insight) => ({
+                    type: "listItem",
+                    content: [
+                      {
+                        type: "paragraph",
+                        content: [
+                          {
+                            type: "text",
+                            text: `${
+                              insight.type === "insight"
+                                ? "💡"
+                                : insight.type === "decision"
+                                ? "✅"
+                                : insight.type === "question"
+                                ? "❓"
+                                : "🏷️"
+                            } ${insight.content}`,
+                          },
+                        ],
+                      },
+                    ],
+                  })),
+                },
+              ]
+            : []),
+        ],
+      };
+
+      // Call API to create document
+      const response = await fetch("/api/documents", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          capture_id: capture.id,
+          title: "Untitled Document",
+          content,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create document");
+      }
+
+      const document = await response.json();
+
+      // Navigate to the document editor
+      window.location.href = `/dashboard/documents/${document.id}`;
+    } catch (error: any) {
+      console.error("Error expanding thought:", error);
+      alert("Failed to expand thought: " + error.message);
+      setIsExpanding(false);
+    }
+  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -204,6 +295,34 @@ export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      {capture.processing_status === "complete" && capture.transcription && (
+        <div className="mt-4 pt-4 border-t border-flexoki-ui-3 flex justify-end">
+          <button
+            onClick={handleExpandThought}
+            disabled={isExpanding}
+            className="px-4 py-2 bg-flexoki-accent opacity-85 hover:opacity-100 text-flexoki-tx rounded-lg hover:bg-opacity-90 transition-colors disabled:opacity-50 flex items-center gap-2"
+            title="Expand this thought into a document"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            {isExpanding ? "Creating..." : "Expand Thought"}
+          </button>
         </div>
       )}
     </div>
