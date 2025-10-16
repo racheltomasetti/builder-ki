@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
-import { View, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, ActivityIndicator, StyleSheet, useColorScheme } from 'react-native'
 import { supabase } from './lib/supabase'
 import AuthScreen from './screens/AuthScreen'
 import CaptureScreen from './screens/CaptureScreen'
+import { useThemeColors } from './theme/colors'
 
 export default function App() {
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
+  const colors = useThemeColors(isDark)
+
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
@@ -28,15 +33,15 @@ export default function App() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
   }
 
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       {session ? <CaptureScreen /> : <AuthScreen />}
     </>
   )
@@ -45,7 +50,6 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -13,10 +13,12 @@ import {
 import { supabase } from "../lib/supabase";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system/legacy";
+import { useThemeColors } from "../theme/colors";
 
 export default function CaptureScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const colors = useThemeColors(isDark);
 
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -127,7 +129,9 @@ export default function CaptureScreen() {
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   // === VOICE RECORDING ===
@@ -320,21 +324,26 @@ export default function CaptureScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, isDark && styles.containerDark]}>
-      <View style={[styles.header, isDark && styles.headerDark]}>
-        <Text style={[styles.title, isDark && styles.titleDark]}>ki</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
+      <View
+        style={[
+          styles.header,
+          { borderBottomColor: colors.ui3, backgroundColor: colors.ui },
+        ]}
+      >
+        <Text style={[styles.title, { color: colors.tx }]}>KI</Text>
         <TouchableOpacity onPress={handleSignOut}>
-          <Text style={styles.signOutText}>Sign out</Text>
+          <Text style={[styles.signOutText, { color: colors.tx2 }]}>
+            sign out
+          </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
         {uploading && (
           <View style={styles.uploadingContainer}>
-            <ActivityIndicator size="large" color="#3b82f6" />
-            <Text
-              style={[styles.uploadingText, isDark && styles.uploadingTextDark]}
-            >
+            <ActivityIndicator size="large" color={colors.accent2} />
+            <Text style={[styles.uploadingText, { color: colors.tx2 }]}>
               Uploading voice note...
             </Text>
           </View>
@@ -354,6 +363,7 @@ export default function CaptureScreen() {
                   <Animated.View
                     style={[
                       styles.glowRing,
+                      { borderColor: colors.accent2 },
                       {
                         opacity: glowAnim.interpolate({
                           inputRange: [0, 1],
@@ -373,6 +383,7 @@ export default function CaptureScreen() {
                   <Animated.View
                     style={[
                       styles.glowRing,
+                      { borderColor: colors.accent2 },
                       {
                         opacity: glowAnim.interpolate({
                           inputRange: [0, 1],
@@ -394,7 +405,13 @@ export default function CaptureScreen() {
 
               {/* Blue circle - always visible */}
               <TouchableOpacity
-                style={styles.micButton}
+                style={[
+                  styles.micButton,
+                  {
+                    backgroundColor: recording ? colors.accent2 : colors.accent,
+                    shadowColor: recording ? colors.accent2 : colors.accent,
+                  },
+                ]}
                 onPress={recording ? stopRecording : startRecording}
                 activeOpacity={0.8}
               />
@@ -405,7 +422,7 @@ export default function CaptureScreen() {
         {/* Recording duration - fixed at bottom, only show when recording */}
         {recording && (
           <View style={styles.durationContainer}>
-            <Text style={[styles.durationText, isDark && styles.durationTextDark]}>
+            <Text style={[styles.durationText, { color: colors.accent2 }]}>
               {formatDuration(recordingDuration)}
             </Text>
           </View>
@@ -418,7 +435,6 @@ export default function CaptureScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
   },
   header: {
     flexDirection: "row",
@@ -426,16 +442,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-    backgroundColor: "#fff",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#111827",
   },
   signOutText: {
-    color: "#3b82f6",
     fontSize: 14,
   },
   content: {
@@ -446,7 +458,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#111827",
     marginBottom: 48,
     textAlign: "center",
   },
@@ -458,7 +469,6 @@ const styles = StyleSheet.create({
   uploadingText: {
     marginTop: 16,
     fontSize: 18,
-    color: "#6b7280",
     fontWeight: "500",
   },
   mainContent: {
@@ -470,8 +480,6 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: "#3b82f6",
-    shadowColor: "#3b82f6",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -490,7 +498,6 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     borderWidth: 3,
-    borderColor: "#3b82f6",
     backgroundColor: "transparent",
   },
   durationContainer: {
@@ -503,24 +510,6 @@ const styles = StyleSheet.create({
   durationText: {
     fontSize: 32,
     fontWeight: "600",
-    color: "#3b82f6",
     fontVariant: ["tabular-nums"],
-  },
-  // Dark mode styles
-  containerDark: {
-    backgroundColor: "#111827",
-  },
-  headerDark: {
-    borderBottomColor: "#374151",
-    backgroundColor: "#1f2937",
-  },
-  titleDark: {
-    color: "#f9fafb",
-  },
-  uploadingTextDark: {
-    color: "#9ca3af",
-  },
-  durationTextDark: {
-    color: "#60a5fa",
   },
 });

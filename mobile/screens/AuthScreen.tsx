@@ -12,10 +12,12 @@ import {
   useColorScheme,
 } from 'react-native'
 import { supabase } from '../lib/supabase'
+import { useThemeColors } from '../theme/colors'
 
 export default function AuthScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const colors = useThemeColors(isDark);
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -68,20 +70,23 @@ export default function AuthScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, isDark && styles.containerDark]}
+      style={[styles.container, { backgroundColor: colors.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
-        <Text style={[styles.title, isDark && styles.titleDark]}>ki</Text>
-        <Text style={[styles.subtitle, isDark && styles.subtitleDark]}>
+        <Text style={[styles.title, { color: colors.tx }]}>ki</Text>
+        <Text style={[styles.subtitle, { color: colors.tx2 }]}>
           {isSignUp ? 'Create your account' : 'Sign in to continue'}
         </Text>
 
         <View style={styles.form}>
           <TextInput
-            style={[styles.input, isDark && styles.inputDark]}
+            style={[
+              styles.input,
+              { backgroundColor: colors.ui, borderColor: colors.ui3, color: colors.tx }
+            ]}
             placeholder="Email"
-            placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+            placeholderTextColor={colors.tx2}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -90,9 +95,12 @@ export default function AuthScreen() {
           />
 
           <TextInput
-            style={[styles.input, isDark && styles.inputDark]}
+            style={[
+              styles.input,
+              { backgroundColor: colors.ui, borderColor: colors.ui3, color: colors.tx }
+            ]}
             placeholder="Password"
-            placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
+            placeholderTextColor={colors.tx2}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -101,14 +109,18 @@ export default function AuthScreen() {
           />
 
           <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
+            style={[
+              styles.button,
+              { backgroundColor: colors.accent },
+              loading && styles.buttonDisabled
+            ]}
             onPress={handleAuth}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.bg} />
             ) : (
-              <Text style={styles.buttonText}>
+              <Text style={[styles.buttonText, { color: colors.bg }]}>
                 {isSignUp ? 'Sign Up' : 'Sign In'}
               </Text>
             )}
@@ -119,7 +131,7 @@ export default function AuthScreen() {
             onPress={() => setIsSignUp(!isSignUp)}
             disabled={loading}
           >
-            <Text style={styles.toggleText}>
+            <Text style={[styles.toggleText, { color: colors.accent }]}>
               {isSignUp
                 ? 'Already have an account? Sign in'
                 : "Don't have an account? Sign up"}
@@ -134,7 +146,6 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
   },
   content: {
     flex: 1,
@@ -145,29 +156,24 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#111827',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#6b7280',
     marginBottom: 48,
   },
   form: {
     width: '100%',
   },
   input: {
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#d1d5db',
     borderRadius: 8,
     padding: 16,
     fontSize: 16,
     marginBottom: 16,
   },
   button: {
-    backgroundColor: '#2563eb',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
@@ -177,7 +183,6 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -186,22 +191,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toggleText: {
-    color: '#2563eb',
     fontSize: 14,
-  },
-  // Dark mode styles
-  containerDark: {
-    backgroundColor: '#111827',
-  },
-  titleDark: {
-    color: '#f9fafb',
-  },
-  subtitleDark: {
-    color: '#9ca3af',
-  },
-  inputDark: {
-    backgroundColor: '#1f2937',
-    borderColor: '#374151',
-    color: '#f9fafb',
   },
 })

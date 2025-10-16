@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ki - AI-Powered Thought Clarification",
+  title: "KI - AI-Powered Thought Clarification",
   description:
     "Capture scattered thinking and transform it into prompt-ready clarity",
 };

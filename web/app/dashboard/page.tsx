@@ -101,7 +101,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-flexoki-tx">ki</h1>
+              <h1 className="text-xl font-bold text-flexoki-tx">KI</h1>
               <span className="ml-4 text-sm text-flexoki-tx-2 italic">
                 unlocking the mind
               </span>
@@ -176,7 +176,7 @@ export default function DashboardPage() {
                   Next Steps:
                 </h3>
                 <ul className="text-sm text-flexoki-tx-2 space-y-1 list-disc list-inside">
-                  <li>Open the ki mobile app and sign in</li>
+                  <li>Open the KI mobile app and sign in</li>
                   <li>Tap the blue circle to record a voice note</li>
                   <li>Your captures will appear here once processed</li>
                 </ul>
