@@ -467,8 +467,8 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 
 **File:** `web/components/DocumentEditor.tsx`
 
-- [ ] Create client component with Tiptap integration
-- [ ] Initialize Tiptap editor with extensions:
+- [x] Create client component with Tiptap integration
+- [x] Initialize Tiptap editor with extensions:
   ```typescript
   const editor = useEditor({
     extensions: [
@@ -527,8 +527,8 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 
 **File:** `web/app/dashboard/documents/page.tsx`
 
-- [ ] Create server component to fetch all user's documents
-- [ ] Query Supabase:
+- [x] Create server component to fetch all user's documents
+- [x] Query Supabase:
   ```typescript
   const { data: documents } = await supabase
     .from("documents")
@@ -540,22 +540,22 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
     )
     .order("updated_at", { ascending: false });
   ```
-- [ ] Pass documents to client component
-- [ ] Add page header with "New Document" button (creates blank document)
-- [ ] Add navigation link in dashboard layout/header
+- [x] Pass documents to client component
+- [x] Add page header with "New Document" button (creates blank document)
+- [x] Add navigation link in dashboard layout/header
 
 **File:** `web/components/DocumentCard.tsx`
 
-- [ ] Create card component (similar pattern to VoiceCard)
-- [ ] Display:
+- [x] Create card component (similar pattern to VoiceCard)
+- [x] Display:
   - Document title (truncate if long)
   - Preview of content (first 150 characters of plain text)
   - Last updated timestamp (relative: "2 hours ago")
   - Link to source capture (if exists): "From voice note on Jan 15"
   - Word count or character count badge
-- [ ] Add click handler to navigate to `/dashboard/documents/[id]`
-- [ ] Add delete button (with confirmation modal, same pattern as VoiceCard)
-- [ ] Style with flexoki colors:
+- [x] Add click handler to navigate to `/dashboard/documents/[id]`
+- [x] Add delete button (with confirmation modal, same pattern as VoiceCard)
+- [x] Style with flexoki colors:
   ```tsx
   <div className="bg-flexoki-ui rounded-lg shadow-md p-6 hover:bg-flexoki-ui-2 transition-colors cursor-pointer">
     <h3 className="text-xl font-semibold text-flexoki-tx mb-2">{title}</h3>

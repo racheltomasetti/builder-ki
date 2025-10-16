@@ -172,8 +172,9 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
           type="text"
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
-          className="text-4xl font-bold bg-transparent border-none text-flexoki-tx focus:outline-none w-full mb-6 placeholder-flexoki-tx-3"
+          className="text-5xl font-bold bg-transparent border-none text-flexoki-tx focus:outline-none w-full mb-6 placeholder-flexoki-tx-3 leading-tight"
           placeholder="Untitled Document"
+          style={{ lineHeight: "2.2" }}
         />
 
         {/* Editor Toolbar */}
