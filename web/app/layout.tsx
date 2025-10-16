@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/lib/theme";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -9,7 +10,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "ki - AI-Powered Thought Clarification",
-  description: "Capture scattered thinking and transform it into prompt-ready clarity",
+  description:
+    "Capture scattered thinking and transform it into prompt-ready clarity",
 };
 
 export default function RootLayout({
@@ -20,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

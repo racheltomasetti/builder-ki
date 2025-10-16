@@ -56,17 +56,16 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 
 ### Task 5: Webhook Setup
 
-- [ ] Open n8n dashboard (http://localhost:5678)
-- [ ] Create new workflow: "Voice Capture Processing"
-- [ ] Add Webhook trigger node
+- [x] Open n8n dashboard (http://localhost:5678)
+- [x] Create new workflow: "Voice Capture Processing"
+- [x] Add Webhook trigger node
   - Set to POST method
   - Note webhook URL for Supabase configuration
-- [ ] Add initial test node (HTTP Response) to verify webhook works
 
 ### Task 6: Configure Supabase Database Webhook
 
-- [ ] Go to Supabase Dashboard → Database → Webhooks
-- [ ] Create new webhook:
+- [x] Go to Supabase Dashboard → Database → Webhooks
+- [x] Create new webhook:
   - Name: "New Voice Capture Trigger"
   - Table: `captures`
   - Events: `INSERT`
@@ -74,47 +73,45 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
   - HTTP Method: `POST`
   - URL: n8n webhook URL from Task 5
   - HTTP Headers: `Content-Type: application/json`
-- [ ] Test: Create capture manually, verify n8n receives webhook
+- [x] Test: Create capture manually, verify n8n receives webhook
 
 **CHECKPOINT 2:** Webhook triggers when new capture inserted
 
-### Task 7: Download Voice File from Supabase Storage
+### Task 7: Download Voice File from HTTP Request Node
 
-- [ ] Add "Supabase" node in n8n
-- [ ] Configure to download file from Storage
-  - Bucket: `voice-notes`
-  - File path: Extract from webhook payload `file_url`
-- [ ] Output file as binary data for next step
+- [x] Add "HTTP Request" node in n8n
+- [x] Configure to download file from webhook payload
+- [x] Output file as binary data for next step
 
 ### Task 8: Whisper Transcription
 
-- [ ] Add "HTTP Request" node for OpenAI Whisper API
+- [x] Add "HTTP Request" node for OpenAI Whisper API
   - Method: POST
   - URL: `https://api.openai.com/v1/audio/transcriptions`
   - Authentication: Bearer token (OpenAI API key)
   - Body: Form-data with audio file
   - Model: `whisper-1`
-- [ ] Extract transcription text from response
-- [ ] Add error handling (retry logic)
+- [x] Extract transcription text from response
+- [x] Add error handling (retry logic)
 
 ### Task 9: Update Capture with Transcription
 
-- [ ] Add "Supabase" node to update captures table
-- [ ] Set fields:
+- [x] Add "Supabase" node to update captures table
+- [x] Set fields:
   - `transcription`: Text from Whisper response
   - `processing_status`: 'synthesizing'
-- [ ] WHERE: `id` = capture ID from webhook payload
+- [x] WHERE: `id` = capture ID from webhook payload
 
 **CHECKPOINT 3:** Voice captures show transcription in database
 
 ### Task 10: Claude AI Synthesis
 
-- [ ] Add "HTTP Request" node for Anthropic Claude API
+- [x] Add "HTTP Request" node for Anthropic Claude API
   - Method: POST
   - URL: `https://api.anthropic.com/v1/messages`
   - Authentication: x-api-key header (Anthropic API key)
   - Model: `claude-3-5-sonnet-20241022`
-- [ ] Construct prompt:
+- [x] Construct prompt:
 
   ```
   Analyze this voice note transcription and extract:
@@ -134,11 +131,11 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
   }
   ```
 
-- [ ] Parse JSON response from Claude
+- [x] Parse JSON response from Claude
 
 **CHECKPOINT 4:** Claude returns structured insights JSON
 
-### Task 11: Create Neo4j Graph Nodes
+<!-- ### Task 11: Create Neo4j Graph Nodes -->
 
 - [ ] Add "Neo4j" node to create Capture node
   - Label: `Capture`
@@ -157,11 +154,12 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
   - Create relationship: `(Capture)-[:EXTRACTED_FROM]->(Concept)`
 
 **CHECKPOINT 5:** Neo4j Browser shows graph data after capture
+KEY DECISION MADE SO THAT WE GET MVP WORKING --> IMPLEMENT KNOWLEDGE GRAPHS IN PHASE 2
 
 ### Task 12: Insert Insights into Supabase
 
-- [ ] Add "Supabase" node to bulk insert into `insights` table
-- [ ] Map each insight/decision/question/concept to:
+- [x] Add "Supabase" node to bulk insert into `insights` table
+- [x] Map each insight/decision/question/concept to:
   ```json
   {
     "capture_id": capture_id,
@@ -169,15 +167,15 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
     "content": text_content
   }
   ```
-- [ ] Execute batch insert
+- [x] Execute batch insert
 
 ### Task 13: Mark Processing Complete
 
-- [ ] Add final "Supabase" node to update captures table
-- [ ] Set fields:
+- [x] Add final "Supabase" node to update captures table
+- [x] Set fields:
   - `processing_status`: 'complete'
   - `processed_at`: Current timestamp
-- [ ] WHERE: `id` = capture ID
+- [x] WHERE: `id` = capture ID
 
 **CHECKPOINT 6:** Full pipeline works end-to-end (< 60 seconds)
 
@@ -187,8 +185,8 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
 
 ### Task 14: Fetch Voice Captures
 
-- [ ] Create server component or API route: `/app/dashboard/page.tsx`
-- [ ] Query Supabase:
+- [x] Create server component or API route: `/app/dashboard/page.tsx`
+- [x] Query Supabase:
   ```typescript
   const { data: captures } = await supabase
     .from("captures")
@@ -196,29 +194,28 @@ We've simplified the MVP to focus exclusively on **live voice capture** for scat
     .eq("type", "voice")
     .order("created_at", { ascending: false });
   ```
-- [ ] Pass captures to client component
+- [x] Pass captures to client component
 
 ### Task 15: Build VoiceCard Component
 
-- [ ] Create `components/VoiceCard.tsx`
-- [ ] Display:
+- [x] Create `components/VoiceCard.tsx`
+- [x] Display:
   - Audio player (HTML5 `<audio>` with controls)
   - Timestamp (formatted: "2 hours ago", "Jan 15, 2025")
   - Processing status badge
   - Transcription text (collapsible if long)
   - Insights section (expandable)
-- [ ] Style with Tailwind CSS
+- [x] Style with Tailwind CSS
 
 ### Task 16: Display Insights
 
-- [ ] Group insights by type (insight, decision, question, concept)
-- [ ] Create expandable sections for each type
-- [ ] Visual hierarchy:
+- [x] Group insights by type (insight, decision, question, concept)
+- [x] Visual hierarchy:
   - 💡 Insights
   - ✅ Decisions
   - ❓ Questions
   - 🏷️ Concepts
-- [ ] Show count badges (e.g., "5 insights")
+- [x] Show count badges (e.g., "5 insights")
 
 **CHECKPOINT 7:** Dashboard displays voice captures beautifully
 

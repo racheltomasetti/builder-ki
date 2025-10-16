@@ -27,9 +27,10 @@ services:
       - N8N_HOST=localhost
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
-      - WEBHOOK_URL=http://localhost:5678/
+      - WEBHOOK_URL= https://unquarrelling-chemosynthetically-kelsi.ngrok-free.dev
       # Add these for connecting to Supabase/Neo4j
       - GENERIC_TIMEZONE=America/New_York
+      - NODE_FUNCTION_ALLOW_EXTERNAL=neo4j-driver
     volumes:
       - n8n_data:/home/node/.n8n
     restart: unless-stopped
