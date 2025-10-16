@@ -22,19 +22,19 @@ type VoiceCardProps = {
 
 export default function VoiceCard({ capture }: VoiceCardProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div className="bg-flexoki-ui rounded-lg shadow-md p-6">
       {/* Status Badge */}
       <div className="flex items-center justify-between mb-4">
-        <span className="text-sm text-gray-500 dark:text-gray-400">
+        <span className="text-sm text-flexoki-tx-2">
           {new Date(capture.created_at).toLocaleString()}
         </span>
         <span
           className={`px-3 py-1 rounded-full text-xs font-medium ${
             capture.processing_status === "complete"
-              ? "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300"
+              ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
               : capture.processing_status === "synthesizing"
-              ? "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300"
-              : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
+              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
+              : "bg-flexoki-ui-2 text-flexoki-tx-2"
           }`}
         >
           {capture.processing_status}
@@ -54,10 +54,10 @@ export default function VoiceCard({ capture }: VoiceCardProps) {
       {/* Transcription */}
       {capture.transcription && (
         <div className="mb-4">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <h3 className="text-sm font-semibold text-flexoki-tx mb-2">
             Transcription
           </h3>
-          <p className="text-gray-800 dark:text-gray-200 leading-relaxed">
+          <p className="text-flexoki-tx leading-relaxed">
             {capture.transcription}
           </p>
         </div>
@@ -65,8 +65,8 @@ export default function VoiceCard({ capture }: VoiceCardProps) {
 
       {/* Insights */}
       {capture.insights && capture.insights.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+        <div className="mt-4 pt-4 border-t border-flexoki-ui-3">
+          <h3 className="text-sm font-semibold text-flexoki-tx mb-3">
             Extracted Insights ({capture.insights.length})
           </h3>
           <div className="space-y-2">
@@ -78,7 +78,7 @@ export default function VoiceCard({ capture }: VoiceCardProps) {
                   {insight.type === "question" && "❓"}
                   {insight.type === "concept" && "🏷️"}
                 </span>
-                <span className="text-gray-700 dark:text-gray-300 flex-1">
+                <span className="text-flexoki-tx flex-1">
                   {insight.content}
                 </span>
               </div>

@@ -1,3 +1,76 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Flexoki color scheme implementation */
+
+/* Default to dark theme */
+:root,
+html.dark {
+  --bg: #100f0f;
+  --bg-2: #1c1b1a;
+  --tx: #cecdc3;
+  --tx-2: #878580;
+  --tx-3: #575653;
+  --ui: #282726;
+  --ui-2: #343331;
+  --ui-3: #403e3c;
+  --accent: #e35336;
+  --accent-2: #8f9779;
+}
+
+/* Light theme */
+html.light {
+  --bg: #fffcf0;
+  --bg-2: #f2f0e5;
+  --tx: #100f0f;
+  --tx-2: #6f6e69;
+  --tx-3: #b7b5ac;
+  --ui: #e6e4d9;
+  --ui-2: #dad8ce;
+  --ui-3: #cecdc3;
+  --accent: #e35336;
+  --accent-2: #8f9779;
+}
+
+body {
+  background: var(--bg);
+  color: var(--tx);
+  margin: 0;
+  padding: 0;
+  touch-action: pan-x pan-y;
+}
+
+/* Prevent zoom on mobile */
+* {
+  touch-action: manipulation;
+}
+
+/* Animations for smooth transitions */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
