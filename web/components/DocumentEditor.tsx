@@ -35,6 +35,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isThinkingPartnerOpen, setIsThinkingPartnerOpen] = useState(false);
+  const [panelWidth, setPanelWidth] = useState(400); // Default width for ThinkingPartner
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize Supabase client using the proper helper
@@ -287,7 +288,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [router]);
 
-  // Ctrl+Enter to toggle Thinking Partner
+  // Ctrl++Shift+Enter to toggle Thinking Partner
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.shiftKey && event.key === "Enter") {
@@ -301,13 +302,17 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-flexoki-bg">
+    <div
+      className="min-h-screen bg-flexoki-bg transition-all duration-300"
+      style={{ paddingRight: isThinkingPartnerOpen ? panelWidth : 0 }}
+    >
       {/* Header */}
-      <div className="bg-flexoki-ui border-b border-flexoki-ui-3">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="bg-flexoki border-b border-flexoki-ui-3">
+        <div className="relative px-6 py-4">
+          {/* Back button - left aligned */}
           <button
             onClick={() => router.push("/dashboard/documents")}
-            className="text-flexoki-tx-2 hover:text-flexoki-tx transition-colors flex items-center gap-2"
+            className="absolute left-6 top-1/2 -translate-y-1/2 text-flexoki-tx-2 hover:text-flexoki-tx transition-colors flex items-center gap-2"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -323,29 +328,30 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            Back to Documents
           </button>
 
-          {/* Save Status */}
-          <div className="flex items-center gap-2 text-sm text-flexoki-tx-3">
-            {saveStatus === "saving" && (
-              <>
-                <span className="animate-pulse">●</span>
-                <span>Saving...</span>
-              </>
-            )}
-            {saveStatus === "saved" && (
-              <>
-                <span className="text-green-500">✓</span>
-                <span>Saved</span>
-              </>
-            )}
-            {saveStatus === "error" && (
-              <>
-                <span className="text-red-500">✗</span>
-                <span>Error saving</span>
-              </>
-            )}
+          {/* Save Status - centered */}
+          <div className="flex justify-center">
+            <div className="flex items-center gap-2 text-sm text-flexoki-tx-3">
+              {saveStatus === "saving" && (
+                <>
+                  <span className="animate-pulse">●</span>
+                  <span>Saving...</span>
+                </>
+              )}
+              {saveStatus === "saved" && (
+                <>
+                  <span className="text-green-500">✓</span>
+                  <span>Saved</span>
+                </>
+              )}
+              {saveStatus === "error" && (
+                <>
+                  <span className="text-red-500">✗</span>
+                  <span>Error saving</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -569,6 +575,8 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
         documentId={document.id}
         isOpen={isThinkingPartnerOpen}
         onClose={() => setIsThinkingPartnerOpen(false)}
+        panelWidth={panelWidth}
+        onWidthChange={setPanelWidth}
       />
     </div>
   );

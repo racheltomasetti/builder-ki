@@ -590,8 +590,8 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 
 **File:** `web/components/ThinkingPartner.tsx`
 
-- [ ] Create slide-out panel component (slides in from right)
-- [ ] Add toggle button in DocumentEditor (fixed position, right side):
+- [x] Create slide-out panel component (slides in from right)
+- [x] Add toggle button in DocumentEditor (fixed position, right side):
   ```tsx
   <button
     onClick={() => setShowAgent(!showAgent)}
@@ -600,7 +600,7 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
     {showAgent ? "→" : "💬"}
   </button>
   ```
-- [ ] Build panel structure:
+- [x] Build panel structure:
 
   ```tsx
   <div
@@ -643,12 +643,12 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
   </div>
   ```
 
-- [ ] Implement MessageBubble component:
+- [x] Implement MessageBubble component:
   - User messages: right-aligned, accent background
   - Agent messages: left-aligned, UI-2 background
   - Support markdown rendering in agent messages (use `react-markdown`)
   - Show typing indicator when agent is responding
-- [ ] Install markdown dependency: `pnpm add react-markdown`
+- [x] Install markdown dependency: `pnpm add react-markdown`
 
 **CHECKPOINT 14:** Panel slides in/out, messages display correctly
 
@@ -658,8 +658,8 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 
 **File:** `web/app/api/thinking-partner/route.ts`
 
-- [ ] Create API route for agent chat
-- [ ] Implement `POST` handler (send message):
+- [x] Create API route for agent chat
+- [x] Implement `POST` handler (send message):
 
   - Accept `{ message: string, documentId: string, documentContent: object }`
   - Use `createServerClient()` to verify auth
@@ -690,8 +690,8 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
     });
     ```
 
-- [ ] Add environment variable: `ANTHROPIC_API_KEY` in `.env.local`
-- [ ] Install Anthropic SDK: `pnpm add @anthropic-ai/sdk`
+- [x] Add environment variable: `ANTHROPIC_API_KEY` in `.env.local`
+- [x] Install Anthropic SDK: `pnpm add @anthropic-ai/sdk`
 
 **CHECKPOINT 15:** API route receives messages and streams Claude responses
 
@@ -701,7 +701,7 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
 
 **File:** `web/lib/prompts/thinking-partner.ts`
 
-- [ ] Create system prompt template:
+- [x] Create system prompt template:
 
   ```typescript
   export const thinkingPartnerPrompt = (context: {
@@ -744,7 +744,7 @@ ${context.insights.map((i) => `- ${i.type}: ${i.content}`).join("\n")}`
   `;
   ```
 
-- [ ] Export helper function to construct full prompt
+- [x] Export helper function to construct full prompt
 
 **CHECKPOINT 16:** System prompt includes document context and insights
 
@@ -754,7 +754,7 @@ ${context.insights.map((i) => `- ${i.type}: ${i.content}`).join("\n")}`
 
 **File:** `web/components/ThinkingPartner.tsx`
 
-- [ ] Implement `handleSendMessage` function:
+- [x] Implement `handleSendMessage` function:
 
   ```typescript
   const handleSendMessage = async () => {
@@ -807,9 +807,7 @@ ${context.insights.map((i) => `- ${i.type}: ${i.content}`).join("\n")}`
   };
   ```
 
-- [ ] Add keyboard shortcut (Enter to send, Shift+Enter for new line)
-- [ ] Add scroll-to-bottom on new messages
-- [ ] Add copy button to agent messages (for suggested text)
+- [x] Add keyboard shortcut (Enter to send, Shift+Enter for new line)
 
 **CHECKPOINT 17:** User can chat with agent, sees streaming responses
 

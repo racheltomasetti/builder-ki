@@ -15,20 +15,26 @@ type ThinkingPartnerProps = {
   documentId: string;
   isOpen: boolean;
   onClose: () => void;
+  panelWidth: number;
+  onWidthChange: (width: number) => void;
 };
 
 export default function ThinkingPartner({
   documentId,
   isOpen,
   onClose,
+  panelWidth,
+  onWidthChange,
 }: ThinkingPartnerProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   // Load conversation history on mount
@@ -50,6 +56,45 @@ export default function ThinkingPartner({
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [input]);
+
+  // Handle mouse events for resizing
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsResizing(true);
+    e.preventDefault();
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+
+      const newWidth = window.innerWidth - e.clientX;
+      const clampedWidth = Math.max(300, Math.min(900, newWidth));
+      onWidthChange(clampedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing]);
+
+  // Add cursor feedback during resize
+  useEffect(() => {
+    if (isResizing) {
+      document.body.style.cursor = "col-resize";
+    } else {
+      document.body.style.cursor = "default";
+    }
+  }, [isResizing]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -206,54 +251,23 @@ export default function ThinkingPartner({
 
   return (
     <>
-      {/* Toggle Button */}
-      <button
-        onClick={() => (isOpen ? onClose() : null)}
-        className={`fixed right-0 top-1/2 -translate-y-1/2 bg-flexoki-accent text-white p-3 shadow-lg hover:bg-opacity-90 transition-all z-50 ${
-          isOpen ? "rounded-l-lg" : "rounded-l-lg"
-        }`}
-        style={{ right: isOpen ? "384px" : "0" }}
-      >
-        {isOpen ? (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-            />
-          </svg>
-        )}
-      </button>
-
       {/* Slide-out Panel */}
       <div
-        className={`fixed right-0 top-0 h-full w-96 bg-flexoki-ui border-l border-flexoki-ui-3 shadow-2xl transform transition-transform duration-300 z-40 ${
+        ref={panelRef}
+        className={`fixed right-0 top-0 h-full bg-flexoki-ui border-l border-flexoki-ui-3 shadow-2xl transform transition-transform duration-300 z-40 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
+        style={{ width: panelWidth }}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full relative">
+          {/* Resize Handle */}
+          <div
+            onMouseDown={handleMouseDown}
+            className={`absolute left-0 top-0 h-full w-1 hover:w-2 cursor-col-resize bg-transparent hover:bg-flexoki-accent transition-all ${
+              isResizing ? "w-2 bg-flexoki-accent" : ""
+            }`}
+            style={{ zIndex: 50 }}
+          />
           {/* Header */}
           <div className="border-b border-flexoki-ui-3 p-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-flexoki-tx">KI</h2>
