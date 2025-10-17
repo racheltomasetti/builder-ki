@@ -154,3 +154,68 @@ body {
   pointer-events: none;
   height: 0;
 }
+
+/* Resizable Image Styles */
+.prose-flexoki img {
+  @apply rounded-lg max-w-full h-auto my-4;
+}
+
+/* Image resize handles */
+.ProseMirror .resize-trigger {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.ProseMirror .image-wrapper:hover .resize-trigger {
+  opacity: 1;
+}
+
+/* Image wrapper for resizable images */
+.ProseMirror .image-wrapper {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  margin: 1rem 0;
+}
+
+.ProseMirror .image-wrapper.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Text alignment styles */
+.ProseMirror [style*="text-align: left"] {
+  text-align: left;
+}
+
+.ProseMirror [style*="text-align: center"] {
+  text-align: center;
+}
+
+.ProseMirror [style*="text-align: right"] {
+  text-align: right;
+}
+
+/* Center aligned images */
+.ProseMirror p[style*="text-align: center"] .image-wrapper,
+.ProseMirror div[style*="text-align: center"] .image-wrapper {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Right aligned images */
+.ProseMirror p[style*="text-align: right"] .image-wrapper,
+.ProseMirror div[style*="text-align: right"] .image-wrapper {
+  display: block;
+  margin-left: auto;
+  margin-right: 0;
+}

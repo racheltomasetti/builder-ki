@@ -570,7 +570,7 @@ Be conversational but concise. Reference specific captures naturally (e.g., "In 
     </div>
   </div>
   ```
-- [ ] Add empty state when no documents exist:
+- [x] Add empty state when no documents exist:
   ```tsx
   <div className="text-center py-12">
     <p className="text-flexoki-tx-2 mb-4">No documents yet</p>

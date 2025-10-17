@@ -3,8 +3,13 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useState, useEffect, useCallback } from "react";
+import TextAlign from "@tiptap/extension-text-align";
+import { FileHandler } from "@tiptap/extension-file-handler";
+import ImageResize from "tiptap-extension-resize-image";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import imageCompression from "browser-image-compression";
+import { createClient } from "@/lib/supabase/client";
 
 type Document = {
   id: string;
@@ -27,6 +32,66 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     "saved" | "saving" | "error" | null
   >(null);
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize Supabase client using the proper helper
+  const supabase = createClient();
+
+  // Image upload handler with compression
+  const uploadImage = async (file: File): Promise<string> => {
+    try {
+      setIsUploadingImage(true);
+      console.log("Starting upload for file:", file.name, "Type:", file.type);
+
+      // Compress image
+      const options = {
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: file.type as any,
+      };
+
+      console.log("Compressing image...");
+      const compressedFile = await imageCompression(file, options);
+      console.log("Compressed file size:", compressedFile.size, "bytes");
+
+      // Generate unique filename
+      const fileExt = compressedFile.name.split(".").pop();
+      const fileName = `${document.id}/${Date.now()}.${fileExt}`;
+      console.log("Uploading to path:", fileName);
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from("photos")
+        .upload(fileName, compressedFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (error) {
+        console.error("Upload error:", error);
+        alert(`Upload failed: ${error.message}`);
+        throw error;
+      }
+
+      console.log("Upload successful:", data);
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("photos").getPublicUrl(fileName);
+
+      console.log("Public URL:", publicUrl);
+      return publicUrl;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw error;
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -34,6 +99,61 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
       StarterKit,
       Placeholder.configure({
         placeholder: "Start writing your thoughts...",
+      }),
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+        alignments: ["left", "center", "right"],
+      }),
+      ImageResize.configure({
+        inline: false,
+        allowBase64: false,
+      }),
+      FileHandler.configure({
+        allowedMimeTypes: ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"],
+        onDrop: (currentEditor, files, pos) => {
+          console.log("Files dropped:", files);
+          files.forEach(async (file) => {
+            if (file.type.startsWith("image/")) {
+              try {
+                console.log("Processing image drop:", file.name);
+                const url = await uploadImage(file);
+                currentEditor
+                  .chain()
+                  .insertContentAt(pos, {
+                    type: "imageResize",
+                    attrs: { src: url },
+                  })
+                  .focus()
+                  .run();
+              } catch (error) {
+                console.error("Error dropping image:", error);
+              }
+            }
+          });
+          return true;
+        },
+        onPaste: (currentEditor, files) => {
+          console.log("Files pasted:", files);
+          files.forEach(async (file) => {
+            if (file.type.startsWith("image/")) {
+              try {
+                console.log("Processing image paste:", file.name);
+                const url = await uploadImage(file);
+                currentEditor
+                  .chain()
+                  .insertContent({
+                    type: "imageResize",
+                    attrs: { src: url },
+                  })
+                  .focus()
+                  .run();
+              } catch (error) {
+                console.error("Error pasting image:", error);
+              }
+            }
+          });
+          return true;
+        },
       }),
     ],
     content: document.content,
@@ -104,6 +224,36 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     }, 1000);
 
     setSaveTimeout(timeout);
+  };
+
+  // Handle manual image upload from toolbar
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    if (!files || !editor) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const url = await uploadImage(file);
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "imageResize",
+            attrs: { src: url },
+          })
+          .run();
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   // Cleanup timeout on unmount
@@ -191,7 +341,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
 
         {/* Editor Toolbar */}
         {editor && (
-          <div className="mb-4 flex gap-2 pb-4 border-b border-flexoki-ui-3">
+          <div className="mb-4 flex gap-2 pb-4 border-b border-flexoki-ui-3 flex-wrap">
             <button
               onClick={() => editor.chain().focus().toggleBold().run()}
               className={`px-3 py-1 rounded text-sm ${
@@ -256,6 +406,134 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             >
               Numbered List
             </button>
+
+            {/* Separator */}
+            <div className="w-px h-6 bg-flexoki-ui-3 mx-1"></div>
+
+            {/* Alignment Buttons */}
+            <button
+              onClick={() => editor.chain().focus().setTextAlign("left").run()}
+              className={`px-3 py-1 rounded text-sm ${
+                editor.isActive({ textAlign: "left" })
+                  ? "bg-flexoki-accent text-white"
+                  : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
+              } transition-colors`}
+              title="Align Left"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h10M4 18h16"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={() =>
+                editor.chain().focus().setTextAlign("center").run()
+              }
+              className={`px-3 py-1 rounded text-sm ${
+                editor.isActive({ textAlign: "center" })
+                  ? "bg-flexoki-accent text-white"
+                  : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
+              } transition-colors`}
+              title="Align Center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M7 12h10M4 18h16"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={() => editor.chain().focus().setTextAlign("right").run()}
+              className={`px-3 py-1 rounded text-sm ${
+                editor.isActive({ textAlign: "right" })
+                  ? "bg-flexoki-accent text-white"
+                  : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
+              } transition-colors`}
+              title="Align Right"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M10 12h10M4 18h16"
+                />
+              </svg>
+            </button>
+
+            {/* Separator */}
+            <div className="w-px h-6 bg-flexoki-ui-3 mx-1"></div>
+
+            {/* Image Upload Button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingImage}
+              className={`px-3 py-1 rounded text-sm ${
+                isUploadingImage
+                  ? "bg-flexoki-ui-2 text-flexoki-tx-3 cursor-not-allowed"
+                  : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
+              } transition-colors flex items-center gap-1`}
+            >
+              {isUploadingImage ? (
+                <>
+                  <span className="animate-pulse">●</span>
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Image
+                </>
+              )}
+            </button>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/gif,image/webp"
+              multiple
+              onChange={handleImageUpload}
+              className="hidden"
+            />
           </div>
         )}
 
