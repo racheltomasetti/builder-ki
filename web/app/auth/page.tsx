@@ -80,10 +80,10 @@ export default function AuthPage() {
 
       {/* Auth Form */}
       <div className="relative z-10 min-h-screen flex items-center justify-center">
-        <div className="max-w-md w-full space-y-8 p-8 bg-white/70 backdrop-blur-sm rounded-lg shadow-xl">
+        <div className="max-w-md w-full space-y-8 p-8 bg-white/60 backdrop-blur-sm rounded-lg shadow-xl">
           <div>
             <h2 className="text-center text-3xl font-bold text-gray-900">
-              {isSignUp ? "Create your account" : "Sign in to KI"}
+              {isSignUp ? "Create your account" : "Sign in to your KI"}
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
               AI-powered thought clarification system
@@ -141,7 +141,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-flexoki-ui opacity-90 hover:bg-flexoki-accent-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5227FF] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-flexoki-ui opacity-90 hover:bg-flexoki-accent hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5227FF] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? "Loading..." : isSignUp ? "Sign up" : "Sign in"}
             </button>
