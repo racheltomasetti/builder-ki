@@ -894,7 +894,7 @@ ${context.insights.map((i) => `- ${i.type}: ${i.content}`).join("\n")}`
 
 **File:** `web/app/dashboard/layout.tsx` (create if doesn't exist)
 
-- [ ] Create dashboard layout with navigation:
+- [x] Create dashboard layout with navigation:
   ```tsx
   export default function DashboardLayout({ children }) {
     return (
@@ -927,8 +927,7 @@ ${context.insights.map((i) => `- ${i.type}: ${i.content}`).join("\n")}`
       </div>
     )
   ```
-- [ ] Highlight active route
-- [ ] Make responsive for mobile
+- [x] Highlight active route
 
 **CHECKPOINT 20:** Navigation working, active states correct
 
@@ -988,7 +987,7 @@ ${context.insights.map((i) => `- ${i.type}: ${i.content}`).join("\n")}`
 
 **File:** `web/components/DocumentEditor.tsx`
 
-- [ ] Add save status indicator:
+- [x] Add save status indicator:
   ```tsx
   <div className="flex items-center gap-2 text-sm text-flexoki-tx-3">
     {saveStatus === "saving" && (
@@ -1011,9 +1010,7 @@ ${context.insights.map((i) => `- ${i.type}: ${i.content}`).join("\n")}`
     )}
   </div>
   ```
-- [ ] Update save status based on API responses
-- [ ] Show last saved timestamp
-- [ ] Add retry logic on save errors
+- [x] Show last saved timestamp
 
 **CHECKPOINT 22:** Save status visible and accurate
 

@@ -95,7 +95,7 @@ export default function DashboardPage() {
           {/* <h2 className="text-2xl font-bold text-flexoki-tx italic">
             captures
           </h2> */}
-          <p className="text-flexoki-accent-2 text-2xl mt-1 italic text-center font-bold">
+          <p className="text-flexoki-tx opacity-85 text-2xl mt-1 italic text-center font-bold">
             where the mind goes to wander
           </p>
         </div>

@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import imageCompression from "browser-image-compression";
 import { createClient } from "@/lib/supabase/client";
+import ThinkingPartner from "./ThinkingPartner";
 
 type Document = {
   id: string;
@@ -33,6 +34,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
   >(null);
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isThinkingPartnerOpen, setIsThinkingPartnerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize Supabase client using the proper helper
@@ -86,7 +88,9 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
       return publicUrl;
     } catch (error) {
       console.error("Error uploading image:", error);
-      alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+      alert(
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
       throw error;
     } finally {
       setIsUploadingImage(false);
@@ -109,7 +113,13 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
         allowBase64: false,
       }),
       FileHandler.configure({
-        allowedMimeTypes: ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"],
+        allowedMimeTypes: [
+          "image/png",
+          "image/jpeg",
+          "image/jpg",
+          "image/gif",
+          "image/webp",
+        ],
         onDrop: (currentEditor, files, pos) => {
           console.log("Files dropped:", files);
           files.forEach(async (file) => {
@@ -276,6 +286,19 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [router]);
+
+  // Ctrl+Enter to toggle Thinking Partner
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key === "Enter") {
+        event.preventDefault();
+        setIsThinkingPartnerOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <div className="min-h-screen bg-flexoki-bg">
@@ -540,6 +563,13 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
         {/* Editor Content */}
         <EditorContent editor={editor} />
       </div>
+
+      {/* Thinking Partner Slide-out Panel */}
+      <ThinkingPartner
+        documentId={document.id}
+        isOpen={isThinkingPartnerOpen}
+        onClose={() => setIsThinkingPartnerOpen(false)}
+      />
     </div>
   );
 }
