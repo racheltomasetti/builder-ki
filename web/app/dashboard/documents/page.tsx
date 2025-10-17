@@ -1,7 +1,6 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import DocumentsList from "@/components/DocumentsList";
-import TopNavigation from "@/components/TopNavigation";
 
 export default async function DocumentsPage() {
   const supabase = createServerClient();
@@ -34,10 +33,5 @@ export default async function DocumentsPage() {
     console.error("Error fetching documents:", error);
   }
 
-  return (
-    <div className="min-h-screen bg-flexoki-bg">
-      <TopNavigation user={user} />
-      <DocumentsList initialDocuments={documents || []} />
-    </div>
-  );
+  return <DocumentsList initialDocuments={documents || []} />;
 }

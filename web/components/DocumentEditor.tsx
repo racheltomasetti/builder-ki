@@ -115,6 +115,18 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     };
   }, [saveTimeout]);
 
+  // ESC key to return to documents list
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        router.push("/dashboard/documents");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [router]);
+
   return (
     <div className="min-h-screen bg-flexoki-bg">
       {/* Header */}

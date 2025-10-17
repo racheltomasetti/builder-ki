@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
 import VoiceCard from "@/components/VoiceCard";
-import TopNavigation from "@/components/TopNavigation";
 
 type Insight = {
   id: string;
@@ -26,12 +23,10 @@ type Capture = {
 };
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [allCaptures, setAllCaptures] = useState<Capture[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const router = useRouter();
   const supabase = createClient();
 
   // Debounce search query with 300ms delay
@@ -57,33 +52,13 @@ export default function DashboardPage() {
     : allCaptures;
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/auth");
-        return;
-      }
-      setUser(user);
+    const loadCaptures = async () => {
       await fetchCaptures();
       setLoading(false);
     };
 
-    getUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        router.push("/auth");
-      } else {
-        setUser(session.user);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase, router]);
+    loadCaptures();
+  }, []);
 
   const fetchCaptures = async () => {
     const { data, error } = await supabase
@@ -107,23 +82,21 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-flexoki-bg">
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
         <p className="text-flexoki-tx-2">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-flexoki-bg">
-      <TopNavigation user={user} />
-
+    <>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-flexoki-tx italic">
-            THOUGHT CAPTURES
-          </h2>
-          <p className="text-flexoki-tx-2 mt-1 italic">
-            where the mind is free to wander
+          {/* <h2 className="text-2xl font-bold text-flexoki-tx italic">
+            captures
+          </h2> */}
+          <p className="text-flexoki-accent-2 text-2xl mt-1 italic text-center font-bold">
+            where the mind goes to wander
           </p>
         </div>
 
@@ -226,6 +199,6 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
-    </div>
+    </>
   );
 }

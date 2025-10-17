@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/lib/theme";
+import { useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
 
 type TopNavigationProps = {
@@ -24,6 +25,34 @@ export default function TopNavigation({ user }: TopNavigationProps) {
     return pathname === path;
   };
 
+  // Keyboard navigation: Arrow keys to navigate between pages
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only navigate if not typing in an input/textarea/contenteditable
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      // Right arrow: thoughts → docs
+      if (event.key === "ArrowRight" && pathname === "/dashboard") {
+        router.push("/dashboard/documents");
+      }
+
+      // Left arrow: docs → thoughts
+      if (event.key === "ArrowLeft" && pathname === "/dashboard/documents") {
+        router.push("/dashboard");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [pathname, router]);
+
   return (
     <nav className="bg-flexoki-ui shadow-sm border-b border-flexoki-ui-3">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,7 +67,6 @@ export default function TopNavigation({ user }: TopNavigationProps) {
             {/* Navigation Links */}
             <div className="flex items-center gap-6">
               <a
-                href="/dashboard"
                 className={`text-sm font-medium transition-colors ${
                   isActive("/dashboard")
                     ? "text-flexoki-accent"

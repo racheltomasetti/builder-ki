@@ -220,9 +220,9 @@ export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
           <span
             className={`px-3 py-1 rounded-full text-xs font-medium ${
               capture.processing_status === "complete"
-                ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+                ? "bg-green-100 text-green-800 dark:bg-green-600/20 dark:text-green-600"
                 : capture.processing_status === "synthesizing"
-                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
+                ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-600"
                 : "bg-flexoki-ui-2 text-flexoki-tx-2"
             }`}
           >
