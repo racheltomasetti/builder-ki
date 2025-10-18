@@ -59,15 +59,15 @@ export default function TopNavigation({ user }: TopNavigationProps) {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center gap-8">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-flexoki-tx italic">KI</h1>
-              <span className="ml-4 text-sm text-flexoki-tx-2 italic">
+              <h1 className="text-3xl font-bold text-flexoki-tx italic">KI</h1>
+              <span className="ml-4 text-base text-flexoki-tx-2 italic font-bold">
                 unlocking the mind
               </span>
             </div>
             {/* Navigation Links */}
             <div className="flex items-center gap-6">
               <a
-                className={`text-sm font-medium transition-colors ${
+                className={`text-lg font-medium transition-colors ${
                   isActive("/dashboard")
                     ? "text-flexoki-accent"
                     : "text-flexoki-tx hover:text-flexoki-accent"
@@ -77,7 +77,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
               </a>
               <a
                 href="/dashboard/documents"
-                className={`text-sm font-medium transition-colors ${
+                className={`text-lg font-medium transition-colors ${
                   isActive("/dashboard/documents")
                     ? "text-flexoki-accent"
                     : "text-flexoki-tx hover:text-flexoki-accent"
@@ -88,7 +88,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-flexoki-tx-2">{user?.email}</span>
+            <span className="text-base text-flexoki-tx-2">{user?.email}</span>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg text-flexoki-tx-2 hover:bg-flexoki-ui-2 transition-colors"
@@ -126,7 +126,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
             </button>
             <button
               onClick={handleSignOut}
-              className="px-4 py-2 text-sm font-medium text-flexoki-tx hover:text-flexoki-tx transition-colors"
+              className="px-4 py-2 text-lg font-medium text-flexoki-tx hover:text-flexoki-tx transition-colors"
             >
               Sign out
             </button>

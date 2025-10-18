@@ -218,7 +218,7 @@ export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
         </span>
         <div className="flex items-center gap-2">
           <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
               capture.processing_status === "complete"
                 ? "bg-green-100 text-green-800 dark:bg-green-600/20 dark:text-green-600"
                 : capture.processing_status === "synthesizing"
@@ -265,10 +265,10 @@ export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
       {/* Transcription */}
       {capture.transcription && (
         <div className="mb-4">
-          <h3 className="text-sm font-semibold text-flexoki-tx mb-2">
+          <h3 className="text-base font-semibold text-flexoki-tx mb-2">
             Transcription
           </h3>
-          <p className="text-flexoki-tx leading-relaxed">
+          <p className="text-flexoki-tx text-lg leading-relaxed">
             {capture.transcription}
           </p>
         </div>
@@ -282,7 +282,10 @@ export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
           </h3>
           <div className="space-y-2">
             {capture.insights.map((insight) => (
-              <div key={insight.id} className="flex items-start gap-2 text-sm">
+              <div
+                key={insight.id}
+                className="flex items-start gap-2 text-medium"
+              >
                 <span className="text-lg leading-none">
                   {insight.type === "insight" && "💡"}
                   {insight.type === "decision" && "✅"}

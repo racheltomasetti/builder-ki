@@ -8,6 +8,9 @@ module.exports = {
   darkMode: ["class", "class"],
   theme: {
   	extend: {
+  		fontFamily: {
+  			perpetua: ['Perpetua', 'serif'],
+  		},
   		colors: {
   			'flexoki-bg': 'var(--bg)',
   			'flexoki-bg-2': 'var(--bg-2)',
