@@ -48,10 +48,37 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
     return text.trim().slice(0, 150);
   };
 
-  // Calculate word count
+  // Extract all text from Tiptap JSON (for word count)
+  const getAllText = (content: any): string => {
+    if (!content || !content.content) return "";
+
+    let text = "";
+    const traverse = (node: any) => {
+      if (node.type === "text") {
+        text += node.text + " ";
+      }
+      if (node.content && Array.isArray(node.content)) {
+        node.content.forEach(traverse);
+      }
+    };
+
+    traverse(content);
+    return text.trim();
+  };
+
+  // Calculate word count (excludes emojis and counts only actual words)
   const getWordCount = (content: any): number => {
-    const preview = getPreview(content);
-    return preview ? preview.split(/\s+/).length : 0;
+    const allText = getAllText(content);
+    if (!allText) return 0;
+
+    // Remove emojis and other non-word characters, then split by whitespace
+    const cleanedText = allText
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Remove emojis
+      .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Remove misc symbols
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Remove dingbats
+      .trim();
+
+    return cleanedText ? cleanedText.split(/\s+/).filter(word => word.length > 0).length : 0;
   };
 
   // Format relative time
