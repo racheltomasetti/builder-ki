@@ -27,7 +27,11 @@ type DocumentCardProps = {
   onFocusToggle?: (documentId: string, newFocusState: boolean) => void;
 };
 
-export default function DocumentCard({ document, onDelete, onFocusToggle }: DocumentCardProps) {
+export default function DocumentCard({
+  document,
+  onDelete,
+  onFocusToggle,
+}: DocumentCardProps) {
   const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -77,12 +81,14 @@ export default function DocumentCard({ document, onDelete, onFocusToggle }: Docu
 
     // Remove emojis and other non-word characters, then split by whitespace
     const cleanedText = allText
-      .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Remove emojis
-      .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Remove misc symbols
-      .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Remove dingbats
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, "") // Remove emojis
+      .replace(/[\u{2600}-\u{26FF}]/gu, "") // Remove misc symbols
+      .replace(/[\u{2700}-\u{27BF}]/gu, "") // Remove dingbats
       .trim();
 
-    return cleanedText ? cleanedText.split(/\s+/).filter(word => word.length > 0).length : 0;
+    return cleanedText
+      ? cleanedText.split(/\s+/).filter((word) => word.length > 0).length
+      : 0;
   };
 
   // Format relative time
@@ -96,7 +102,8 @@ export default function DocumentCard({ document, onDelete, onFocusToggle }: Docu
 
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? "s" : ""} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffHours < 24)
+      return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
     if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
     return date.toLocaleDateString();
   };
@@ -214,10 +221,19 @@ export default function DocumentCard({ document, onDelete, onFocusToggle }: Docu
       )}
 
       {/* Card */}
-      <div className={`bg-flexoki-ui rounded-lg shadow-md hover:shadow-lg transition-all group relative overflow-hidden ${
-        isFocused ? 'ring-2 shadow-[rgb(58,169,159)]/20' : ''
-      }`}
-      style={isFocused ? { borderColor: 'rgb(58, 169, 159)', borderWidth: '2px', borderStyle: 'solid' } : {}}
+      <div
+        className={`bg-flexoki-ui rounded-lg shadow-md hover:shadow-lg transition-all group relative overflow-hidden ${
+          isFocused ? "ring-2 shadow-[rgb(58,169,159)]/20" : ""
+        }`}
+        style={
+          isFocused
+            ? {
+                borderColor: "rgb(58, 169, 159)",
+                borderWidth: "2px",
+                borderStyle: "solid",
+              }
+            : {}
+        }
       >
         {/* Clickable area */}
         <div
@@ -270,8 +286,8 @@ export default function DocumentCard({ document, onDelete, onFocusToggle }: Docu
           disabled={isTogglingFocus}
           className={`absolute top-4 right-14 p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50 ${
             isFocused
-              ? 'text-flexoki-accent bg-flexoki-accent/10'
-              : 'text-flexoki-tx-3 hover:text-flexoki-accent hover:bg-flexoki-ui-2'
+              ? "text-flexoki-accent bg-flexoki-accent/10"
+              : "text-flexoki-tx-3 hover:text-flexoki-accent hover:bg-flexoki-ui-2"
           }`}
           title={isFocused ? "Remove focus" : "Focus on this document"}
         >

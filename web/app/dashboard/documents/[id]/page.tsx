@@ -7,7 +7,7 @@ export default async function DocumentPage({
 }: {
   params: { id: string };
 }) {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
 
   // Check authentication
   const {

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import DocumentsList from "@/components/DocumentsList";
 
 export default async function DocumentsPage() {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
 
   // Check authentication
   const {

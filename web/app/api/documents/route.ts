@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 // POST /api/documents - Create a new document
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     // Verify user is authenticated
     const {
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 // GET /api/documents - List all user's documents
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     // Verify user is authenticated
     const {

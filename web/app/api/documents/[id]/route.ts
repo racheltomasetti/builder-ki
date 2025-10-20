@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     // Verify user is authenticated
     const {
@@ -57,7 +57,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     // Verify user is authenticated
     const {
@@ -124,7 +124,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     // Verify user is authenticated
     const {
