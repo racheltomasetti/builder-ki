@@ -24,7 +24,7 @@ type Document = {
 type DocumentCardProps = {
   document: Document;
   onDelete?: (id: string) => void;
-  onFocusToggle?: () => void;
+  onFocusToggle?: (documentId: string, newFocusState: boolean) => void;
 };
 
 export default function DocumentCard({ document, onDelete, onFocusToggle }: DocumentCardProps) {
@@ -129,9 +129,18 @@ export default function DocumentCard({ document, onDelete, onFocusToggle }: Docu
     e.stopPropagation(); // Prevent card click navigation
     setIsTogglingFocus(true);
 
-    try {
-      const newFocusState = !isFocused;
+    const newFocusState = !isFocused;
 
+    try {
+      // Optimistically update local state immediately
+      setIsFocused(newFocusState);
+
+      // Call callback to update parent list immediately
+      if (onFocusToggle) {
+        onFocusToggle(document.id, newFocusState);
+      }
+
+      // Then persist to database
       const response = await fetch(`/api/documents/${document.id}/focus`, {
         method: "PATCH",
         headers: {
@@ -141,18 +150,22 @@ export default function DocumentCard({ document, onDelete, onFocusToggle }: Docu
       });
 
       if (!response.ok) {
+        // Revert optimistic update on error
+        setIsFocused(!newFocusState);
+        if (onFocusToggle) {
+          onFocusToggle(document.id, !newFocusState);
+        }
         throw new Error("Failed to update focus state");
-      }
-
-      // Update local state
-      setIsFocused(newFocusState);
-
-      // Call callback to refresh parent list
-      if (onFocusToggle) {
-        onFocusToggle();
       }
     } catch (error) {
       console.error("Error toggling focus:", error);
+
+      // Revert optimistic update on error (if not already reverted)
+      setIsFocused(!newFocusState);
+      if (onFocusToggle) {
+        onFocusToggle(document.id, !newFocusState);
+      }
+
       alert("Failed to update focus state");
     } finally {
       setIsTogglingFocus(false);

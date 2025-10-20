@@ -36,16 +36,39 @@ export default function DocumentsList({
     ? documents.filter((doc) => doc.is_focused)
     : documents;
 
-  // ESC key handler to exit focus mode
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // ESC to exit focus mode
       if (e.key === "Escape" && focusMode) {
         setFocusMode(false);
+      }
+
+      // Ctrl+F+Enter to enter focus mode (when not already in focus mode)
+      if (e.ctrlKey && e.key === "f" && !focusMode) {
+        e.preventDefault(); // Prevent browser's default find dialog
+        // Set a flag to wait for Enter key
+        sessionStorage.setItem("waitingForFocusEnter", "true");
+      }
+
+      // Enter key after Ctrl+F to activate focus mode
+      if (e.key === "Enter" && sessionStorage.getItem("waitingForFocusEnter") === "true") {
+        e.preventDefault();
+        setFocusMode(true);
+        sessionStorage.removeItem("waitingForFocusEnter");
+      }
+
+      // Clear the flag if any other key is pressed
+      if (e.key !== "f" && e.key !== "Enter" && sessionStorage.getItem("waitingForFocusEnter")) {
+        sessionStorage.removeItem("waitingForFocusEnter");
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      sessionStorage.removeItem("waitingForFocusEnter");
+    };
   }, [focusMode]);
 
   const handleDelete = (deletedId: string) => {
@@ -53,9 +76,13 @@ export default function DocumentsList({
     setDocuments((prev) => prev.filter((doc) => doc.id !== deletedId));
   };
 
-  const handleFocusToggle = () => {
-    // Refresh documents list to get updated focus states
-    window.location.reload();
+  const handleFocusToggle = (documentId: string, newFocusState: boolean) => {
+    // Optimistically update the document's focus state in local state
+    setDocuments((prev) =>
+      prev.map((doc) =>
+        doc.id === documentId ? { ...doc, is_focused: newFocusState } : doc
+      )
+    );
   };
 
   const handleCreateNew = async () => {
