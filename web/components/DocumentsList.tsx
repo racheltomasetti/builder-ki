@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DocumentCard from "./DocumentCard";
 
 type Capture = {
@@ -17,6 +17,7 @@ type Document = {
   content: any;
   created_at: string;
   updated_at: string;
+  is_focused: boolean;
   captures?: Capture | null;
 };
 
@@ -28,10 +29,33 @@ export default function DocumentsList({
   initialDocuments,
 }: DocumentsListProps) {
   const [documents, setDocuments] = useState(initialDocuments);
+  const [focusMode, setFocusMode] = useState(false);
+
+  // Filter documents based on focus mode
+  const filteredDocuments = focusMode
+    ? documents.filter((doc) => doc.is_focused)
+    : documents;
+
+  // ESC key handler to exit focus mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && focusMode) {
+        setFocusMode(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [focusMode]);
 
   const handleDelete = (deletedId: string) => {
     // Remove deleted document from state
     setDocuments((prev) => prev.filter((doc) => doc.id !== deletedId));
+  };
+
+  const handleFocusToggle = () => {
+    // Refresh documents list to get updated focus states
+    window.location.reload();
   };
 
   const handleCreateNew = async () => {
@@ -74,40 +98,76 @@ export default function DocumentsList({
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-flexoki-tx mb-2">Documents</h1>
+          <h1 className="text-3xl font-bold text-flexoki-tx mb-2">
+            {focusMode ? "FOCUS" : "Documents"}
+          </h1>
           <p className="text-flexoki-tx-2">
-            {documents.length} {documents.length === 1 ? "document" : "documents"}
+            {focusMode
+              ? `${filteredDocuments.length} focused ${
+                  filteredDocuments.length === 1 ? "document" : "documents"
+                }`
+              : `${documents.length} ${
+                  documents.length === 1 ? "document" : "documents"
+                }`}
           </p>
         </div>
-        <button
-          onClick={handleCreateNew}
-          className="px-4 py-2 bg-flexoki-accent text-white rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className="flex items-center gap-3">
+          {/* Focus Mode Toggle */}
+          <button
+            onClick={() => setFocusMode(!focusMode)}
+            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+              focusMode
+                ? "bg-flexoki-accent text-white"
+                : "bg-flexoki-ui-2 text-flexoki-tx border border-flexoki-ui-3 hover:bg-flexoki-ui-3"
+            }`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          New Document
-        </button>
-      </div>
+            {focusMode ? (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+                All Documents
+              </>
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Focus Mode
+              </>
+            )}
+          </button>
 
-      {/* Documents Grid */}
-      <div>
-        {documents.length === 0 ? (
-          <div className="text-center py-12">
+          {/* New Document Button */}
+          <button
+            onClick={handleCreateNew}
+            className="px-4 py-2 bg-flexoki-accent text-white rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-16 w-16 mx-auto text-flexoki-tx-3 mb-4"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -115,45 +175,105 @@ export default function DocumentsList({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
               />
             </svg>
-            <h2 className="text-xl font-semibold text-flexoki-tx mb-2">
-              No documents yet
-            </h2>
-            <p className="text-flexoki-tx-2 mb-6">
-              Expand a voice note to create your first document, or create a
-              blank one.
-            </p>
-            <button
-              onClick={handleCreateNew}
-              className="px-6 py-3 bg-flexoki-accent text-white rounded-lg hover:bg-opacity-90 transition-colors inline-flex items-center gap-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Create New Document
-            </button>
+            New Document
+          </button>
+        </div>
+      </div>
+
+      {/* Documents Grid */}
+      <div>
+        {filteredDocuments.length === 0 ? (
+          <div className="text-center py-12">
+            {focusMode ? (
+              // Empty state for focus mode with no focused documents
+              <>
+                <div className="text-6xl mb-4">🎯</div>
+                <h2 className="text-xl font-semibold text-flexoki-tx mb-2">
+                  No focused documents
+                </h2>
+                <p className="text-flexoki-tx-2 mb-6">
+                  Click the target icon on any document to focus on it.
+                </p>
+                <button
+                  onClick={() => setFocusMode(false)}
+                  className="px-6 py-3 bg-flexoki-ui-2 text-flexoki-tx rounded-lg hover:bg-flexoki-ui-3 transition-colors inline-flex items-center gap-2 border border-flexoki-ui-3"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    />
+                  </svg>
+                  View All Documents
+                </button>
+              </>
+            ) : (
+              // Empty state for no documents at all
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-16 w-16 mx-auto text-flexoki-tx-3 mb-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <h2 className="text-xl font-semibold text-flexoki-tx mb-2">
+                  No documents yet
+                </h2>
+                <p className="text-flexoki-tx-2 mb-6">
+                  Expand a voice note to create your first document, or create a
+                  blank one.
+                </p>
+                <button
+                  onClick={handleCreateNew}
+                  className="px-6 py-3 bg-flexoki-accent text-white rounded-lg hover:bg-opacity-90 transition-colors inline-flex items-center gap-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  Create New Document
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {documents.map((doc) => (
+            {filteredDocuments.map((doc) => (
               <DocumentCard
                 key={doc.id}
                 document={doc}
                 onDelete={handleDelete}
+                onFocusToggle={handleFocusToggle}
               />
             ))}
           </div>

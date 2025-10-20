@@ -17,18 +17,22 @@ type Document = {
   content: any;
   created_at: string;
   updated_at: string;
+  is_focused: boolean;
   captures?: Capture | null;
 };
 
 type DocumentCardProps = {
   document: Document;
   onDelete?: (id: string) => void;
+  onFocusToggle?: () => void;
 };
 
-export default function DocumentCard({ document, onDelete }: DocumentCardProps) {
+export default function DocumentCard({ document, onDelete, onFocusToggle }: DocumentCardProps) {
   const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFocused, setIsFocused] = useState(document.is_focused);
+  const [isTogglingFocus, setIsTogglingFocus] = useState(false);
 
   // Extract plain text preview from Tiptap JSON
   const getPreview = (content: any): string => {
@@ -121,6 +125,40 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
     }
   };
 
+  const handleToggleFocus = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click navigation
+    setIsTogglingFocus(true);
+
+    try {
+      const newFocusState = !isFocused;
+
+      const response = await fetch(`/api/documents/${document.id}/focus`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ is_focused: newFocusState }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update focus state");
+      }
+
+      // Update local state
+      setIsFocused(newFocusState);
+
+      // Call callback to refresh parent list
+      if (onFocusToggle) {
+        onFocusToggle();
+      }
+    } catch (error) {
+      console.error("Error toggling focus:", error);
+      alert("Failed to update focus state");
+    } finally {
+      setIsTogglingFocus(false);
+    }
+  };
+
   const handleClick = () => {
     router.push(`/dashboard/documents/${document.id}`);
   };
@@ -163,7 +201,11 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
       )}
 
       {/* Card */}
-      <div className="bg-flexoki-ui rounded-lg shadow-md hover:shadow-lg transition-all group relative overflow-hidden">
+      <div className={`bg-flexoki-ui rounded-lg shadow-md hover:shadow-lg transition-all group relative overflow-hidden ${
+        isFocused ? 'ring-2 shadow-[rgb(58,169,159)]/20' : ''
+      }`}
+      style={isFocused ? { borderColor: 'rgb(58, 169, 159)', borderWidth: '2px', borderStyle: 'solid' } : {}}
+      >
         {/* Clickable area */}
         <div
           onClick={handleClick}
@@ -208,6 +250,33 @@ export default function DocumentCard({ document, onDelete }: DocumentCardProps) 
             </div>
           )}
         </div>
+
+        {/* Focus button (positioned in corner) */}
+        <button
+          onClick={handleToggleFocus}
+          disabled={isTogglingFocus}
+          className={`absolute top-4 right-14 p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50 ${
+            isFocused
+              ? 'text-flexoki-accent bg-flexoki-accent/10'
+              : 'text-flexoki-tx-3 hover:text-flexoki-accent hover:bg-flexoki-ui-2'
+          }`}
+          title={isFocused ? "Remove focus" : "Focus on this document"}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </button>
 
         {/* Delete button (positioned in corner) */}
         <button
