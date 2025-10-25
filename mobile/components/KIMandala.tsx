@@ -27,7 +27,7 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
       // Start all layer rotations with alternating directions
       const animations = rotations.map((rotation, index) => {
         const isClockwise = index % 2 === 0;
-        const speed = 15000 + index * 1000; // Slower as layers go outward
+        const speed = 50000 - index * 5000; // Faster as layers go outward
 
         return Animated.loop(
           Animated.timing(rotation, {
@@ -65,12 +65,12 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
   }, [isRecording, rotations, centerScale]);
 
   // Calculate positions and sizes for each layer
-  // First ring starts at 40px from center, spacing increases to fill 300px radius (600px diameter)
+  // Tight spacing - rings almost touching
   const layers = Array.from({ length: 11 }, (_, index) => {
     const layerIndex = index + 1;
-    const radius = 11 + layerIndex * 36; // Start at 11px, increment by 26px (fills to ~326px radius)
+    const logoSize = 50 + layerIndex * 4.5; // Logos get larger (54.5px → 99.5px)
+    const radius = 33 + layerIndex * (36 + logoSize * 0.01); // Minimal gap between rings
     const logoCount = 11 + layerIndex * 2; // More logos per layer as we go out
-    const logoSize = 50 + layerIndex * 4.5; // Logos get larger (24.5px → 69.5px, with 11th at ~65px)
     const rotation = rotations[index];
 
     return {
