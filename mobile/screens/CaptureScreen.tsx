@@ -14,6 +14,8 @@ import { supabase } from "../lib/supabase";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system/legacy";
 import { useThemeColors } from "../theme/colors";
+import { KILogo } from "../components/Logo";
+import { KIMandala } from "../components/KIMandala";
 
 export default function CaptureScreen() {
   const colorScheme = useColorScheme();
@@ -27,8 +29,7 @@ export default function CaptureScreen() {
 
   // Animation values
   const bobbingAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
+  const logoRotation = useRef(new Animated.Value(0)).current;
 
   // Timer ref for recording duration
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,6 +38,15 @@ export default function CaptureScreen() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
+
+      // Rotate logo 180 degrees to the right when user signs in
+      if (user) {
+        Animated.timing(logoRotation, {
+          toValue: 180,
+          duration: 1111,
+          useNativeDriver: true,
+        }).start();
+      }
     });
 
     // Initialize audio mode
@@ -76,53 +86,18 @@ export default function CaptureScreen() {
     }
   }, [recording, uploading, bobbingAnim]);
 
-  // Pulsing animation for recording state
-  useEffect(() => {
-    if (recording) {
-      // Pulse the recording indicator
-      const pulse = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.2,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-        ])
-      );
 
-      // Emanating glow effect
-      const glow = Animated.loop(
-        Animated.sequence([
-          Animated.timing(glowAnim, {
-            toValue: 1,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(glowAnim, {
-            toValue: 0,
-            duration: 0,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-
-      pulse.start();
-      glow.start();
-
-      return () => {
-        pulse.stop();
-        glow.stop();
-      };
-    }
-  }, [recording, pulseAnim, glowAnim]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    // Rotate logo 180 degrees to the left (back to 0) on sign out
+    Animated.timing(logoRotation, {
+      toValue: 0,
+      duration: 1111,
+      useNativeDriver: true,
+    }).start(async () => {
+      // Sign out after animation completes
+      await supabase.auth.signOut();
+    });
   };
 
   // Format duration as MM:SS
@@ -325,23 +300,36 @@ export default function CaptureScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-      <View
-        style={[
-          styles.header,
-          { borderBottomColor: colors.ui3, backgroundColor: colors.bg },
-        ]}
-      >
-        <View style={styles.titleContainer}>
-          <Text style={[styles.title, { color: colors.tx }]}>K</Text>
-          <View style={[styles.titleDot, { backgroundColor: colors.tx }]} />
-          <Text style={[styles.title, { color: colors.tx }]}>I</Text>
+      {/* Hide header when recording */}
+      {!recording && (
+        <View
+          style={[
+            styles.header,
+            { borderBottomColor: colors.ui3, backgroundColor: colors.bg },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={handleSignOut}
+            style={styles.logoContainer}
+            activeOpacity={0.7}
+          >
+            <Animated.View
+              style={{
+                transform: [
+                  {
+                    rotate: logoRotation.interpolate({
+                      inputRange: [0, 180],
+                      outputRange: ["0deg", "180deg"],
+                    }),
+                  },
+                ],
+              }}
+            >
+              <KILogo size={70} color={colors.tx} strokeWidth={2.5} />
+            </Animated.View>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={handleSignOut}>
-          <Text style={[styles.signOutText, { color: colors.tx2 }]}>
-            Sign Out
-          </Text>
-        </TouchableOpacity>
-      </View>
+      )}
 
       <View style={styles.content}>
         {uploading && (
@@ -355,69 +343,17 @@ export default function CaptureScreen() {
 
         {!uploading && (
           <View style={styles.mainContent}>
-            {/* Blue circle and emanating rings container */}
+            {/* KI Mandala - animated logo mandala */}
             <Animated.View
               style={{
                 transform: [{ translateY: recording ? 0 : bobbingAnim }],
               }}
             >
-              {/* Emanating glow rings - only show when recording */}
-              {recording && (
-                <View style={styles.glowContainer}>
-                  <Animated.View
-                    style={[
-                      styles.glowRing,
-                      { borderColor: colors.accent2 },
-                      {
-                        opacity: glowAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.6, 0],
-                        }),
-                        transform: [
-                          {
-                            scale: glowAnim.interpolate({
-                              inputRange: [0, 1],
-                              outputRange: [1, 2],
-                            }),
-                          },
-                        ],
-                      },
-                    ]}
-                  />
-                  <Animated.View
-                    style={[
-                      styles.glowRing,
-                      { borderColor: colors.accent2 },
-                      {
-                        opacity: glowAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.4, 0],
-                        }),
-                        transform: [
-                          {
-                            scale: glowAnim.interpolate({
-                              inputRange: [0, 1],
-                              outputRange: [1, 2.5],
-                            }),
-                          },
-                        ],
-                      },
-                    ]}
-                  />
-                </View>
-              )}
-
-              {/* Blue circle - always visible */}
-              <TouchableOpacity
-                style={[
-                  styles.micButton,
-                  {
-                    backgroundColor: recording ? colors.accent2 : colors.accent,
-                    shadowColor: recording ? colors.accent2 : colors.accent,
-                  },
-                ]}
+              <KIMandala
+                isRecording={!!recording}
+                color={recording ? colors.accent2 : colors.accent}
+                centerSize={200}
                 onPress={recording ? stopRecording : startRecording}
-                activeOpacity={0.8}
               />
             </Animated.View>
           </View>
@@ -442,29 +378,14 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 15,
     borderBottomWidth: 1,
   },
-  titleContainer: {
-    flexDirection: "row",
+  logoContainer: {
     alignItems: "center",
-  },
-  titleDot: {
-    width: 11,
-    height: 11,
-    borderRadius: 6,
-    marginLeft: 1,
-    marginRight: 3,
-  },
-  title: {
-    fontSize: 50,
-    fontWeight: "bold",
-    // letterSpacing: -4,
-  },
-  signOutText: {
-    fontSize: 14,
+    justifyContent: "center",
   },
   content: {
     flex: 1,
@@ -491,30 +412,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  micButton: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  glowContainer: {
-    position: "absolute",
-    width: 200,
-    height: 200,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  glowRing: {
-    position: "absolute",
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 3,
-    backgroundColor: "transparent",
   },
   durationContainer: {
     position: "absolute",

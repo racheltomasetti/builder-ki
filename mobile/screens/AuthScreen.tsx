@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react";
 import {
   View,
   Text,
@@ -10,80 +10,88 @@ import {
   Alert,
   ActivityIndicator,
   useColorScheme,
-} from 'react-native'
-import { supabase } from '../lib/supabase'
-import { useThemeColors } from '../theme/colors'
+} from "react-native";
+import { supabase } from "../lib/supabase";
+import { useThemeColors } from "../theme/colors";
+import { KILogo } from "../components/Logo";
 
 export default function AuthScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = useThemeColors(isDark);
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleAuth = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields')
-      return
+      Alert.alert("Error", "Please fill in all fields");
+      return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters')
-      return
+      Alert.alert("Error", "Password must be at least 6 characters");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       if (isSignUp) {
         const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-        })
-        if (signUpError) throw signUpError
+        });
+        if (signUpError) throw signUpError;
 
         // Try to sign in immediately after signup
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
-        })
-        if (signInError) throw signInError
+        });
+        if (signInError) throw signInError;
 
-        Alert.alert('Success', 'Account created and signed in!')
+        Alert.alert("Success", "Account created and signed in!");
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
-        })
-        if (signInError) throw signInError
-        Alert.alert('Success', 'Signed in successfully!')
+        });
+        if (signInError) throw signInError;
+
+        Alert.alert("Success", "Signed in successfully!");
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message)
+      Alert.alert("Error", error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.bg }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.tx }]}>ki</Text>
+        <View style={styles.logoContainer}>
+          <KILogo size={150} color={colors.tx} strokeWidth={2.5} />
+        </View>
         <Text style={[styles.subtitle, { color: colors.tx2 }]}>
-          {isSignUp ? 'Create your account' : 'Sign in to continue'}
+          {isSignUp ? "Create your account" : "Sign in to continue"}
         </Text>
 
         <View style={styles.form}>
           <TextInput
             style={[
               styles.input,
-              { backgroundColor: colors.ui, borderColor: colors.ui3, color: colors.tx }
+              {
+                backgroundColor: colors.ui,
+                borderColor: colors.ui3,
+                color: colors.tx,
+              },
             ]}
             placeholder="Email"
             placeholderTextColor={colors.tx2}
@@ -97,7 +105,11 @@ export default function AuthScreen() {
           <TextInput
             style={[
               styles.input,
-              { backgroundColor: colors.ui, borderColor: colors.ui3, color: colors.tx }
+              {
+                backgroundColor: colors.ui,
+                borderColor: colors.ui3,
+                color: colors.tx,
+              },
             ]}
             placeholder="Password"
             placeholderTextColor={colors.tx2}
@@ -112,7 +124,7 @@ export default function AuthScreen() {
             style={[
               styles.button,
               { backgroundColor: colors.accent },
-              loading && styles.buttonDisabled
+              loading && styles.buttonDisabled,
             ]}
             onPress={handleAuth}
             disabled={loading}
@@ -121,7 +133,7 @@ export default function AuthScreen() {
               <ActivityIndicator color={colors.bg} />
             ) : (
               <Text style={[styles.buttonText, { color: colors.bg }]}>
-                {isSignUp ? 'Sign Up' : 'Sign In'}
+                {isSignUp ? "Sign Up" : "Sign In"}
               </Text>
             )}
           </TouchableOpacity>
@@ -133,14 +145,14 @@ export default function AuthScreen() {
           >
             <Text style={[styles.toggleText, { color: colors.accent }]}>
               {isSignUp
-                ? 'Already have an account? Sign in'
+                ? "Already have an account? Sign in"
                 : "Don't have an account? Sign up"}
             </Text>
           </TouchableOpacity>
         </View>
       </View>
     </KeyboardAvoidingView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -149,22 +161,20 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 24,
   },
-  title: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 8,
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 24,
   },
   subtitle: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 48,
   },
   form: {
-    width: '100%',
+    width: "100%",
   },
   input: {
     borderWidth: 1,
@@ -176,7 +186,7 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 8,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   buttonDisabled: {
@@ -184,13 +194,13 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   toggleButton: {
     marginTop: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   toggleText: {
     fontSize: 14,
   },
-})
+});
