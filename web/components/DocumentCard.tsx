@@ -7,6 +7,7 @@ type Capture = {
   id: string;
   transcription: string | null;
   created_at: string;
+  file_url: string;
 };
 
 type Document = {
@@ -256,8 +257,43 @@ export default function DocumentCard({
             <span>{wordCount} words</span>
           </div>
 
-          {/* Linked capture indicator */}
-          {document.captures && (
+          {/* Audio Player - only show if document has a linked capture with audio */}
+          {document.captures && document.captures.file_url && (
+            <div className="mt-3 pt-3 border-t border-flexoki-ui-3">
+              <div className="flex items-center gap-2 mb-2 text-xs text-flexoki-accent">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                  />
+                </svg>
+                <span>From voice note</span>
+              </div>
+              <audio
+                controls
+                className="w-full h-8"
+                onClick={(e) => e.stopPropagation()}
+                onPlay={(e) => e.stopPropagation()}
+                onPause={(e) => e.stopPropagation()}
+              >
+                <source src={document.captures.file_url} type="audio/m4a" />
+                <source src={document.captures.file_url} type="audio/mp3" />
+                <source src={document.captures.file_url} type="audio/wav" />
+                Your browser does not support the audio element.
+              </audio>
+            </div>
+          )}
+
+          {/* Linked capture indicator (without audio) */}
+          {document.captures && !document.captures.file_url && (
             <div className="mt-3 pt-3 border-t border-flexoki-ui-3">
               <div className="flex items-center gap-2 text-xs text-flexoki-accent">
                 <svg

@@ -7,6 +7,7 @@ type Capture = {
   id: string;
   transcription: string | null;
   created_at: string;
+  file_url: string;
 };
 
 type Document = {

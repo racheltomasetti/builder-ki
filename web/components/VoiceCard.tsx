@@ -36,60 +36,15 @@ export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
     setIsExpanding(true);
 
     try {
-      // Build Tiptap document structure with transcription and insights
+      // Build empty Tiptap document structure
+      // Transcription and insights will be available in the expandable header
       const content = {
         type: "doc",
         content: [
-          // Original transcription as first paragraph
-          {
-            type: "paragraph",
-            content: [
-              {
-                type: "text",
-                text: capture.transcription || "No transcription available.",
-              },
-            ],
-          },
-          // Add spacing
           {
             type: "paragraph",
             content: [],
           },
-          // Insights section
-          ...(capture.insights && capture.insights.length > 0
-            ? [
-                {
-                  type: "heading",
-                  attrs: { level: 2 },
-                  content: [{ type: "text", text: "Insights" }],
-                },
-                {
-                  type: "bulletList",
-                  content: capture.insights.map((insight) => ({
-                    type: "listItem",
-                    content: [
-                      {
-                        type: "paragraph",
-                        content: [
-                          {
-                            type: "text",
-                            text: `${
-                              insight.type === "insight"
-                                ? "💡"
-                                : insight.type === "decision"
-                                ? "✅"
-                                : insight.type === "question"
-                                ? "❓"
-                                : "🏷️"
-                            } ${insight.content}`,
-                          },
-                        ],
-                      },
-                    ],
-                  })),
-                },
-              ]
-            : []),
         ],
       };
 

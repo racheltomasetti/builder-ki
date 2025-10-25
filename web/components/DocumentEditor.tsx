@@ -12,6 +12,21 @@ import imageCompression from "browser-image-compression";
 import { createClient } from "@/lib/supabase/client";
 import ThinkingPartner from "./ThinkingPartner";
 
+type Insight = {
+  id: string;
+  type: "insight" | "decision" | "question" | "concept";
+  content: string;
+  created_at: string;
+};
+
+type Capture = {
+  id: string;
+  transcription: string | null;
+  created_at: string;
+  file_url: string;
+  insights?: Insight[];
+};
+
 type Document = {
   id: string;
   user_id: string;
@@ -20,6 +35,7 @@ type Document = {
   content: any;
   created_at: string;
   updated_at: string;
+  captures?: Capture | null;
 };
 
 type DocumentEditorProps = {
@@ -36,6 +52,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isThinkingPartnerOpen, setIsThinkingPartnerOpen] = useState(false);
   const [panelWidth, setPanelWidth] = useState(400); // Default width for ThinkingPartner
+  const [isTranscriptionExpanded, setIsTranscriptionExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize Supabase client using the proper helper
@@ -354,6 +371,118 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             </div>
           </div>
         </div>
+
+        {/* Audio Player and Transcription - only show if document has a linked capture */}
+        {document.captures && document.captures.file_url && (
+          <div className="px-6 pb-4">
+            <div className="bg-flexoki-ui-2 border border-flexoki-ui-3 rounded-lg overflow-hidden">
+              {/* Header with Audio Player */}
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 text-flexoki-accent"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                      />
+                    </svg>
+                    <span className="text-sm text-flexoki-accent font-medium">
+                      Seed of Thought
+                    </span>
+                  </div>
+                  {/* Toggle button for transcription */}
+                  {document.captures.transcription && (
+                    <button
+                      onClick={() =>
+                        setIsTranscriptionExpanded(!isTranscriptionExpanded)
+                      }
+                      className="flex items-center gap-2 px-3 py-1 rounded text-xs text-flexoki-tx-2 hover:text-flexoki-tx hover:bg-flexoki-ui-3 transition-colors"
+                    >
+                      <span>
+                        {isTranscriptionExpanded ? "Hide" : "View"}{" "}
+                        Transcription
+                      </span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`h-4 w-4 transition-transform ${
+                          isTranscriptionExpanded ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                <audio controls className="w-full h-8">
+                  <source src={document.captures.file_url} type="audio/m4a" />
+                  <source src={document.captures.file_url} type="audio/mp3" />
+                  <source src={document.captures.file_url} type="audio/wav" />
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+
+              {/* Expandable Transcription and Insights */}
+              {isTranscriptionExpanded && document.captures.transcription && (
+                <div className="border-t border-flexoki-ui-3 p-4 bg-flexoki-ui animate-fade-in">
+                  {/* Transcription */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-flexoki-tx mb-2">
+                      Transcription
+                    </h4>
+                    <p className="text-flexoki-tx text-sm leading-relaxed">
+                      {document.captures.transcription}
+                    </p>
+                  </div>
+
+                  {/* Insights */}
+                  {document.captures.insights &&
+                    document.captures.insights.length > 0 && (
+                      <div className="pt-3 border-t border-flexoki-ui-3">
+                        <h4 className="text-sm font-semibold text-flexoki-tx mb-3">
+                          Extracted Insights (
+                          {document.captures.insights.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {document.captures.insights.map((insight) => (
+                            <div
+                              key={insight.id}
+                              className="flex items-start gap-2 text-sm"
+                            >
+                              <span className="text-base leading-none">
+                                {insight.type === "insight" && "💡"}
+                                {insight.type === "decision" && "✅"}
+                                {insight.type === "question" && "❓"}
+                                {insight.type === "concept" && "🏷️"}
+                              </span>
+                              <span className="text-flexoki-tx flex-1">
+                                {insight.content}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Editor */}

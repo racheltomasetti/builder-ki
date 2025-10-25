@@ -23,7 +23,8 @@ export default async function DocumentsPage() {
       captures (
         id,
         transcription,
-        created_at
+        created_at,
+        file_url
       )
     `
     )

@@ -18,10 +18,21 @@ export default async function DocumentPage({
     redirect("/auth");
   }
 
-  // Fetch document
+  // Fetch document with capture data and insights
   const { data: document, error } = await supabase
     .from("documents")
-    .select("*")
+    .select(
+      `
+      *,
+      captures (
+        id,
+        transcription,
+        created_at,
+        file_url,
+        insights (*)
+      )
+    `
+    )
     .eq("id", params.id)
     .single();
 

@@ -328,10 +328,14 @@ export default function CaptureScreen() {
       <View
         style={[
           styles.header,
-          { borderBottomColor: colors.ui3, backgroundColor: colors.ui },
+          { borderBottomColor: colors.ui3, backgroundColor: colors.bg },
         ]}
       >
-        <Text style={[styles.title, { color: colors.tx }]}>KI</Text>
+        <View style={styles.titleContainer}>
+          <Text style={[styles.title, { color: colors.tx }]}>K</Text>
+          <View style={[styles.titleDot, { backgroundColor: colors.tx }]} />
+          <Text style={[styles.title, { color: colors.tx }]}>I</Text>
+        </View>
         <TouchableOpacity onPress={handleSignOut}>
           <Text style={[styles.signOutText, { color: colors.tx2 }]}>
             Sign Out
@@ -443,9 +447,21 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
   },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  titleDot: {
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    marginLeft: 1,
+    marginRight: 3,
+  },
   title: {
-    fontSize: 24,
+    fontSize: 50,
     fontWeight: "bold",
+    // letterSpacing: -4,
   },
   signOutText: {
     fontSize: 14,

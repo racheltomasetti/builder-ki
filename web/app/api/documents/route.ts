@@ -83,7 +83,8 @@ export async function GET(request: NextRequest) {
         captures (
           id,
           transcription,
-          created_at
+          created_at,
+          file_url
         )
       `
       )
