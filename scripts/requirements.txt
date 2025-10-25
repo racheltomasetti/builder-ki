@@ -1,0 +1,5 @@
+# Requirements for Neo4j population script
+
+neo4j==5.14.1
+supabase==2.3.4
+python-dotenv==1.0.0
