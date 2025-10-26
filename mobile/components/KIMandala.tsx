@@ -21,13 +21,14 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
   ).current;
 
   const centerScale = useRef(new Animated.Value(1)).current;
+  const pulseScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (isRecording) {
       // Start all layer rotations with alternating directions
       const animations = rotations.map((rotation, index) => {
         const isClockwise = index % 2 === 0;
-        const speed = 50000 - index * 5000; // Faster as layers go outward
+        const speed = 5000 + index * 5000; // Slower as layers go outward
 
         return Animated.loop(
           Animated.timing(rotation, {
@@ -45,8 +46,25 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
         useNativeDriver: true,
       });
 
+      // Pulse animation for the center dot
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseScale, {
+            toValue: 1.4,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseScale, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
       animations.forEach((anim) => anim.start());
       centerAnimation.start();
+      pulseAnimation.start();
 
       return () => {
         animations.forEach((anim) => anim.stop());
@@ -59,17 +77,20 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
         useNativeDriver: true,
       }).start();
 
+      // Reset pulse to normal size
+      pulseScale.setValue(1);
+
       // Reset all rotations
       rotations.forEach((rotation) => rotation.setValue(0));
     }
-  }, [isRecording, rotations, centerScale]);
+  }, [isRecording, rotations, centerScale, pulseScale]);
 
   // Calculate positions and sizes for each layer
   // Tight spacing - rings almost touching
   const layers = Array.from({ length: 11 }, (_, index) => {
     const layerIndex = index + 1;
-    const logoSize = 50 + layerIndex * 4.5; // Logos get larger (54.5px → 99.5px)
-    const radius = 33 + layerIndex * (36 + logoSize * 0.01); // Minimal gap between rings
+    const logoSize = 55 + layerIndex * 11; // Logos get larger (54.5px → 99.5px)
+    const radius = 20 + layerIndex * (36 + logoSize * 0.01); // Minimal gap between rings
     const logoCount = 11 + layerIndex * 2; // More logos per layer as we go out
     const rotation = rotations[index];
 
@@ -149,7 +170,7 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
             height: centerSize,
             borderRadius: centerSize / 2,
             backgroundColor: color,
-            transform: [{ scale: centerScale }],
+            transform: [{ scale: centerScale }, { scale: pulseScale }],
             shadowColor: color,
           },
         ]}

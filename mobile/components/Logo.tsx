@@ -1,4 +1,4 @@
-// components/KILogo.tsx (or KILogo.jsx)
+// components/KILogo.tsx
 import React from "react";
 import Svg, { Path, Circle } from "react-native-svg";
 
@@ -21,17 +21,59 @@ export const KILogo: React.FC<KILogoProps> = ({
   const leftX = 50 - letterSpacing;
   const rightX = 50 + letterSpacing;
 
+  // Calculate perfect square dimensions
+  const squareHeight = rightX - leftX; // Width of square
+  const centerY = 50; // Vertical center
+  const topY = centerY - squareHeight / 2;
+  const bottomY = centerY + squareHeight / 2;
+
   return (
     <Svg
       width={size}
       height={size}
       viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
     >
-      {/* Symmetrical K - left side */}
+      {/* Perfect square frame */}
       <Path
-        d={`M ${leftX} 20 L ${leftX} 80 M ${leftX} 50 L ${
-          leftX + 20
-        } 20 M ${leftX} 50 L ${leftX + 20} 80`}
+        d={`M ${leftX} ${topY} L ${rightX} ${topY} L ${rightX} ${bottomY} L ${leftX} ${bottomY} Z`}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+
+      {/* Left K vertical stem */}
+      <Path
+        d={`M ${leftX} ${topY} L ${leftX} ${bottomY}`}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        fill="none"
+      />
+
+      {/* Left K diagonals forming diamond - meeting at center */}
+      <Path
+        d={`M ${leftX} ${centerY} L 50 ${topY} M ${leftX} ${centerY} L 50 ${bottomY}`}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+
+      {/* Right K vertical stem */}
+      <Path
+        d={`M ${rightX} ${topY} L ${rightX} ${bottomY}`}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        fill="none"
+      />
+
+      {/* Right K diagonals forming diamond - meeting at center */}
+      <Path
+        d={`M ${rightX} ${centerY} L 50 ${topY} M ${rightX} ${centerY} L 50 ${bottomY}`}
         stroke={color}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
@@ -41,18 +83,6 @@ export const KILogo: React.FC<KILogoProps> = ({
 
       {/* Center dot */}
       <Circle cx="50" cy="50" r={dotSize} fill={color} />
-
-      {/* Symmetrical I - right side (mirror of K) */}
-      <Path
-        d={`M ${rightX} 20 L ${rightX} 80 M ${rightX} 50 L ${
-          rightX - 20
-        } 20 M ${rightX} 50 L ${rightX - 20} 80`}
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
     </Svg>
   );
 };
