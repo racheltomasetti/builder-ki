@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ScrollView,
   useColorScheme,
   Alert,
+  Animated,
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -31,6 +32,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const [isCustomizeModalVisible, setIsCustomizeModalVisible] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
 
+  // Bobbing animation for preview mandala
+  const bobbingAnim = useRef(new Animated.Value(0)).current;
+
   // Load user data
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -42,6 +46,26 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   useEffect(() => {
     setTempSettings(settings);
   }, [settings]);
+
+  // Bobbing animation for preview mandala
+  useEffect(() => {
+    const bobbing = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bobbingAnim, {
+          toValue: -10,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(bobbingAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    bobbing.start();
+    return () => bobbing.stop();
+  }, [bobbingAnim]);
 
   // Handlers
   const handleOpenCustomize = () => {
@@ -198,16 +222,22 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             <View style={styles.cardContent}>
               {/* Small Mandala Preview */}
               <View style={styles.mandalaPreviewContainer}>
-                <View style={styles.mandalaPreview}>
-                  <KIMandala
-                    isRecording={false}
-                    color={settings.color}
-                    centerCircleColor={settings.centerCircleColor}
-                    centerSize={80}
-                    onPress={() => {}}
-                    settings={settings}
-                  />
-                </View>
+                <Animated.View
+                  style={{
+                    transform: [{ translateY: bobbingAnim }],
+                  }}
+                >
+                  <View style={styles.mandalaPreview}>
+                    <KIMandala
+                      isRecording={false}
+                      color={settings.color}
+                      centerCircleColor={settings.centerCircleColor}
+                      centerSize={400}
+                      onPress={() => {}}
+                      settings={settings}
+                    />
+                  </View>
+                </Animated.View>
               </View>
 
               {/* Customize Button */}

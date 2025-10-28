@@ -13,7 +13,10 @@ import Slider from "@react-native-community/slider";
 import ColorPicker from "react-native-wheel-color-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useThemeColors } from "../theme/colors";
-import { MandalaSettings, MANDALA_CONSTRAINTS } from "../constants/mandalaDefaults";
+import {
+  MandalaSettings,
+  MANDALA_CONSTRAINTS,
+} from "../constants/mandalaDefaults";
 
 interface MandalaCustomizeModalProps {
   visible: boolean;
@@ -40,7 +43,9 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
 }) => {
   const colors = useThemeColors(isDark);
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const [colorPickerTarget, setColorPickerTarget] = useState<"layers" | "center">("layers");
+  const [colorPickerTarget, setColorPickerTarget] = useState<
+    "layers" | "center"
+  >("layers");
 
   // Expanded sections state
   const [expandedSections, setExpandedSections] = useState({
@@ -106,7 +111,7 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
             {/* Header */}
             <View style={styles.header}>
               <Text style={[styles.title, { color: colors.tx }]}>
-                Customize Mandala
+                CREATE YOUR K·I
               </Text>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <MaterialIcons name="close" size={24} color={colors.tx} />
@@ -114,21 +119,23 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
             </View>
 
             {/* Preview Toggle - Sticky at top */}
-            <View style={[styles.stickySection, { borderBottomColor: colors.ui3 }]}>
+            <View
+              style={[styles.stickySection, { borderBottomColor: colors.ui3 }]}
+            >
               <View style={styles.row}>
                 <Text style={[styles.sectionTitle, { color: colors.tx }]}>
-                  Preview Mode
+                  K·I PREVIEW
                 </Text>
                 <Switch
                   value={isPreviewMode}
                   onValueChange={onPreviewToggle}
-                  trackColor={{ false: colors.ui3, true: "rgba(227, 83, 54, 0.5)" }}
+                  trackColor={{
+                    false: colors.ui3,
+                    true: "rgba(227, 83, 54, 0.5)",
+                  }}
                   thumbColor={isPreviewMode ? "rgb(227, 83, 54)" : colors.ui3}
                 />
               </View>
-              <Text style={[styles.sectionDescription, { color: colors.tx2 }]}>
-                Show spinning mandala without recording
-              </Text>
             </View>
 
             {/* Scrollable Content */}
@@ -137,7 +144,6 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
             >
-
               {/* Color Section */}
               <View style={[styles.section, { borderBottomColor: colors.ui3 }]}>
                 <TouchableOpacity
@@ -149,7 +155,9 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                     Colors
                   </Text>
                   <MaterialIcons
-                    name={expandedSections.colors ? "expand-less" : "expand-more"}
+                    name={
+                      expandedSections.colors ? "expand-less" : "expand-more"
+                    }
                     size={24}
                     color={colors.tx}
                   />
@@ -164,7 +172,10 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                       </Text>
                       <TouchableOpacity
                         onPress={() => openColorPicker("layers")}
-                        style={[styles.colorPreview, { backgroundColor: settings.color }]}
+                        style={[
+                          styles.colorPreview,
+                          { backgroundColor: settings.color },
+                        ]}
                       />
                     </View>
 
@@ -186,7 +197,11 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                     {showColorPicker && (
                       <View style={styles.colorPickerContainer}>
                         <ColorPicker
-                          color={colorPickerTarget === "layers" ? settings.color : settings.centerCircleColor}
+                          color={
+                            colorPickerTarget === "layers"
+                              ? settings.color
+                              : settings.centerCircleColor
+                          }
                           onColorChange={handleColorChange}
                           thumbSize={30}
                           sliderSize={30}
@@ -195,9 +210,14 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                         />
                         <TouchableOpacity
                           onPress={() => setShowColorPicker(false)}
-                          style={[styles.doneButton, { backgroundColor: "rgba(227, 83, 54, 0.8)" }]}
+                          style={[
+                            styles.doneButton,
+                            { backgroundColor: "rgba(227, 83, 54, 0.8)" },
+                          ]}
                         >
-                          <Text style={[styles.doneButtonText, { color: "#fff" }]}>
+                          <Text
+                            style={[styles.doneButtonText, { color: "#fff" }]}
+                          >
                             Done
                           </Text>
                         </TouchableOpacity>
@@ -219,11 +239,17 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                       Layer Spacing
                     </Text>
                     <View style={styles.sectionHeaderRight}>
-                      <Text style={[styles.valueText, { color: colors.accent }]}>
+                      <Text
+                        style={[styles.valueText, { color: colors.accent }]}
+                      >
                         {settings.radiusSpacingMultiplier.toFixed(1)}x
                       </Text>
                       <MaterialIcons
-                        name={expandedSections.spacing ? "expand-less" : "expand-more"}
+                        name={
+                          expandedSections.spacing
+                            ? "expand-less"
+                            : "expand-more"
+                        }
                         size={24}
                         color={colors.tx}
                       />
@@ -234,8 +260,12 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                 {expandedSections.spacing && (
                   <Slider
                     style={styles.slider}
-                    minimumValue={MANDALA_CONSTRAINTS.radiusSpacingMultiplier.min}
-                    maximumValue={MANDALA_CONSTRAINTS.radiusSpacingMultiplier.max}
+                    minimumValue={
+                      MANDALA_CONSTRAINTS.radiusSpacingMultiplier.min
+                    }
+                    maximumValue={
+                      MANDALA_CONSTRAINTS.radiusSpacingMultiplier.max
+                    }
                     step={MANDALA_CONSTRAINTS.radiusSpacingMultiplier.step}
                     value={settings.radiusSpacingMultiplier}
                     onValueChange={(value) =>
@@ -260,11 +290,17 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                       Logo Size
                     </Text>
                     <View style={styles.sectionHeaderRight}>
-                      <Text style={[styles.valueText, { color: colors.accent }]}>
+                      <Text
+                        style={[styles.valueText, { color: colors.accent }]}
+                      >
                         {settings.logoSizeMultiplier.toFixed(1)}x
                       </Text>
                       <MaterialIcons
-                        name={expandedSections.logoSize ? "expand-less" : "expand-more"}
+                        name={
+                          expandedSections.logoSize
+                            ? "expand-less"
+                            : "expand-more"
+                        }
                         size={24}
                         color={colors.tx}
                       />
@@ -301,11 +337,17 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                       Logo Count
                     </Text>
                     <View style={styles.sectionHeaderRight}>
-                      <Text style={[styles.valueText, { color: colors.accent }]}>
+                      <Text
+                        style={[styles.valueText, { color: colors.accent }]}
+                      >
                         {settings.logoCountMultiplier.toFixed(1)}x
                       </Text>
                       <MaterialIcons
-                        name={expandedSections.logoCount ? "expand-less" : "expand-more"}
+                        name={
+                          expandedSections.logoCount
+                            ? "expand-less"
+                            : "expand-more"
+                        }
                         size={24}
                         color={colors.tx}
                       />
@@ -342,11 +384,17 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                       Rotation Speed
                     </Text>
                     <View style={styles.sectionHeaderRight}>
-                      <Text style={[styles.valueText, { color: colors.accent }]}>
+                      <Text
+                        style={[styles.valueText, { color: colors.accent }]}
+                      >
                         {settings.rotationSpeedMultiplier.toFixed(1)}x
                       </Text>
                       <MaterialIcons
-                        name={expandedSections.rotationSpeed ? "expand-less" : "expand-more"}
+                        name={
+                          expandedSections.rotationSpeed
+                            ? "expand-less"
+                            : "expand-more"
+                        }
                         size={24}
                         color={colors.tx}
                       />
@@ -357,8 +405,12 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                 {expandedSections.rotationSpeed && (
                   <Slider
                     style={styles.slider}
-                    minimumValue={MANDALA_CONSTRAINTS.rotationSpeedMultiplier.min}
-                    maximumValue={MANDALA_CONSTRAINTS.rotationSpeedMultiplier.max}
+                    minimumValue={
+                      MANDALA_CONSTRAINTS.rotationSpeedMultiplier.min
+                    }
+                    maximumValue={
+                      MANDALA_CONSTRAINTS.rotationSpeedMultiplier.max
+                    }
                     step={MANDALA_CONSTRAINTS.rotationSpeedMultiplier.step}
                     value={settings.rotationSpeedMultiplier}
                     onValueChange={(value) =>
@@ -376,7 +428,11 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
             <View style={[styles.footer, { borderTopColor: colors.ui3 }]}>
               <TouchableOpacity
                 onPress={onReset}
-                style={[styles.button, styles.resetButton, { borderColor: colors.ui3 }]}
+                style={[
+                  styles.button,
+                  styles.resetButton,
+                  { borderColor: colors.ui3 },
+                ]}
               >
                 <MaterialIcons name="refresh" size={20} color={colors.tx2} />
                 <Text style={[styles.buttonText, { color: colors.tx2 }]}>
