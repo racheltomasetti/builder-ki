@@ -10,14 +10,19 @@ import {
   useColorScheme,
   Animated,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { supabase } from "../lib/supabase";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system/legacy";
 import { useThemeColors } from "../theme/colors";
 import { KILogo } from "../components/Logo";
 import { KIMandala } from "../components/KIMandala";
+import { useMandalaSettings } from "../hooks/useMandalaSettings";
+import type { CaptureScreenProps } from "../types/navigation";
 
-export default function CaptureScreen() {
+export default function CaptureScreen({ navigation }: CaptureScreenProps) {
+  const isFocused = useIsFocused();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = useThemeColors(isDark);
@@ -26,6 +31,16 @@ export default function CaptureScreen() {
   const [uploading, setUploading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
+
+  // Load saved mandala settings
+  const { settings, loadSettings } = useMandalaSettings();
+
+  // Reload settings when screen comes into focus
+  useEffect(() => {
+    if (isFocused) {
+      loadSettings();
+    }
+  }, [isFocused]);
 
   // Animation values
   const bobbingAnim = useRef(new Animated.Value(0)).current;
@@ -85,8 +100,6 @@ export default function CaptureScreen() {
       return () => bobbing.stop();
     }
   }, [recording, uploading, bobbingAnim]);
-
-
 
   const handleSignOut = async () => {
     // Rotate logo 180 degrees to the left (back to 0) on sign out
@@ -328,6 +341,15 @@ export default function CaptureScreen() {
               <KILogo size={70} color={colors.tx} strokeWidth={2.5} />
             </Animated.View>
           </TouchableOpacity>
+
+          {/* Settings Button */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Settings")}
+            style={styles.settingsButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="settings-outline" size={28} color={colors.tx} />
+          </TouchableOpacity>
         </View>
       )}
 
@@ -351,9 +373,11 @@ export default function CaptureScreen() {
             >
               <KIMandala
                 isRecording={!!recording}
-                color={recording ? colors.accent2 : colors.accent}
+                color={settings.color}
+                centerCircleColor={settings.centerCircleColor}
                 centerSize={200}
                 onPress={recording ? stopRecording : startRecording}
+                settings={settings}
               />
             </Animated.View>
           </View>
@@ -382,10 +406,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 15,
     borderBottomWidth: 1,
+    position: "relative",
   },
   logoContainer: {
     alignItems: "center",
     justifyContent: "center",
+  },
+  settingsButton: {
+    position: "absolute",
+    right: 15,
+    padding: 8,
   },
   content: {
     flex: 1,

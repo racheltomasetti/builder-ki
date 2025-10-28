@@ -1,12 +1,15 @@
 import React, { useEffect, useRef } from "react";
 import { View, Animated, StyleSheet, TouchableOpacity } from "react-native";
 import { KILogo } from "./Logo";
+import { MandalaSettings, DEFAULT_MANDALA_SETTINGS } from "../constants/mandalaDefaults";
 
 interface KIMandalaProps {
   isRecording: boolean;
   color: string;
   centerSize?: number;
   onPress: () => void;
+  settings?: MandalaSettings;
+  centerCircleColor?: string;
 }
 
 export const KIMandala: React.FC<KIMandalaProps> = ({
@@ -14,6 +17,8 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
   color,
   centerSize = 200,
   onPress,
+  settings = DEFAULT_MANDALA_SETTINGS,
+  centerCircleColor,
 }) => {
   // Create 11 rotation animations (one for each layer)
   const rotations = useRef(
@@ -28,7 +33,8 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
       // Start all layer rotations with alternating directions
       const animations = rotations.map((rotation, index) => {
         const isClockwise = index % 2 === 0;
-        const speed = 5000 + index * 5000; // Slower as layers go outward
+        const baseSpeed = settings.baseRotationSpeed + index * settings.rotationSpeedIncrement;
+        const speed = baseSpeed / settings.rotationSpeedMultiplier; // Divide to make higher multiplier = faster
 
         return Animated.loop(
           Animated.timing(rotation, {
@@ -83,15 +89,21 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
       // Reset all rotations
       rotations.forEach((rotation) => rotation.setValue(0));
     }
-  }, [isRecording, rotations, centerScale, pulseScale]);
+  }, [isRecording, rotations, centerScale, pulseScale, settings]);
 
   // Calculate positions and sizes for each layer
-  // Tight spacing - rings almost touching
+  // Using dynamic settings with multipliers
   const layers = Array.from({ length: 11 }, (_, index) => {
     const layerIndex = index + 1;
-    const logoSize = 55 + layerIndex * 11; // Logos get larger (54.5px → 99.5px)
-    const radius = 20 + layerIndex * (36 + logoSize * 0.01); // Minimal gap between rings
-    const logoCount = 11 + layerIndex * 2; // More logos per layer as we go out
+    const baseLogoSize = settings.baseLogoSize + layerIndex * settings.logoSizeIncrement;
+    const logoSize = baseLogoSize * settings.logoSizeMultiplier;
+
+    const baseRadius = settings.baseRadius + layerIndex * (settings.radiusSpacing + baseLogoSize * 0.01);
+    const radius = baseRadius * settings.radiusSpacingMultiplier;
+
+    const baseLogoCount = settings.baseLogoCount + layerIndex * settings.logoCountIncrement;
+    const logoCount = Math.round(baseLogoCount * settings.logoCountMultiplier);
+
     const rotation = rotations[index];
 
     return {
@@ -104,11 +116,7 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
   });
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.8}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       {/* Mandala layers - only show when recording */}
       {isRecording &&
         layers.map((layer, layerIndex) => (
@@ -161,21 +169,27 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
           </Animated.View>
         ))}
 
-      {/* Center circle */}
-      <Animated.View
-        style={[
-          styles.centerCircle,
-          {
-            width: centerSize,
-            height: centerSize,
-            borderRadius: centerSize / 2,
-            backgroundColor: color,
-            transform: [{ scale: centerScale }, { scale: pulseScale }],
-            shadowColor: color,
-          },
-        ]}
-      />
-    </TouchableOpacity>
+      {/* Center circle - only this is touchable */}
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.8}
+        style={styles.centerTouchable}
+      >
+        <Animated.View
+          style={[
+            styles.centerCircle,
+            {
+              width: centerSize,
+              height: centerSize,
+              borderRadius: centerSize / 2,
+              backgroundColor: centerCircleColor || color,
+              transform: [{ scale: centerScale }, { scale: pulseScale }],
+              shadowColor: centerCircleColor || color,
+            },
+          ]}
+        />
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -196,8 +210,10 @@ const styles = StyleSheet.create({
   logoWrapper: {
     position: "absolute",
   },
-  centerCircle: {
+  centerTouchable: {
     position: "absolute",
+  },
+  centerCircle: {
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
