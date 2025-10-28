@@ -27,12 +27,25 @@ export const KILogo: React.FC<KILogoProps> = ({
   const topY = centerY - squareHeight / 2;
   const bottomY = centerY + squareHeight / 2;
 
+  // Calculate circle radius - the diagonal of the square divided by 2
+  const circleRadius = (squareHeight * Math.sqrt(2)) / 2;
+
   return (
     <Svg
       width={size}
       height={size}
       viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
     >
+      {/* Circle that touches all four corners of the square */}
+      <Circle
+        cx="50"
+        cy="50"
+        r={circleRadius}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        fill="none"
+      />
+
       {/* Perfect square frame */}
       <Path
         d={`M ${leftX} ${topY} L ${rightX} ${topY} L ${rightX} ${bottomY} L ${leftX} ${bottomY} Z`}
