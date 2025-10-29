@@ -3,9 +3,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
 
 export const metadata: Metadata = {
-  title: "KI - AI-Powered Thought Clarification",
-  description:
-    "Capture scattered thinking and transform it into prompt-ready clarity",
+  title: "K·I ~ EXTENSION OF THE MIND",
+  description: "toolkit of Self designed to augment the journey of becoming",
 };
 
 export default function RootLayout({
