@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system/legacy";
+import * as ImageManipulator from "expo-image-manipulator";
 import { supabase } from "../lib/supabase";
 import { useThemeColors } from "../theme/colors";
 import type { MediaUploadScreenProps } from "../types/navigation";
@@ -54,6 +55,57 @@ export default function MediaUploadScreen({
 
     initialize();
   }, []);
+
+  // Delete media item
+  const deleteMediaItem = async (itemId: string) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Find the item to get the file URL
+      const item = recentMedia.find((m) => m.id === itemId);
+      if (!item) {
+        throw new Error("Item not found");
+      }
+
+      // Extract file path from URL for storage deletion
+      const url = new URL(item.file_url);
+      const filePath = url.pathname.split("/").slice(3).join("/"); // Remove /storage/v1/object/public/bucket-name/
+
+      console.log("Deleting file from storage:", filePath);
+
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from("media-items")
+        .remove([filePath]);
+
+      if (storageError) {
+        console.error("Storage deletion error:", storageError);
+        // Continue with database deletion even if storage fails
+      }
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from("media_items")
+        .delete()
+        .eq("id", itemId);
+
+      if (dbError) {
+        throw dbError;
+      }
+
+      // Update local state
+      setRecentMedia((prev) => prev.filter((m) => m.id !== itemId));
+
+      console.log("Media item deleted successfully");
+      Alert.alert("Success", "Image deleted successfully");
+    } catch (error) {
+      console.error("Error deleting media item:", error);
+      Alert.alert("Error", "Failed to delete image. Please try again.");
+    }
+  };
 
   // Load 3 most recent media items
   const loadRecentMedia = async () => {
@@ -314,6 +366,28 @@ export default function MediaUploadScreen({
     }
   };
 
+  // Convert HEIC/HEIF to JPEG using ImageManipulator
+  const convertHeicToJpeg = async (uri: string): Promise<string> => {
+    try {
+      console.log("Converting HEIC to JPEG:", uri);
+
+      const result = await ImageManipulator.manipulateAsync(
+        uri,
+        [], // No transformations needed, just format conversion
+        {
+          compress: 0.85, // Good quality with smaller file size
+          format: ImageManipulator.SaveFormat.JPEG,
+        }
+      );
+
+      console.log("HEIC conversion successful:", result.uri);
+      return result.uri;
+    } catch (error) {
+      console.error("Error converting HEIC to JPEG:", error);
+      throw new Error("Failed to convert HEIC image to JPEG");
+    }
+  };
+
   // Upload single image to storage and create media_items record
   const uploadSingleImage = async (asset: ImagePicker.ImagePickerAsset) => {
     try {
@@ -331,36 +405,46 @@ export default function MediaUploadScreen({
       console.log("Asset has exif:", !!asset.exif);
       console.log("Asset has assetId:", !!asset.assetId);
 
-      // Extract EXIF data (pass both EXIF and assetId if available)
+      // Check if it's a HEIC/HEIF file and convert to JPEG
+      let processedUri = asset.uri;
+      let isHeic = false;
+
+      const uri = asset.uri.toLowerCase();
+      if (uri.includes(".heic") || uri.includes(".heif")) {
+        console.log("Detected HEIC/HEIF file, converting to JPEG...");
+        processedUri = await convertHeicToJpeg(asset.uri);
+        isHeic = true;
+      }
+
+      // Extract EXIF data from the processed URI (pass both EXIF and assetId if available)
       const { originalDate, metadata } = await extractExifData(
-        asset.uri,
+        processedUri,
         asset.exif,
         asset.assetId ?? undefined
       );
       console.log("Final extracted data:", {
         originalDate,
         hasLocation: !!metadata.location,
+        wasConverted: isHeic,
       });
 
-      // Determine file extension
-      const uri = asset.uri.toLowerCase();
-      const ext =
-        uri.includes(".jpg") || uri.includes(".jpeg")
-          ? "jpg"
-          : uri.includes(".png")
-          ? "png"
-          : uri.includes(".heic") || uri.includes(".heif")
-          ? "heic"
-          : "jpg";
-      const contentType = `image/${ext === "jpg" ? "jpeg" : ext}`;
+      // Determine file extension - always use jpg for converted files
+      const finalExt = isHeic
+        ? "jpg"
+        : uri.includes(".jpg") || uri.includes(".jpeg")
+        ? "jpg"
+        : uri.includes(".png")
+        ? "png"
+        : "jpg";
+      const contentType = `image/${finalExt === "jpg" ? "jpeg" : finalExt}`;
 
       const fileName = `${user.id}/${Date.now()}-${Math.random()
         .toString(36)
-        .substring(7)}.${ext}`;
+        .substring(7)}.${finalExt}`;
       const bucketName = "media-items";
 
-      // Read file as base64 and convert to Uint8Array
-      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+      // Read file as base64 and convert to Uint8Array (use processed URI)
+      const base64 = await FileSystem.readAsStringAsync(processedUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
@@ -408,6 +492,9 @@ export default function MediaUploadScreen({
       if (insertError) throw insertError;
 
       console.log("Media item uploaded successfully:", fileName);
+      if (isHeic) {
+        console.log("✅ HEIC file converted to JPEG and uploaded");
+      }
     } catch (err: any) {
       console.error("Upload single image error:", err);
       throw err;
@@ -490,7 +577,10 @@ export default function MediaUploadScreen({
             <View style={styles.actionsContainer}>
               <TouchableOpacity
                 onPress={takePhoto}
-                style={[styles.actionButton, { backgroundColor: colors.accent }]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.accent },
+                ]}
                 activeOpacity={0.8}
                 disabled={uploading}
               >
@@ -502,7 +592,10 @@ export default function MediaUploadScreen({
 
               <TouchableOpacity
                 onPress={selectPhotos}
-                style={[styles.actionButton, { backgroundColor: colors.accent2 }]}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: colors.accent2 },
+                ]}
                 activeOpacity={0.8}
                 disabled={uploading}
               >
@@ -537,10 +630,7 @@ export default function MediaUploadScreen({
               <View key={item.id} style={styles.recentItem}>
                 <Image
                   source={{ uri: item.file_url }}
-                  style={[
-                    styles.recentImage,
-                    { backgroundColor: colors.ui2 },
-                  ]}
+                  style={[styles.recentImage, { backgroundColor: colors.ui2 }]}
                   resizeMode="cover"
                   onError={(e) => {
                     console.error(
@@ -553,16 +643,32 @@ export default function MediaUploadScreen({
                     console.log("Image loaded successfully:", item.file_url);
                   }}
                 />
+                <TouchableOpacity
+                  style={[styles.deleteButton, { backgroundColor: "#ef4444" }]}
+                  onPress={() => {
+                    Alert.alert(
+                      "Delete Image",
+                      "Are you sure you want to delete this image? This action cannot be undone.",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Delete",
+                          style: "destructive",
+                          onPress: () => deleteMediaItem(item.id),
+                        },
+                      ]
+                    );
+                  }}
+                >
+                  <Ionicons name="trash" size={16} color="white" />
+                </TouchableOpacity>
                 {item.original_date && (
                   <Text style={[styles.recentDate, { color: colors.tx2 }]}>
-                    {new Date(item.original_date).toLocaleDateString(
-                      "en-US",
-                      {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      }
-                    )}
+                    {new Date(item.original_date).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </Text>
                 )}
               </View>
@@ -668,5 +774,23 @@ const styles = StyleSheet.create({
   recentDate: {
     fontSize: 11,
     fontWeight: "500",
+  },
+  deleteButton: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });

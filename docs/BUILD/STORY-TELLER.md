@@ -194,78 +194,60 @@ YOU DO AFTER THIS PHASE: Upload all your journey photos from phone
 
 ---
 
-PHASE 4: Web Calendar View (1 hour)
+PHASE 4: Web Daily Log View (1.5 hours) ✅ COMPLETED
 
-Goal: Visual calendar showing days with logs/media
-
-Tasks:
-
-1. Install:1. npx shadcn@latest add calendar [x]
-2. Create page: web/app/dashboard/calendar/page.tsx
-
-   - Month view calendar
-   - Fetch daily log counts + media counts per day
-   - Highlight days: blue dot (has log), green dot (has media)
-   - Click day → navigate to /dashboard/calendar/[date]
-
-3. API route: web/app/api/calendar/summary/route.ts
-
-   - Return: { date: '2024-10-28', hasLog: true, mediaCount: 3 }
-
-Calendar UI:
-┌──────────────────────────────────┐
-│ October 2024 < > │
-├──────────────────────────────────┤
-│ S M T W T F S │
-│ 1● 2 3 4 │
-│ 5 6●● 7 8● 9 10 11 │
-│12 13● 14 15●● 16 17 18 │
-│19 20● 21 22●● 23● 24 25 │
-│26 27● 28●● 29 30 31 │
-└──────────────────────────────────┘
-● = has daily log ●● = has log + media
-
----
-
-PHASE 5: Web Daily Log Detail View (1 hour)
-
-Goal: Show everything for a specific day
+Goal: Integrated daily log view with day navigation in main dashboard
 
 Tasks:
 
-1. Create page: web/app/dashboard/calendar/[date]/page.tsx
+1. Create DailyView component (web/components/DailyView.tsx) ✅
 
-   - Query captures where log_date = date (intention, daily, reflection)
-   - Query media_items where log_date = date or original_date = date
-   - Display in sections:
-     - Intention (if exists)
-     - Daily captures (transcriptions + insights)
-     - Media grid
-     - Reflection (if exists)
+   - Extract day detail logic from calendar implementation
+   - Show intention, daily captures, photos, reflection
+   - Handle empty states gracefully
 
-Detail View:
+2. Update main dashboard (web/app/dashboard/page.tsx) ✅
+
+   - Add view toggle: "stream of thoughts" vs "daily log"
+   - Add day navigation with left/right arrows
+   - Integrate DailyView component
+   - Preserve existing feed functionality
+
+3. Remove calendar dependencies ✅
+   - Delete calendar page and API route
+   - Clean up unused calendar components
+
+Dashboard UI:
 ┌─────────────────────────────────┐
-│ ← October 28, 2024 │
+│ where the mind goes to wander │
 ├─────────────────────────────────┤
-│ Intention: │
-│ 🎤 [audio] "To finish the MVP" │
-│ Transcription: "Today I will..." │
+│ [stream of thoughts] [daily log]│
+│ ← Oct 28, 2024 → │ ← Only in daily log view
+├─────────────────────────────────┤
 │ │
-│ Daily Captures (3): │
-│ 🎤 10:23am - "Just realized..." │
-│ 🎤 2:45pm - "Making progress..."│
-│ 🎤 6:10pm - "Almost there..." │
+│ Either: │
+│ • Search + Voice notes feed │ ← Stream of thoughts view
+│ OR: │
+│ • ☀️ Morning Intention │ ← Daily log view
+│ • 📝 Daily Captures (3) │
+│ • 📸 Photos (5) │
+│ • 🌙 Evening Reflection │
 │ │
-│ Media (5 photos): │
-│ [img] [img] [img] [img] [img] │
-│ │
-│ Reflection: │
-│ 🎤 [audio] "Today was good..." │
 └─────────────────────────────────┘
 
+Features:
+
+- ✅ Day-by-day navigation with arrows
+- ✅ Defaults to current day
+- ✅ Shows complete daily breakdown
+- ✅ Audio playback for voice notes
+- ✅ Photo gallery for uploaded media
+- ✅ Clean empty states
+- ✅ Preserves search functionality in feed view
+
 ---
 
-PHASE 6: Web Media Library (45 min)
+PHASE 5: Web Media Library (45 min)
 
 Goal: Browse all uploaded media
 
@@ -293,7 +275,7 @@ Media Library:
 
 ---
 
-PHASE 7: AI Story Generator (2-3 hours)
+PHASE 6: AI Story Generator (2-3 hours)
 
 Goal: Synthesize logs + media into narrative script
 
@@ -374,7 +356,7 @@ Continue for full ${targetLength} minutes...
 
 ---
 
-PHASE 8: Story Editor & Export (1 hour)
+PHASE 7: Story Editor & Export (1 hour)
 
 Goal: Review, edit, export the script
 
@@ -422,12 +404,11 @@ Story Editor:
 | 2     | Mobile: Daily log UI       | 1.5 hr | 9:45pm - 11:15pm |
 | 3     | Mobile: Media upload       | 2.5 hr | 11:15pm - 1:45am |
 | -     | 🧑 YOU: Upload photos      | 30 min | 1:45am - 2:15am  |
-| 4     | Web: Calendar view         | 1 hr   | 1:45am - 2:45am  |
-| 5     | Web: Daily log detail      | 1 hr   | 2:45am - 3:45am  |
-| 6     | Web: Media library         | 45 min | 3:45am - 4:30am  |
-| 7     | Web: AI story generator    | 2.5 hr | 4:30am - 7:00am  |
-| 8     | Web: Story editor          | 1 hr   | 7:00am - 8:00am  |
-| -     | 🧑 Generate & refine story | 30 min | 8:00am - 8:30am  |
+| 4     | Web: Daily log view        | 1.5 hr | 1:45am - 3:15am  |
+| 5     | Web: Media library         | 45 min | 3:15am - 4:00am  |
+| 6     | Web: AI story generator    | 2.5 hr | 4:00am - 6:30am  |
+| 7     | Web: Story editor          | 1 hr   | 6:30am - 7:30am  |
+| -     | 🧑 Generate & refine story | 30 min | 7:30am - 8:00am  |
 
 Total: ~11 hours building + 1.5 hours your data entry
 
@@ -438,11 +419,11 @@ Total: ~11 hours building + 1.5 hours your data entry
 By Wednesday 8:30am:
 
 - ✅[x] Mobile app can set intentions, capture daily thoughts, add reflections
-- ✅[ ] Mobile app can upload photos with EXIF dates
+- ✅[x] Mobile app can upload photos with EXIF dates
 - ✅[ ] 20-30 daily logs backfilled via SQL
-- ✅[ ] 30-100+ photos uploaded from mobile
-- ✅[ ] Web calendar shows your 18-month journey
-- ✅[ ] Can view any day's complete log (text + media)
+- ✅[x] 30-100+ photos uploaded from mobile
+- ✅[x] Web daily log view with day navigation
+- ✅[x] Can view any day's complete log (text + media)
 - ✅[ ] AI-generated 3-5 min video script
 - ✅[ ] Script references specific dates and suggests photo placements
 - ✅[ ] Exportable script ready for recording
@@ -464,9 +445,8 @@ Wednesday afternoon:
 
   ☐ Mobile: Media upload - camera capture and camera roll  
    picker with EXIF extraction
-  ☐ Web: Calendar view showing days with logs/media  
-  ☐ Web: Daily log detail view showing
-  intention/notes/reflection/media for a specific day  
+  ☒ Web: Daily log view with day navigation and complete daily breakdown
+  ☒ Web: Integrated dashboard with feed/daily toggle  
   ☐ Web: Media library grid view sorted by date
   ☐ Web: AI story generator with Claude API integration  
   ☐ Web: Story editor to review and export generated script

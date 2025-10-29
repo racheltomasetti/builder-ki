@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import VoiceCard from "@/components/VoiceCard";
 import DailyView from "@/components/DailyView";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
+import Link from "next/link";
 
 type Insight = {
   id: string;
@@ -151,6 +152,13 @@ export default function DashboardPage() {
           >
             daily log
           </button>
+          <Link
+            href="/dashboard/media"
+            className="px-6 py-2 rounded-lg font-medium transition-all bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 hover:bg-flexoki-ui-3 flex items-center gap-2"
+          >
+            <ImageIcon className="w-4 h-4" />
+            media library
+          </Link>
         </div>
 
         {/* Daily View Navigation - Only show in daily mode */}

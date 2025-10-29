@@ -73,7 +73,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                     : "text-flexoki-tx hover:text-flexoki-accent"
                 }`}
               >
-                thoughts
+                CAPTURES
               </a>
               <a
                 href="/dashboard/documents"
