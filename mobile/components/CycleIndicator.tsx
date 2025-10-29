@@ -1,10 +1,5 @@
 import { useEffect, useRef } from "react";
-import {
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Animated,
-} from "react-native";
+import { Text, TouchableOpacity, StyleSheet, Animated } from "react-native";
 
 interface CycleIndicatorProps {
   cycleDay: number | null;
@@ -66,7 +61,10 @@ export default function CycleIndicator({
       <Animated.View
         style={[
           styles.container,
-          { backgroundColor: phaseColor, transform: [{ translateY: bobbingAnim }] },
+          {
+            backgroundColor: phaseColor,
+            transform: [{ translateY: bobbingAnim }],
+          },
         ]}
       >
         <Text style={styles.text}>{displayText}</Text>
@@ -83,6 +81,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
+    opacity: 0.75,
     shadowOffset: {
       width: 0,
       height: 2,
