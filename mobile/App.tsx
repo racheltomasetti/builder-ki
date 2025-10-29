@@ -5,7 +5,7 @@ import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { supabase } from './lib/supabase'
 import AuthScreen from './screens/AuthScreen'
-import CaptureScreen from './screens/CaptureScreen'
+import MainTabsNavigator from './navigation/MainTabsNavigator'
 import SettingsScreen from './screens/SettingsScreen'
 import { useThemeColors } from './theme/colors'
 import type { RootStackParamList } from './types/navigation'
@@ -56,8 +56,15 @@ export default function App() {
               contentStyle: { backgroundColor: colors.bg },
             }}
           >
-            <Stack.Screen name="Capture" component={CaptureScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="MainTabs" component={MainTabsNavigator} />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{
+                presentation: 'modal',
+                headerShown: false,
+              }}
+            />
           </Stack.Navigator>
         </NavigationContainer>
       ) : (

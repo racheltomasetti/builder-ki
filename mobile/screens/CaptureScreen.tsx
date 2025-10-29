@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Alert,
   ActivityIndicator,
   useColorScheme,
@@ -16,7 +15,6 @@ import { supabase } from "../lib/supabase";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system/legacy";
 import { useThemeColors } from "../theme/colors";
-import { KILogo } from "../components/Logo";
 import { KIMandala } from "../components/KIMandala";
 import { useMandalaSettings } from "../hooks/useMandalaSettings";
 import type { CaptureScreenProps } from "../types/navigation";
@@ -285,13 +283,28 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
       } = supabase.storage.from(bucketName).getPublicUrl(fileName);
       console.log("Public URL:", publicUrl);
 
-      // Create capture record
+      // Get today's date in YYYY-MM-DD format (local timezone)
+      const today = new Date();
+      const todayDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+      // Ensure daily_log exists for today
+      await supabase.from("daily_logs").upsert(
+        {
+          user_id: user.id,
+          date: todayDate,
+        },
+        { onConflict: "user_id,date", ignoreDuplicates: true }
+      );
+
+      // Create capture record with log_date and note_type='daily'
       console.log("Creating capture record...");
       const { error: insertError } = await supabase.from("captures").insert({
         user_id: user.id,
         type: "voice",
         file_url: publicUrl,
         processing_status: "pending",
+        note_type: "daily",
+        log_date: todayDate,
       });
 
       if (insertError) {
@@ -312,47 +325,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Hide header when recording */}
-      {!recording && (
-        <View
-          style={[
-            styles.header,
-            { borderBottomColor: colors.ui3, backgroundColor: colors.bg },
-          ]}
-        >
-          <TouchableOpacity
-            onPress={handleSignOut}
-            style={styles.logoContainer}
-            activeOpacity={0.7}
-          >
-            <Animated.View
-              style={{
-                transform: [
-                  {
-                    rotate: logoRotation.interpolate({
-                      inputRange: [0, 180],
-                      outputRange: ["0deg", "180deg"],
-                    }),
-                  },
-                ],
-              }}
-            >
-              <KILogo size={70} color={colors.tx} strokeWidth={2.5} />
-            </Animated.View>
-          </TouchableOpacity>
-
-          {/* Settings Button */}
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Settings")}
-            style={styles.settingsButton}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="settings-outline" size={28} color={colors.tx} />
-          </TouchableOpacity>
-        </View>
-      )}
-
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={styles.content}>
         {uploading && (
           <View style={styles.uploadingContainer}>
@@ -392,30 +365,13 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
           </View>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 15,
-    borderBottomWidth: 1,
-    position: "relative",
-  },
-  logoContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  settingsButton: {
-    position: "absolute",
-    right: 15,
-    padding: 8,
   },
   content: {
     flex: 1,

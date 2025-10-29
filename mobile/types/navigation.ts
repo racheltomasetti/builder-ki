@@ -1,13 +1,23 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
-// Define the param list for our stack navigator
+// Stack navigator (root level with Auth and Main Tabs)
 export type RootStackParamList = {
-  Capture: undefined;
+  MainTabs: undefined;
   Settings: undefined;
 };
 
+// Bottom tab navigator (main authenticated screens)
+export type MainTabsParamList = {
+  DailyLog: undefined;
+  Capture: undefined;
+  MediaUpload: undefined;
+};
+
 // Screen props types for each screen
-export type CaptureScreenProps = NativeStackScreenProps<RootStackParamList, 'Capture'>;
+export type DailyLogScreenProps = BottomTabScreenProps<MainTabsParamList, 'DailyLog'>;
+export type CaptureScreenProps = BottomTabScreenProps<MainTabsParamList, 'Capture'>;
+export type MediaUploadScreenProps = BottomTabScreenProps<MainTabsParamList, 'MediaUpload'>;
 export type SettingsScreenProps = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 // Navigation prop type (for using navigation.navigate())
