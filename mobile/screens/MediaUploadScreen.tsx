@@ -18,6 +18,9 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { supabase } from "../lib/supabase";
 import { useThemeColors } from "../theme/colors";
 import type { MediaUploadScreenProps } from "../types/navigation";
+import CycleIndicator from "../components/CycleIndicator";
+import CycleModal from "../components/CycleModal";
+import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
 
 interface MediaItem {
   id: string;
@@ -38,6 +41,8 @@ export default function MediaUploadScreen({
   const [user, setUser] = useState<any>(null);
   const [recentMedia, setRecentMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cycleModalVisible, setCycleModalVisible] = useState(false);
+  const [cycleInfo, setCycleInfo] = useState<CycleInfo | null>(null);
 
   // Get user and load recent media
   useEffect(() => {
@@ -49,12 +54,45 @@ export default function MediaUploadScreen({
 
       if (user) {
         await loadRecentMedia();
+        await loadCycleInfo(user.id);
       }
       setLoading(false);
     };
 
     initialize();
   }, []);
+
+  // Load cycle info from database
+  const loadCycleInfo = async (userId: string) => {
+    try {
+      const info = await getCurrentCycleInfo(userId);
+      setCycleInfo(info);
+    } catch (err) {
+      console.error("Error loading cycle info:", err);
+    }
+  };
+
+  // Handle cycle update (called after modal actions)
+  const handleCycleUpdate = async () => {
+    if (user) {
+      await loadCycleInfo(user.id);
+    }
+  };
+
+  // Set cycle indicator in header
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <View style={{ marginLeft: 12 }}>
+          <CycleIndicator
+            cycleDay={cycleInfo?.cycleDay || null}
+            cyclePhase={cycleInfo?.cyclePhase || null}
+            onPress={() => setCycleModalVisible(true)}
+          />
+        </View>
+      ),
+    });
+  }, [navigation, cycleInfo]);
 
   // Delete media item
   const deleteMediaItem = async (itemId: string) => {
@@ -675,6 +713,16 @@ export default function MediaUploadScreen({
             ))}
           </View>
         </View>
+      )}
+
+      {/* Cycle Modal */}
+      {user && (
+        <CycleModal
+          visible={cycleModalVisible}
+          onClose={() => setCycleModalVisible(false)}
+          userId={user.id}
+          onCycleUpdate={handleCycleUpdate}
+        />
       )}
     </View>
   );

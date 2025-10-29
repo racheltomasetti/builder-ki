@@ -16,6 +16,9 @@ import * as FileSystem from "expo-file-system/legacy";
 import { useThemeColors } from "../theme/colors";
 import type { DailyLogScreenProps } from "../types/navigation";
 import { KIMandala } from "../components/KIMandala";
+import CycleIndicator from "../components/CycleIndicator";
+import CycleModal from "../components/CycleModal";
+import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
 
 type NoteType = "intention" | "reflection";
 
@@ -44,6 +47,8 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
   });
   const [loading, setLoading] = useState(true);
   const [isReflectionAvailable, setIsReflectionAvailable] = useState(false);
+  const [cycleModalVisible, setCycleModalVisible] = useState(false);
+  const [cycleInfo, setCycleInfo] = useState<CycleInfo | null>(null);
 
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -73,6 +78,7 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
 
       if (user) {
         await loadTodayStatus();
+        await loadCycleInfo(user.id);
       }
       setLoading(false);
     };
@@ -103,10 +109,21 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
     };
   }, []);
 
-  // Hide/show navigation bars when recording
+  // Hide/show navigation bars when recording + add cycle indicator to header
   useEffect(() => {
     navigation.setOptions({
       headerShown: !recording,
+      headerLeft: !recording
+        ? () => (
+            <View style={{ marginLeft: 12 }}>
+              <CycleIndicator
+                cycleDay={cycleInfo?.cycleDay || null}
+                cyclePhase={cycleInfo?.cyclePhase || null}
+                onPress={() => setCycleModalVisible(true)}
+              />
+            </View>
+          )
+        : undefined,
       tabBarStyle: recording
         ? { display: "none" }
         : {
@@ -118,7 +135,7 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
             paddingTop: 4,
           },
     });
-  }, [recording, navigation, colors]);
+  }, [recording, navigation, colors, cycleInfo]);
 
   // Load today's status from database
   const loadTodayStatus = async () => {
@@ -162,6 +179,23 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
       });
     } catch (err) {
       console.error("Error loading today status:", err);
+    }
+  };
+
+  // Load cycle info from database
+  const loadCycleInfo = async (userId: string) => {
+    try {
+      const info = await getCurrentCycleInfo(userId);
+      setCycleInfo(info);
+    } catch (err) {
+      console.error("Error loading cycle info:", err);
+    }
+  };
+
+  // Handle cycle update (called after modal actions)
+  const handleCycleUpdate = async () => {
+    if (user) {
+      await loadCycleInfo(user.id);
     }
   };
 
@@ -614,6 +648,16 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
           </>
         )}
       </ScrollView>
+
+      {/* Cycle Modal */}
+      {user && (
+        <CycleModal
+          visible={cycleModalVisible}
+          onClose={() => setCycleModalVisible(false)}
+          userId={user.id}
+          onCycleUpdate={handleCycleUpdate}
+        />
+      )}
     </View>
   );
 }

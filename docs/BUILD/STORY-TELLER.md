@@ -275,6 +275,10 @@ Media Library:
 
 ---
 
+## CYCLE TRACKING IMPLEMENTATION [ ]
+
+IMPLEMENT THIS BEFORE WE CONTINUE TO PHASE 6
+
 PHASE 6: AI Story Generator (2-3 hours)
 
 Goal: Synthesize logs + media into narrative script

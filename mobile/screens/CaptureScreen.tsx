@@ -18,6 +18,9 @@ import { useThemeColors } from "../theme/colors";
 import { KIMandala } from "../components/KIMandala";
 import { useMandalaSettings } from "../hooks/useMandalaSettings";
 import type { CaptureScreenProps } from "../types/navigation";
+import CycleIndicator from "../components/CycleIndicator";
+import CycleModal from "../components/CycleModal";
+import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
 
 export default function CaptureScreen({ navigation }: CaptureScreenProps) {
   const isFocused = useIsFocused();
@@ -29,6 +32,8 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
   const [uploading, setUploading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
+  const [cycleModalVisible, setCycleModalVisible] = useState(false);
+  const [cycleInfo, setCycleInfo] = useState<CycleInfo | null>(null);
 
   // Load saved mandala settings
   const { settings, loadSettings } = useMandalaSettings();
@@ -59,6 +64,9 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
           duration: 1111,
           useNativeDriver: true,
         }).start();
+
+        // Load cycle info
+        loadCycleInfo(user.id);
       }
     });
 
@@ -77,10 +85,38 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
     };
   }, []);
 
-  // Hide/show navigation bars when recording
+  // Load cycle info from database
+  const loadCycleInfo = async (userId: string) => {
+    try {
+      const info = await getCurrentCycleInfo(userId);
+      setCycleInfo(info);
+    } catch (err) {
+      console.error("Error loading cycle info:", err);
+    }
+  };
+
+  // Handle cycle update (called after modal actions)
+  const handleCycleUpdate = async () => {
+    if (user) {
+      await loadCycleInfo(user.id);
+    }
+  };
+
+  // Hide/show navigation bars when recording + add cycle indicator to header
   useEffect(() => {
     navigation.setOptions({
       headerShown: !recording,
+      headerLeft: !recording
+        ? () => (
+            <View style={{ marginLeft: 12 }}>
+              <CycleIndicator
+                cycleDay={cycleInfo?.cycleDay || null}
+                cyclePhase={cycleInfo?.cyclePhase || null}
+                onPress={() => setCycleModalVisible(true)}
+              />
+            </View>
+          )
+        : undefined,
       tabBarStyle: recording
         ? { display: "none" }
         : {
@@ -92,7 +128,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
             paddingTop: 4,
           },
     });
-  }, [recording, navigation, colors]);
+  }, [recording, navigation, colors, cycleInfo]);
 
   // Bobbing animation for idle state
   useEffect(() => {
@@ -383,6 +419,16 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
           </View>
         )}
       </View>
+
+      {/* Cycle Modal */}
+      {user && (
+        <CycleModal
+          visible={cycleModalVisible}
+          onClose={() => setCycleModalVisible(false)}
+          userId={user.id}
+          onCycleUpdate={handleCycleUpdate}
+        />
+      )}
     </View>
   );
 }
