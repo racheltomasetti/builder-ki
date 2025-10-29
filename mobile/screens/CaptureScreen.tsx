@@ -77,6 +77,23 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
     };
   }, []);
 
+  // Hide/show navigation bars when recording
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: !recording,
+      tabBarStyle: recording
+        ? { display: "none" }
+        : {
+            backgroundColor: colors.bg,
+            borderTopColor: colors.ui3,
+            borderTopWidth: 1,
+            height: 85,
+            paddingBottom: 20,
+            paddingTop: 4,
+          },
+    });
+  }, [recording, navigation, colors]);
+
   // Bobbing animation for idle state
   useEffect(() => {
     if (!recording && !uploading) {
@@ -286,6 +303,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
       // Get today's date in YYYY-MM-DD format (local timezone)
       const today = new Date();
       const todayDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      console.log("Today's date (local):", todayDate, "Raw date:", today.toString());
 
       // Ensure daily_log exists for today
       await supabase.from("daily_logs").upsert(

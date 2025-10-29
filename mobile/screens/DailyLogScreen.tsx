@@ -85,6 +85,23 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
     };
   }, []);
 
+  // Hide/show navigation bars when recording
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: !recording,
+      tabBarStyle: recording
+        ? { display: "none" }
+        : {
+            backgroundColor: colors.bg,
+            borderTopColor: colors.ui3,
+            borderTopWidth: 1,
+            height: 85,
+            paddingBottom: 20,
+            paddingTop: 4,
+          },
+    });
+  }, [recording, navigation, colors]);
+
   // Load today's status from database
   const loadTodayStatus = async () => {
     try {

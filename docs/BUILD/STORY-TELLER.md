@@ -70,13 +70,13 @@ YOU DO AFTER THIS PHASE: Backfill daily logs via SQL INSERT statements in Supaba
 
 ---
 
-PHASE 2: Mobile Daily Log Interface (UPDATED - 1.5 hours)
+[x] PHASE 2: Mobile Daily Log Interface (UPDATED - 1.5 hours)
 
 Goal: Dedicated daily log screen for intention/reflection rituals; capture screen stays untouched
 
 Tasks:
 
-2A: Create Daily Log Screen (1 hour)
+[x] 2A: Create Daily Log Screen (1 hour)
 
 Create new screen: mobile/screens/DailyLogScreen.tsx
 
