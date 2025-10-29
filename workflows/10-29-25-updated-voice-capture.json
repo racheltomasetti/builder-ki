@@ -1,0 +1,441 @@
+{
+  "name": "voice capture process pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "=8cdb06ba-e882-4874-a409-39212de42eba",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a3dfcbbc-4841-4100-83ac-65b450062f85",
+      "name": "Webhook",
+      "webhookId": "8cdb06ba-e882-4874-a409-39212de42eba"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "model",
+              "value": "whisper-1"
+            },
+            {
+              "name": "response_format",
+              "value": "json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "dd7dc2a4-736b-4716-bf89-d9e3e6b3205c",
+      "name": "Whisper Transcription",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WcGE0ePmxfENMtQI",
+          "name": "Header Auth account"
+        },
+        "httpBearerAuth": {
+          "id": "mnyyzshudmOZYvFs",
+          "name": "Bearer Auth account"
+        },
+        "openAiApi": {
+          "id": "ahfzchfInaIbhzTJ",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.record.file_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "c18aa306-6a46-4d88-9d63-fba69f2aa795",
+      "name": "Download Audio File"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "captures",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "=id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook').item.json.body.record.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "=transcription",
+              "fieldValue": "= {{ $json.text }}"
+            },
+            {
+              "fieldId": "processing_status",
+              "fieldValue": "synthesizing"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "b8ad3236-fbff-43a3-91cb-794a67fbdce2",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "aUblu0rSTB129bwd",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "5f78a844-f64f-4b52-a527-f146ee835007",
+      "name": "Claude Synthesis",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "WcGE0ePmxfENMtQI",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const transcription = $('Whisper Transcription').item.json.text;\n\n  const requestBody = {\n    \"model\": \"claude-sonnet-4-5-20250929\",\n    \"max_tokens\": 1024,\n    \"messages\": [\n      {\n        \"role\": \"user\",\n        \"content\": `Analyze this voice note transcription and extract structured     \n  insights.\n\n  Transcription: ${transcription}\n\n  Extract:\n  1. Key insights (realizations, observations, important ideas)\n  2. Decisions made or being considered\n  3. Questions raised or things to explore\n  4. Important concepts, themes, or topics mentioned\n\n  Return ONLY valid JSON in this exact format:\n  {\n    \"insights\": [\"insight 1\", \"insight 2\"],\n    \"decisions\": [\"decision 1\"],\n    \"questions\": [\"question 1\"],\n    \"concepts\": [\"concept 1\"]\n  }\n\n  CRITICAL: Return ONLY the raw JSON object. DO NOT wrap it in markdown code blocks. DO NOT include \\`\\`\\`json or \\`\\`\\`. DO NOT include any text before or after the JSON. Your entire response must be valid JSON that can be parsed directly.\n\n\n  If a category has no items, use an empty array [].`\n      }\n    ]\n  };\n\n  return [{ json: requestBody }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "a5b48ace-6c5b-4053-a031-00b79af68d93",
+      "name": "Convert to JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const captureId = $('Webhook').item.json.body.record.id;\n  const insights = items[0].json;\n\n  // Build array of insight records for batch insert\n  const insightRecords = [];\n\n  // Add all insights\n  for (const insight of insights.insights || []) {\n    insightRecords.push({\n      capture_id: captureId,\n      type: 'insight',\n      content: insight\n    });\n  }\n\n  // Add all decisions\n  for (const decision of insights.decisions || []) {\n    insightRecords.push({\n      capture_id: captureId,\n      type: 'decision',\n      content: decision\n    });\n  }\n\n  // Add all questions\n  for (const question of insights.questions || []) {\n    insightRecords.push({\n      capture_id: captureId,\n      type: 'question',\n      content: question\n    });\n  }\n\n  // Add all concepts\n  for (const concept of insights.concepts || []) {\n    insightRecords.push({\n      capture_id: captureId,\n      type: 'concept',\n      content: concept\n    });\n  }\n\n  // Return array of insight records\n  return insightRecords.map(record => ({ json: record }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "b0218d0e-c1c6-4392-985e-580392c9c632",
+      "name": "Prepare Insights for DB"
+    },
+    {
+      "parameters": {
+        "tableId": "insights",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "capture_id",
+              "fieldValue": "={{ $json.capture_id }}"
+            },
+            {
+              "fieldId": "type",
+              "fieldValue": "={{ $json.type }}"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "={{ $json.content }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        0
+      ],
+      "id": "43d47d1b-60a9-4e2c-ab77-aee2827108fb",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "aUblu0rSTB129bwd",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "captures",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Webhook').item.json.body.record.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "processing_status",
+              "fieldValue": "complete"
+            },
+            {
+              "fieldId": "processed_at",
+              "fieldValue": "={{ $now }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        0
+      ],
+      "id": "cfc9425d-6dad-4a3c-8a8d-9c42a101d251",
+      "name": "Mark Capture Complete",
+      "credentials": {
+        "supabaseApi": {
+          "id": "aUblu0rSTB129bwd",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\n// Extract the text content\nlet responseText = $input.first().json.content[0].text;\n\n// Clean up markdown code blocks\nresponseText = responseText\n  .replace(/```json\\n?/g, '')  // Remove ```json\n  .replace(/```\\n?/g, '')       // Remove ```\n  .trim();                       // Remove extra whitespace\n\n// Parse the cleaned JSON\ntry {\n  const parsedData = JSON.parse(responseText);\n  return [{ json: parsedData }];\n} catch (error) {\n  // If parsing fails, return the error and original text for debugging\n  return [{\n    json: {\n      error: 'Failed to parse JSON',\n      errorMessage: error.message,\n      originalText: responseText\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "fbad66f5-6535-4bdc-a06d-780f9c50cd43",
+      "name": "Clean Insights"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "unquarrelling-chemosynthetically-kelsi.ngrok-free.dev",
+            "user-agent": "pg_net/0.19.5",
+            "content-length": "552",
+            "accept": "*/*",
+            "content-type": "application/json",
+            "x-forwarded-for": "2600:1f18:2e13:9d2f:2a85:f30f:f595:a0c8",
+            "x-forwarded-host": "unquarrelling-chemosynthetically-kelsi.ngrok-free.dev",
+            "x-forwarded-proto": "https",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "type": "INSERT",
+            "table": "captures",
+            "record": {
+              "id": "2a5ea2aa-97be-47c8-93e8-c4cff4e35b5d",
+              "type": "voice",
+              "user_id": "5dbf2739-947c-424f-a649-fd4c3fd72692",
+              "file_url": "https://appahnoqhkthiwidjjcn.supabase.co/storage/v1/object/public/voice-notes/5dbf2739-947c-424f-a649-fd4c3fd72692/1761753334720.m4a",
+              "log_date": "2025-10-29",
+              "note_type": "intention",
+              "annotation": null,
+              "created_at": "2025-10-29T15:55:35.587487+00:00",
+              "processed_at": null,
+              "transcription": null,
+              "processing_status": "pending"
+            },
+            "schema": "public",
+            "old_record": null
+          },
+          "webhookUrl": " https://unquarrelling-chemosynthetically-kelsi.ngrok-free.dev/webhook/8cdb06ba-e882-4874-a409-39212de42eba",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Download Audio File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Audio File": {
+      "main": [
+        [
+          {
+            "node": "Whisper Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Whisper Transcription": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Convert to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to JSON": {
+      "main": [
+        [
+          {
+            "node": "Claude Synthesis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Synthesis": {
+      "main": [
+        [
+          {
+            "node": "Clean Insights",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Insights for DB": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Mark Capture Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Insights": {
+      "main": [
+        [
+          {
+            "node": "Prepare Insights for DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "44549302-09b8-44d8-a803-7034d2ec0a68",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cc6689aa52ef099edcbef22e3a2adc9ccd0b1f282be8153318e6d6b0e02e3522"
+  },
+  "id": "HSx1JElrSRcOZhmU",
+  "tags": []
+}
