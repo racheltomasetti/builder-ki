@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import CycleInfo from "@/components/CycleInfo";
 
 type Capture = {
   id: string;
@@ -10,6 +11,8 @@ type Capture = {
   transcription: string | null;
   note_type: string;
   created_at: string;
+  cycle_day?: number | null;
+  cycle_phase?: string | null;
 };
 
 type MediaItem = {
@@ -37,14 +40,51 @@ interface DailyViewProps {
 export default function DailyView({ date, onDateChange }: DailyViewProps) {
   const [dayData, setDayData] = useState<DayData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cycleInfo, setCycleInfo] = useState<{
+    cycleDay: number | null;
+    cyclePhase: string | null;
+  }>({ cycleDay: null, cyclePhase: null });
 
   const supabase = createClient();
 
   useEffect(() => {
     if (date) {
       fetchDayData(date);
+      fetchCycleInfo(date);
     }
   }, [date]);
+
+  const fetchCycleInfo = async (dateString: string) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return;
+      }
+
+      // Call the database function to calculate cycle info for this date
+      const { data, error } = await supabase.rpc("calculate_cycle_info", {
+        p_user_id: user.id,
+        p_date: dateString,
+      });
+
+      if (error) {
+        console.error("Error fetching cycle info:", error);
+        return;
+      }
+
+      if (data) {
+        setCycleInfo({
+          cycleDay: data.cycle_day,
+          cyclePhase: data.cycle_phase,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching cycle info:", error);
+    }
+  };
 
   const fetchDayData = async (dateString: string) => {
     try {
@@ -144,9 +184,15 @@ export default function DailyView({ date, onDateChange }: DailyViewProps) {
     <div className="w-full">
       {/* Date Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-flexoki-tx">
-          {formatDate(date)}
-        </h1>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-3xl font-bold text-flexoki-tx">
+            {formatDate(date)}
+          </h1>
+          <CycleInfo
+            cycleDay={cycleInfo.cycleDay}
+            cyclePhase={cycleInfo.cyclePhase}
+          />
+        </div>
       </div>
 
       {!hasAnyData ? (

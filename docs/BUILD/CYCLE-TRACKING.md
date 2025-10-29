@@ -340,10 +340,10 @@ Update: `web/components/DailyView.tsx`
 - Add cycle day/phase display to each capture card
 - Format: "Day 12 • Follicular" (with colored dot)
 - Use same color scheme as mobile:
-  - Menstrual: Red
-  - Follicular: Orange
-  - Ovulation: Green
-  - Luteal: Purple
+  - Menstrual: Blue
+  - Follicular: Green
+  - Ovulation: Yellow
+  - Luteal: Orange
 - Show below or next to timestamp
 
 **Capture Card Update:**
@@ -446,10 +446,10 @@ After implementation:
 - [x] Users can log period start/end in modal
 - [x] Modal shows recent period history
 - [x] Cycle day and phase display correctly
-- [ ] Captures on web show cycle metadata (day + phase)
-- [ ] Cycle info is color-coded consistently across mobile/web
+- [x] Captures on web show cycle metadata (day + phase)
+- [x] Cycle info is color-coded consistently across mobile/web
 - [ ] Historical cycle data backfilled
-- [ ] New captures automatically get cycle info populated
+- [x] New captures automatically get cycle info populated
 
 ---
 

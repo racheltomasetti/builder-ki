@@ -84,6 +84,42 @@ body {
   animation: scale-in 0.3s ease-out;
 }
 
+/* Cycle Tracking Styles */
+.cycle-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem; /* 6px */
+}
+
+.cycle-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Cycle phase colors */
+.cycle-menstrual {
+  background-color: #205EA6; /* Blue - inner winter & reflection */
+}
+
+.cycle-follicular {
+  background-color: #66800B; /* Green - inner spring & growth */
+}
+
+.cycle-ovulation {
+  background-color: #AD8301; /* Yellow - inner summer & energy */
+}
+
+.cycle-luteal {
+  background-color: #BC5215; /* Orange - inner autumn & focus */
+}
+
+.cycle-unknown {
+  background-color: #95A5A6; /* Gray */
+}
+
 /* Tiptap Editor Prose Styles */
 .prose-flexoki {
   @apply text-flexoki-tx font-perpetua text-lg;

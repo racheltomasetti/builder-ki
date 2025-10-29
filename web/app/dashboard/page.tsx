@@ -23,6 +23,8 @@ type Capture = {
   created_at: string;
   processed_at: string | null;
   insights: Insight[];
+  cycle_day?: number | null;
+  cycle_phase?: string | null;
 };
 
 export default function DashboardPage() {

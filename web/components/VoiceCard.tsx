@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import CycleInfo from "@/components/CycleInfo";
 
 type Insight = {
   id: string;
@@ -19,6 +20,8 @@ type Capture = {
   created_at: string;
   processed_at: string | null;
   insights: Insight[];
+  cycle_day?: number | null;
+  cycle_phase?: string | null;
 };
 
 type VoiceCardProps = {
@@ -168,9 +171,15 @@ export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
 
       {/* Status Badge */}
       <div className="flex items-center justify-between mb-4">
-        <span className="text-sm text-flexoki-tx-2">
-          {new Date(capture.created_at).toLocaleString()}
-        </span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-sm text-flexoki-tx-2">
+            {new Date(capture.created_at).toLocaleString()}
+          </span>
+          <CycleInfo
+            cycleDay={capture.cycle_day}
+            cyclePhase={capture.cycle_phase}
+          />
+        </div>
         <div className="flex items-center gap-2">
           <span
             className={`px-3 py-1 rounded-full text-sm font-medium ${
