@@ -288,14 +288,22 @@ export default function ThinkingPartner({
                 <span className="text-flexoki-tx-3">Loading...</span>
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-center">
+              <div className="flex items-center justify-center h-full text-center px-6">
                 <div className="text-flexoki-tx-2">
-                  <p className="mb-2">👋 Hi there!</p>
-                  <p className="text-sm">
-                    I'm here to help you explore and develop your ideas.
+                  <p className="mb-3 text-lg">👋 Hi there!</p>
+                  <p className="text-sm mb-4">
+                    I'm your thinking partner. I can help you:
                   </p>
-                  <p className="text-sm mt-2 text-flexoki-tx-3">
-                    Ask me anything about your document...
+                  <div className="text-sm text-left space-y-2 mb-4 text-flexoki-tx-3">
+                    <p>• Explore ideas in your document</p>
+                    <p>• Reference your past captures</p>
+                    <p>• Identify patterns across time</p>
+                    <p>• Distill stories from your journey</p>
+                    <p>• Connect themes and insights</p>
+                  </div>
+                  <p className="text-xs text-flexoki-tx-3 italic">
+                    Try: "What patterns do you see in my recent thinking?" or
+                    "Help me craft a story about..."
                   </p>
                 </div>
               </div>

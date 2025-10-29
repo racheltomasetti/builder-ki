@@ -102,6 +102,43 @@ export async function POST(request: Request) {
     // Convert Tiptap JSON to plain text for context
     const documentPlainText = convertTiptapToPlainText(document.content);
 
+    // Fetch user's capture database for context
+    const { data: allCaptures, error: capturesError } = await supabase
+      .from("captures")
+      .select(
+        `
+        id,
+        transcription,
+        created_at,
+        log_date,
+        note_type,
+        cycle_day,
+        cycle_phase,
+        insights (type, content)
+      `
+      )
+      .eq("user_id", user.id)
+      .not("transcription", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(50); // Fetch last 50 captures
+
+    if (capturesError) {
+      console.error("Failed to fetch captures:", capturesError);
+      // Don't fail the whole request if captures can't be fetched
+      // Continue without capture database context
+    } else {
+      console.log(`Fetched ${allCaptures?.length || 0} captures for context`);
+    }
+
+    // Filter captures based on relevance
+    const relevantCaptures = filterRelevantCaptures(
+      allCaptures || [],
+      message,
+      document.captures?.id // Exclude the current document's capture
+    );
+
+    console.log(`Filtered to ${relevantCaptures.length} relevant captures`);
+
     // Build system prompt with context
     const systemPrompt = buildThinkingPartnerPrompt({
       documentTitle: document.title,
@@ -109,6 +146,7 @@ export async function POST(request: Request) {
       transcription: document.captures?.transcription,
       insights: document.captures?.insights || [],
       conversationHistory: historyMessages || [],
+      captureDatabase: relevantCaptures,
     });
 
     // Save user message to database
@@ -139,41 +177,32 @@ export async function POST(request: Request) {
       },
     ];
 
-    // Stream response from Claude
-    const stream = await anthropic.messages.stream({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 2048,
-      system: systemPrompt,
-      messages: messages,
-    });
+    console.log(`System prompt length: ${systemPrompt.length} characters`);
 
-    // Create a TransformStream to handle streaming and save to DB
+    // Stream response from Claude
+    let stream;
+    try {
+      stream = await anthropic.messages.stream({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 2048,
+        system: systemPrompt,
+        messages: messages,
+      });
+    } catch (anthropicError) {
+      console.error("Anthropic API error:", anthropicError);
+      return new Response(
+        JSON.stringify({
+          error: "Failed to get response from AI",
+          details: anthropicError instanceof Error ? anthropicError.message : "Unknown error"
+        }),
+        { status: 500 }
+      );
+    }
+
+    // Create readable stream that captures text and forwards chunks
     let assistantResponse = "";
     const encoder = new TextEncoder();
 
-    const transformStream = new TransformStream({
-      async transform(chunk, controller) {
-        controller.enqueue(chunk);
-      },
-      async flush() {
-        // Save assistant response to database after streaming completes
-        if (assistantResponse) {
-          const { error: assistantMsgError } = await supabase
-            .from("messages")
-            .insert({
-              conversation_id: conversation!.id,
-              role: "assistant",
-              content: assistantResponse,
-            });
-
-          if (assistantMsgError) {
-            console.error("Failed to save assistant message:", assistantMsgError);
-          }
-        }
-      },
-    });
-
-    // Create readable stream that captures text and forwards chunks
     const readableStream = new ReadableStream({
       async start(controller) {
         try {
@@ -184,7 +213,6 @@ export async function POST(request: Request) {
             ) {
               const text = chunk.delta.text;
               assistantResponse += text;
-              await new Promise(resolve => setTimeout(resolve, 75));
               controller.enqueue(encoder.encode(text));
             }
           }
@@ -192,11 +220,17 @@ export async function POST(request: Request) {
 
           // Save to database after stream completes
           if (assistantResponse) {
-            await supabase.from("messages").insert({
-              conversation_id: conversation!.id,
-              role: "assistant",
-              content: assistantResponse,
-            });
+            const { error: assistantMsgError } = await supabase
+              .from("messages")
+              .insert({
+                conversation_id: conversation!.id,
+                role: "assistant",
+                content: assistantResponse,
+              });
+
+            if (assistantMsgError) {
+              console.error("Failed to save assistant message:", assistantMsgError);
+            }
           }
         } catch (error) {
           console.error("Streaming error:", error);
@@ -247,4 +281,151 @@ function convertTiptapToPlainText(content: any): string {
 
   content.content.forEach(traverse);
   return text.trim();
+}
+
+/**
+ * Extract keywords from user message
+ */
+function extractKeywords(message: string): string[] {
+  // Remove common stop words
+  const stopWords = new Set([
+    "a",
+    "an",
+    "the",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "being",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "will",
+    "would",
+    "should",
+    "could",
+    "can",
+    "may",
+    "might",
+    "must",
+    "i",
+    "you",
+    "he",
+    "she",
+    "it",
+    "we",
+    "they",
+    "me",
+    "him",
+    "her",
+    "us",
+    "them",
+    "my",
+    "your",
+    "his",
+    "her",
+    "its",
+    "our",
+    "their",
+    "this",
+    "that",
+    "these",
+    "those",
+    "what",
+    "which",
+    "who",
+    "when",
+    "where",
+    "why",
+    "how",
+    "help",
+    "tell",
+    "show",
+    "find",
+  ]);
+
+  // Extract words and filter
+  const words = message
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 2 && !stopWords.has(word));
+
+  // Return unique keywords
+  return Array.from(new Set(words));
+}
+
+/**
+ * Filter captures based on relevance to user message
+ * Uses hybrid approach: Recent captures + keyword matching
+ */
+function filterRelevantCaptures(
+  captures: any[],
+  userMessage: string,
+  currentCaptureId?: string
+): any[] {
+  if (!captures || captures.length === 0) return [];
+
+  // Extract keywords from user message
+  const keywords = extractKeywords(userMessage);
+
+  // Always include last 5 captures (recent context)
+  const recentCaptures = captures
+    .filter((c) => c.id !== currentCaptureId)
+    .slice(0, 5);
+
+  // If user message has keywords, find relevant captures
+  let keywordMatches: any[] = [];
+  if (keywords.length > 0) {
+    keywordMatches = captures
+      .filter((c) => c.id !== currentCaptureId)
+      .map((capture) => {
+        // Score based on keyword matches in transcription and insights
+        let score = 0;
+        const transcriptionLower =
+          capture.transcription?.toLowerCase() || "";
+        const insightsText = (capture.insights || [])
+          .map((i: any) => i.content.toLowerCase())
+          .join(" ");
+
+        keywords.forEach((keyword) => {
+          // Count occurrences in transcription
+          const transcriptionMatches = (
+            transcriptionLower.match(new RegExp(keyword, "g")) || []
+          ).length;
+          // Count occurrences in insights
+          const insightMatches = (
+            insightsText.match(new RegExp(keyword, "g")) || []
+          ).length;
+
+          score += transcriptionMatches * 2; // Weight transcription higher
+          score += insightMatches * 1;
+        });
+
+        return { capture, score };
+      })
+      .filter((item) => item.score > 0) // Only include captures with matches
+      .sort((a, b) => b.score - a.score) // Sort by relevance
+      .slice(0, 10) // Take top 10 matches
+      .map((item) => item.capture);
+  }
+
+  // Combine recent + keyword matches, removing duplicates
+  const captureIds = new Set<string>();
+  const combined: any[] = [];
+
+  [...recentCaptures, ...keywordMatches].forEach((capture) => {
+    if (!captureIds.has(capture.id)) {
+      captureIds.add(capture.id);
+      combined.push(capture);
+    }
+  });
+
+  // Limit to 15 total captures to manage token budget
+  return combined.slice(0, 15);
 }

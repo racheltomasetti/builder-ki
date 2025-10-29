@@ -142,7 +142,7 @@ export default function DashboardPage() {
                 : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 hover:bg-flexoki-ui-3"
             }`}
           >
-            stream
+            stream of consciousness
           </button>
           <button
             onClick={() => setViewMode("daily")}
@@ -152,15 +152,17 @@ export default function DashboardPage() {
                 : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 hover:bg-flexoki-ui-3"
             }`}
           >
-            daily
+            daily log
           </button>
-          <Link
+
+          {/* HIDNG MEDIA LIBRARY FOR NOW, FIGURING OUT PLACEMENT */}
+          {/* <Link
             href="/dashboard/media"
             className="px-6 py-2 rounded-lg font-medium transition-all bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 hover:bg-flexoki-ui-3 flex items-center gap-2"
           >
             <ImageIcon className="w-4 h-4" />
             media library
-          </Link>
+          </Link> */}
         </div>
 
         {/* Daily View Navigation - Only show in daily mode */}
