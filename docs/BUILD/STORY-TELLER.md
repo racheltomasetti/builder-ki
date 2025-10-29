@@ -161,14 +161,14 @@ Tasks:
    - expo-file-system for file handling
    - react-native-exif or similar for EXIF extraction
 
-2. Update media upload screen (mobile/screens/MediaUploadScreen.tsx):
+2. Update media upload screen (mobile/screens/MediaUploadScreen.tsx): [x]
    \*\*\*MediaUploadScreen.tsx already exists with placeholder content
 
    - "Take Photo" button → opens camera
    - "Choose from Library" button → opens camera roll
    - Multi-select for bulk upload
 
-3. Upload flow:
+3. Upload flow: [x]
 
    - Select photo(s)
    - Extract EXIF DateTimeOriginal
@@ -200,7 +200,7 @@ Goal: Visual calendar showing days with logs/media
 
 Tasks:
 
-1. Install: npm install react-calendar (or build custom)
+1. Install:1. npx shadcn@latest add calendar [x]
 2. Create page: web/app/dashboard/calendar/page.tsx
 
    - Month view calendar
