@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Search, Calendar, Image as ImageIcon } from "lucide-react";
+import { Search, Calendar, Image as ImageIcon, ArrowLeft } from "lucide-react";
 import MediaGrid from "@/components/MediaGrid";
 import MediaModal from "@/components/MediaModal";
+import Link from "next/link";
 
 type MediaItem = {
   id: string;
@@ -174,6 +175,17 @@ export default function MediaLibraryPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Back Button */}
+      <div className="mb-6">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-flexoki-tx-2 hover:text-flexoki-accent transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Back to dashboard</span>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
@@ -214,7 +226,7 @@ export default function MediaLibraryPage() {
       </div>
 
       {/* Debug Info */}
-      <div className="mb-6 p-4 bg-flexoki-ui-2 rounded-lg">
+      {/* <div className="mb-6 p-4 bg-flexoki-ui-2 rounded-lg">
         <h3 className="text-sm font-semibold text-flexoki-tx mb-2">
           Debug Info:
         </h3>
@@ -229,7 +241,7 @@ export default function MediaLibraryPage() {
             </pre>
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Simple Grid */}
       {mediaItems.length === 0 ? (

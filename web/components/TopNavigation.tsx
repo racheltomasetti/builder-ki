@@ -67,6 +67,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
             {/* Navigation Links */}
             <div className="flex items-center gap-6">
               <a
+                href="/dashboard"
                 className={`text-lg font-medium transition-colors ${
                   isActive("/dashboard")
                     ? "text-flexoki-accent"
