@@ -253,7 +253,7 @@ Goal: Browse all uploaded media
 
 Tasks:
 
-1. Create page: web/app/dashboard/media/page.tsx
+1. Create page: web/app/dashboard/media/page.tsx [x]
 
    - Grid view of all media_items
    - Sort by original_date DESC

@@ -10,13 +10,13 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import Slider from "@react-native-community/slider";
-import ColorPicker from "react-native-wheel-color-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useThemeColors } from "../theme/colors";
 import {
   MandalaSettings,
   MANDALA_CONSTRAINTS,
 } from "../constants/mandalaDefaults";
+import { COLOR_PALETTE, ColorPaletteItem } from "../constants/colorPalette";
 
 interface MandalaCustomizeModalProps {
   visible: boolean;
@@ -42,10 +42,9 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
   onPreviewToggle,
 }) => {
   const colors = useThemeColors(isDark);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const [colorPickerTarget, setColorPickerTarget] = useState<
-    "layers" | "center"
-  >("layers");
+
+  // Color target state: which color we're currently editing
+  const [colorTarget, setColorTarget] = useState<"layers" | "center">("layers");
 
   // Expanded sections state
   const [expandedSections, setExpandedSections] = useState({
@@ -64,17 +63,16 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
     }));
   };
 
-  const openColorPicker = (target: "layers" | "center") => {
-    setColorPickerTarget(target);
-    setShowColorPicker(true);
+  const handleColorSelect = (colorItem: ColorPaletteItem) => {
+    if (colorTarget === "layers") {
+      onSettingsChange({ color: colorItem.hex });
+    } else {
+      onSettingsChange({ centerCircleColor: colorItem.hex });
+    }
   };
 
-  const handleColorChange = (color: string) => {
-    if (colorPickerTarget === "layers") {
-      onSettingsChange({ color });
-    } else {
-      onSettingsChange({ centerCircleColor: color });
-    }
+  const getCurrentColor = () => {
+    return colorTarget === "layers" ? settings.color : settings.centerCircleColor;
   };
 
   const handleApplyAndClose = () => {
@@ -164,66 +162,77 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                 </TouchableOpacity>
 
                 {expandedSections.colors && (
-                  <>
-                    {/* Layers Color */}
-                    <View style={styles.colorRow}>
-                      <Text style={[styles.label, { color: colors.tx2 }]}>
-                        Layer Color
-                      </Text>
+                  <View style={styles.colorSection}>
+                    {/* Color Target Toggle */}
+                    <View style={styles.colorToggleContainer}>
                       <TouchableOpacity
-                        onPress={() => openColorPicker("layers")}
+                        onPress={() => setColorTarget("layers")}
                         style={[
-                          styles.colorPreview,
-                          { backgroundColor: settings.color },
-                        ]}
-                      />
-                    </View>
-
-                    {/* Center Circle Color */}
-                    <View style={styles.colorRow}>
-                      <Text style={[styles.label, { color: colors.tx2 }]}>
-                        Center Color
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => openColorPicker("center")}
-                        style={[
-                          styles.colorPreview,
-                          { backgroundColor: settings.centerCircleColor },
-                        ]}
-                      />
-                    </View>
-
-                    {/* Color Picker */}
-                    {showColorPicker && (
-                      <View style={styles.colorPickerContainer}>
-                        <ColorPicker
-                          color={
-                            colorPickerTarget === "layers"
-                              ? settings.color
-                              : settings.centerCircleColor
-                          }
-                          onColorChange={handleColorChange}
-                          thumbSize={30}
-                          sliderSize={30}
-                          noSnap={true}
-                          row={false}
-                        />
-                        <TouchableOpacity
-                          onPress={() => setShowColorPicker(false)}
-                          style={[
-                            styles.doneButton,
+                          styles.colorToggleButton,
+                          colorTarget === "layers" && [
+                            styles.colorToggleButtonActive,
                             { backgroundColor: "rgba(227, 83, 54, 0.8)" },
+                          ],
+                          { borderColor: colors.ui3 },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.colorToggleText,
+                            { color: colorTarget === "layers" ? "#fff" : colors.tx2 },
                           ]}
                         >
-                          <Text
-                            style={[styles.doneButtonText, { color: "#fff" }]}
-                          >
-                            Done
-                          </Text>
+                          Layer Color
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => setColorTarget("center")}
+                        style={[
+                          styles.colorToggleButton,
+                          colorTarget === "center" && [
+                            styles.colorToggleButtonActive,
+                            { backgroundColor: "rgba(227, 83, 54, 0.8)" },
+                          ],
+                          { borderColor: colors.ui3 },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.colorToggleText,
+                            { color: colorTarget === "center" ? "#fff" : colors.tx2 },
+                          ]}
+                        >
+                          Center Color
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Color Grid */}
+                    <View style={styles.colorGrid}>
+                      {COLOR_PALETTE.map((colorItem) => (
+                        <TouchableOpacity
+                          key={colorItem.id}
+                          onPress={() => handleColorSelect(colorItem)}
+                          style={[
+                            styles.colorSwatch,
+                            { backgroundColor: colorItem.hex },
+                            getCurrentColor() === colorItem.hex && [
+                              styles.colorSwatchSelected,
+                              { borderColor: colors.tx },
+                            ],
+                          ]}
+                        >
+                          {getCurrentColor() === colorItem.hex && (
+                            <MaterialIcons
+                              name="check"
+                              size={20}
+                              color="#fff"
+                            />
+                          )}
                         </TouchableOpacity>
-                      </View>
-                    )}
-                  </>
+                      ))}
+                    </View>
+                  </View>
                 )}
               </View>
 
@@ -538,35 +547,62 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
-  colorRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 12,
+  colorSection: {
+    marginTop: 16,
   },
   label: {
     fontSize: 16,
+    marginBottom: 12,
   },
-  colorPreview: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.3)",
+  colorToggleContainer: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 16,
   },
-  colorPickerContainer: {
-    marginTop: 20,
-    height: 300,
-  },
-  doneButton: {
-    marginTop: 16,
-    padding: 12,
+  colorToggleButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 8,
+    borderWidth: 2,
     alignItems: "center",
   },
-  doneButtonText: {
-    fontSize: 16,
+  colorToggleButtonActive: {
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  colorToggleText: {
+    fontSize: 14,
     fontWeight: "600",
+  },
+  colorGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  colorSwatch: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
+    // iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    // Android shadow
+    elevation: 3,
+  },
+  colorSwatchSelected: {
+    borderWidth: 3,
+    // iOS shadow
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    // Android shadow
+    elevation: 6,
   },
   sliderHeader: {
     flexDirection: "row",
