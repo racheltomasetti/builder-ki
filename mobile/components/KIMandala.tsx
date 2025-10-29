@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { View, Animated, StyleSheet, TouchableOpacity } from "react-native";
 import { KILogo } from "./Logo";
 import { MandalaSettings, DEFAULT_MANDALA_SETTINGS } from "../constants/mandalaDefaults";
+import { COLOR_PALETTE } from "../constants/colorPalette";
 
 interface KIMandalaProps {
   isRecording: boolean;
@@ -10,6 +11,7 @@ interface KIMandalaProps {
   onPress: () => void;
   settings?: MandalaSettings;
   centerCircleColor?: string;
+  rainbowMode?: boolean;
 }
 
 export const KIMandala: React.FC<KIMandalaProps> = ({
@@ -19,6 +21,7 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
   onPress,
   settings = DEFAULT_MANDALA_SETTINGS,
   centerCircleColor,
+  rainbowMode = false,
 }) => {
   // Create 11 rotation animations (one for each layer)
   const rotations = useRef(
@@ -106,12 +109,18 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
 
     const rotation = rotations[index];
 
+    // Get rainbow color for this layer if rainbow mode is enabled
+    const layerColor = rainbowMode
+      ? COLOR_PALETTE[index % COLOR_PALETTE.length].hex
+      : color;
+
     return {
       radius,
       logoCount,
       logoSize,
       rotation,
       opacity: 0.15 + layerIndex * 0.05, // Fade in as layers go out
+      color: layerColor,
     };
   });
 
@@ -159,7 +168,7 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
                 >
                   <KILogo
                     size={layer.logoSize}
-                    color={color}
+                    color={layer.color}
                     strokeWidth={1.5}
                     dotSize={2}
                   />

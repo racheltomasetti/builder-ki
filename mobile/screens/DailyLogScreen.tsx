@@ -15,6 +15,7 @@ import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system/legacy";
 import { useThemeColors } from "../theme/colors";
 import type { DailyLogScreenProps } from "../types/navigation";
+import { KIMandala } from "../components/KIMandala";
 
 type NoteType = "intention" | "reflection";
 
@@ -404,7 +405,7 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
             </Text>
           </View>
         ) : recording ? (
-          // Recording UI
+          // Recording UI with Rainbow Mandala
           <View style={styles.recordingContainer}>
             <Text style={[styles.recordingTitle, { color: colors.tx }]}>
               {currentNoteType === "intention"
@@ -412,16 +413,15 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
                 : "Adding Reflection..."}
             </Text>
 
-            <TouchableOpacity
-              onPress={stopRecording}
-              style={[
-                styles.recordButton,
-                { backgroundColor: colors.accent2 },
-              ]}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="stop" size={48} color={colors.bg} />
-            </TouchableOpacity>
+            <View style={styles.mandalaWrapper}>
+              <KIMandala
+                isRecording={true}
+                color={colors.accent}
+                centerSize={120}
+                onPress={stopRecording}
+                rainbowMode={true}
+              />
+            </View>
 
             <Text style={[styles.durationText, { color: colors.accent2 }]}>
               {formatDuration(recordingDuration)}
@@ -692,10 +692,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 40,
   },
-  recordButton: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  mandalaWrapper: {
+    width: 600,
+    height: 600,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 24,
