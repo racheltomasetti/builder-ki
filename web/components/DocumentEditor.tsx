@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import imageCompression from "browser-image-compression";
 import { createClient } from "@/lib/supabase/client";
 import ThinkingPartner from "./ThinkingPartner";
+import MediaLibrary from "./MediaLibrary";
 
 type Insight = {
   id: string;
@@ -51,7 +52,9 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
   const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isThinkingPartnerOpen, setIsThinkingPartnerOpen] = useState(false);
+  const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
   const [panelWidth, setPanelWidth] = useState(400); // Default width for ThinkingPartner
+  const [mediaLibraryWidth, setMediaLibraryWidth] = useState(500); // Default width for MediaLibrary
   const [isTranscriptionExpanded, setIsTranscriptionExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -305,7 +308,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [router]);
 
-  // Ctrl++Shift+Enter to toggle Thinking Partner
+  // Ctrl+Shift+Enter to toggle Thinking Partner
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.shiftKey && event.key === "Enter") {
@@ -318,10 +321,46 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Ctrl+Shift+M to toggle Media Library
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key === "M") {
+        event.preventDefault();
+        setIsMediaLibraryOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Handle media selection from library
+  const handleMediaSelect = (url: string) => {
+    if (!editor) return;
+
+    editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: "imageResize",
+        attrs: { src: url },
+      })
+      .run();
+
+    // Optionally close the media library after insertion
+    setIsMediaLibraryOpen(false);
+  };
+
   return (
     <div
       className="min-h-screen bg-flexoki-bg transition-all duration-300"
-      style={{ paddingRight: isThinkingPartnerOpen ? panelWidth : 0 }}
+      style={{
+        paddingRight: isThinkingPartnerOpen
+          ? panelWidth
+          : isMediaLibraryOpen
+          ? mediaLibraryWidth
+          : 0,
+      }}
     >
       {/* Header */}
       <div className="bg-flexoki border-b border-flexoki-ui-3">
@@ -692,6 +731,60 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
               onChange={handleImageUpload}
               className="hidden"
             />
+
+            {/* Media Library Button */}
+            <button
+              onClick={() => setIsMediaLibraryOpen(!isMediaLibraryOpen)}
+              className={`px-3 py-1 rounded text-sm ${
+                isMediaLibraryOpen
+                  ? "bg-flexoki-accent text-white"
+                  : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
+              } transition-colors flex items-center gap-1`}
+              title="Open Media Library (Ctrl+Shift+M)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              Library
+            </button>
+
+            {/* Thinking Partner Button */}
+            <button
+              onClick={() => setIsThinkingPartnerOpen(!isThinkingPartnerOpen)}
+              className={`px-3 py-1 rounded text-sm ${
+                isThinkingPartnerOpen
+                  ? "bg-flexoki-accent text-white"
+                  : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
+              } transition-colors flex items-center gap-1`}
+              title="Open Thinking Partner (Ctrl+Shift+Enter)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              Agent
+            </button>
           </div>
         )}
 
@@ -706,6 +799,15 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
         onClose={() => setIsThinkingPartnerOpen(false)}
         panelWidth={panelWidth}
         onWidthChange={setPanelWidth}
+      />
+
+      {/* Media Library Slide-out Panel */}
+      <MediaLibrary
+        isOpen={isMediaLibraryOpen}
+        onClose={() => setIsMediaLibraryOpen(false)}
+        panelWidth={mediaLibraryWidth}
+        onWidthChange={setMediaLibraryWidth}
+        onMediaSelect={handleMediaSelect}
       />
     </div>
   );

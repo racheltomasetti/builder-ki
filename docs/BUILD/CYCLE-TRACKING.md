@@ -448,7 +448,7 @@ After implementation:
 - [x] Cycle day and phase display correctly
 - [x] Captures on web show cycle metadata (day + phase)
 - [x] Cycle info is color-coded consistently across mobile/web
-- [ ] Historical cycle data backfilled
+- [x] Historical cycle data backfilled
 - [x] New captures automatically get cycle info populated
 
 ---

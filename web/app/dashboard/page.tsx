@@ -142,7 +142,7 @@ export default function DashboardPage() {
                 : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 hover:bg-flexoki-ui-3"
             }`}
           >
-            stream of thoughts
+            stream
           </button>
           <button
             onClick={() => setViewMode("daily")}
@@ -152,7 +152,7 @@ export default function DashboardPage() {
                 : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 hover:bg-flexoki-ui-3"
             }`}
           >
-            daily log
+            daily
           </button>
           <Link
             href="/dashboard/media"

@@ -59,9 +59,9 @@ export default function TopNavigation({ user }: TopNavigationProps) {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center gap-8">
             <div className="flex items-center">
-              <h1 className="text-3xl font-bold text-flexoki-tx italic">KI</h1>
+              <h1 className="text-3xl font-bold text-flexoki-tx italic">K·I</h1>
               <span className="ml-4 text-base text-flexoki-tx-2 italic font-bold">
-                unlocking the mind
+                into the mind
               </span>
             </div>
             {/* Navigation Links */}
@@ -74,7 +74,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                     : "text-flexoki-tx hover:text-flexoki-accent"
                 }`}
               >
-                CAPTURES
+                THOUGHTS
               </a>
               <a
                 href="/dashboard/documents"
@@ -84,7 +84,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                     : "text-flexoki-tx hover:text-flexoki-accent"
                 }`}
               >
-                docs
+                DOCS
               </a>
             </div>
           </div>
