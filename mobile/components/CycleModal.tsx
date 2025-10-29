@@ -78,8 +78,16 @@ export default function CycleModal({
       ]);
       console.log("Cycle info loaded:", info);
       console.log("Recent periods loaded:", periods);
+
+      // Deduplicate periods by ID (in case of duplicates)
+      const uniquePeriods = periods.filter(
+        (period, index, self) =>
+          index === self.findIndex((p) => p.id === period.id)
+      );
+      console.log("Unique periods:", uniquePeriods);
+
       setCycleInfo(info);
-      setRecentPeriods(periods);
+      setRecentPeriods(uniquePeriods);
     } catch (error) {
       console.error("Error loading cycle data:", error);
     } finally {
@@ -233,8 +241,7 @@ export default function CycleModal({
                 </Text>
                 {cycleInfo?.cycleDay ? (
                   <Text style={[styles.statusText, { color: colors.tx }]}>
-                    Day {cycleInfo.cycleDay} •{" "}
-                    {PHASE_LABELS[
+                    Day {cycleInfo.cycleDay} • {PHASE_LABELS[
                       cycleInfo.cyclePhase as keyof typeof PHASE_LABELS
                     ] || "Unknown"}
                   </Text>
@@ -431,13 +438,13 @@ export default function CycleModal({
                             <Text
                               style={[styles.historyDate, { color: colors.tx }]}
                             >
-                              {formatDate(period.start_date)}
+                              {period.start_date && formatDate(period.start_date)}
                               {period.end_date
                                 ? ` - ${formatDate(period.end_date)}`
                                 : " - Present"}
                             </Text>
                             <View style={styles.historyMeta}>
-                              {cycleLength && !isCurrentCycle && (
+                              {cycleLength && !isCurrentCycle ? (
                                 <Text
                                   style={[
                                     styles.historyMetaText,
@@ -446,8 +453,8 @@ export default function CycleModal({
                                 >
                                   {cycleLength} days
                                 </Text>
-                              )}
-                              {isCurrentCycle && (
+                              ) : null}
+                              {isCurrentCycle ? (
                                 <Text
                                   style={[
                                     styles.historyMetaText,
@@ -456,7 +463,7 @@ export default function CycleModal({
                                 >
                                   CURRENT CYCLE
                                 </Text>
-                              )}
+                              ) : null}
                             </View>
                           </View>
                         </View>
