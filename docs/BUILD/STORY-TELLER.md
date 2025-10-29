@@ -90,7 +90,7 @@ Create new screen: mobile/screens/DailyLogScreen.tsx
 - Reuse existing voice recording component from CaptureScreen
 - Create daily_logs record for today when first action happens
 
-2B: Update Capture Screen Logic (15 min)
+[x] 2B: Update Capture Screen Logic (15 min)
 
 Modify mobile/screens/CaptureScreen.tsx (minimal changes):
 
@@ -98,7 +98,7 @@ Modify mobile/screens/CaptureScreen.tsx (minimal changes):
 - Create daily_logs record for today if doesn't exist
 - That's it - UI stays exactly the same
 
-2C: Add Navigation (15 min)
+[x] 2C: Add Navigation (15 min)
 
 - Add "Daily Log" tab/button to navigation
 - Or add as a screen accessible from main navigation
@@ -154,14 +154,15 @@ Goal: Upload photos from camera/roll with EXIF date extraction
 
 Tasks:
 
-1. Install libraries:
+1. Install libraries: [x]
 
    - expo-image-picker (already have?)
    - expo-media-library for camera roll
    - expo-file-system for file handling
    - react-native-exif or similar for EXIF extraction
 
-2. Create media upload screen (mobile/screens/MediaUploadScreen.tsx):
+2. Update media upload screen (mobile/screens/MediaUploadScreen.tsx):
+   \*\*\*MediaUploadScreen.tsx already exists with placeholder content
 
    - "Take Photo" button → opens camera
    - "Choose from Library" button → opens camera roll
@@ -174,8 +175,6 @@ Tasks:
    - Upload to Supabase Storage (media-items bucket)
    - Create media_items record with original_date
    - Auto-set log_date if daily_log exists for that date
-
-4. Add to navigation/tabs
 
 Mobile UI:
 ┌─────────────────────────────────┐
@@ -438,18 +437,36 @@ Total: ~11 hours building + 1.5 hours your data entry
 
 By Wednesday 8:30am:
 
-- ✅ Mobile app can set intentions, capture daily thoughts, add reflections
-- ✅ Mobile app can upload photos with EXIF dates
-- ✅ 20-30 daily logs backfilled via SQL
-- ✅ 30-100+ photos uploaded from mobile
-- ✅ Web calendar shows your 18-month journey
-- ✅ Can view any day's complete log (text + media)
-- ✅ AI-generated 3-5 min video script
-- ✅ Script references specific dates and suggests photo placements
-- ✅ Exportable script ready for recording
+- ✅[x] Mobile app can set intentions, capture daily thoughts, add reflections
+- ✅[ ] Mobile app can upload photos with EXIF dates
+- ✅[ ] 20-30 daily logs backfilled via SQL
+- ✅[ ] 30-100+ photos uploaded from mobile
+- ✅[ ] Web calendar shows your 18-month journey
+- ✅[ ] Can view any day's complete log (text + media)
+- ✅[ ] AI-generated 3-5 min video script
+- ✅[ ] Script references specific dates and suggests photo placements
+- ✅[ ] Exportable script ready for recording
 
 Wednesday afternoon:
 
 - Record video with script
 - Edit in CapCut with B-roll photos
 - Post by 7pm 🎉
+
+  Todos
+  ☒Database schema: Add daily_logs and media_items tables,
+  update captures with note_type and log_date
+  ☒ Mobile: Daily log interface - intention and reflection
+  buttons that create voice notes with note_type
+  ☒ Mobile: Add bottom tab navigation with Daily Log,  
+   Capture, and Media Upload tabs
+  ☒Fix date timezone issue and hide nav bars when recording
+
+  ☐ Mobile: Media upload - camera capture and camera roll  
+   picker with EXIF extraction
+  ☐ Web: Calendar view showing days with logs/media  
+  ☐ Web: Daily log detail view showing
+  intention/notes/reflection/media for a specific day  
+  ☐ Web: Media library grid view sorted by date
+  ☐ Web: AI story generator with Claude API integration  
+  ☐ Web: Story editor to review and export generated script
