@@ -43,8 +43,16 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
     captureCount: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [isReflectionAvailable, setIsReflectionAvailable] = useState(false);
 
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check if current time is past 6 PM (18:00)
+  const checkReflectionAvailability = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    return currentHour >= 18; // 6 PM or later
+  };
 
   // Get today's date in YYYY-MM-DD format (local timezone)
   const getTodayDate = () => {
@@ -78,11 +86,20 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
       staysActiveInBackground: false,
     });
 
+    // Check reflection availability initially
+    setIsReflectionAvailable(checkReflectionAvailability());
+
+    // Check reflection availability every minute
+    const availabilityInterval = setInterval(() => {
+      setIsReflectionAvailable(checkReflectionAvailability());
+    }, 60000); // Check every 60 seconds
+
     // Cleanup on unmount
     return () => {
       if (recording) {
         recording.stopAndUnloadAsync().catch(() => {});
       }
+      clearInterval(availabilityInterval);
     };
   }, []);
 
@@ -563,6 +580,19 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
                     Reflected at {todayStatus.reflectionTime}
                   </Text>
                 </View>
+              ) : !isReflectionAvailable ? (
+                <View style={styles.disabledContainer}>
+                  <Ionicons
+                    name="time-outline"
+                    size={24}
+                    color={colors.tx2}
+                  />
+                  <Text
+                    style={[styles.disabledText, { color: colors.tx2 }]}
+                  >
+                    Available after 6:00 PM
+                  </Text>
+                </View>
               ) : (
                 <TouchableOpacity
                   onPress={() => startRecording("reflection")}
@@ -655,6 +685,19 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   completedText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  disabledContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    padding: 16,
+    borderRadius: 12,
+    opacity: 0.5,
+  },
+  disabledText: {
     fontSize: 16,
     fontWeight: "500",
   },
