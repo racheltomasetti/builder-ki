@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   useColorScheme,
   Animated,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
@@ -22,6 +23,9 @@ import CycleIndicator from "../components/CycleIndicator";
 import CycleModal from "../components/CycleModal";
 import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
 
+// BACKFILL MODE - Set to true to enable date input for historical data entry
+const BACKFILL_MODE = true;
+
 export default function CaptureScreen({ navigation }: CaptureScreenProps) {
   const isFocused = useIsFocused();
   const colorScheme = useColorScheme();
@@ -34,6 +38,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [cycleModalVisible, setCycleModalVisible] = useState(false);
   const [cycleInfo, setCycleInfo] = useState<CycleInfo | null>(null);
+  const [backfillDate, setBackfillDate] = useState("");
 
   // Load saved mandala settings
   const { settings, loadSettings } = useMandalaSettings();
@@ -336,30 +341,61 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
       } = supabase.storage.from(bucketName).getPublicUrl(fileName);
       console.log("Public URL:", publicUrl);
 
-      // Get today's date in YYYY-MM-DD format (local timezone)
-      const today = new Date();
-      const todayDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      console.log("Today's date (local):", todayDate, "Raw date:", today.toString());
+      // Get date for capture - use backfill date if valid, otherwise today
+      let captureDate: string;
 
-      // Ensure daily_log exists for today
+      if (BACKFILL_MODE && backfillDate) {
+        // Validate backfill date format (YYYY-MM-DD)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (dateRegex.test(backfillDate)) {
+          captureDate = backfillDate;
+          console.log("Using backfill date:", captureDate);
+        } else {
+          console.warn("Invalid backfill date format, using today");
+          const today = new Date();
+          captureDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        }
+      } else {
+        // Normal mode or no backfill date - use today
+        const today = new Date();
+        captureDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      }
+
+      console.log("Capture date:", captureDate);
+
+      // Ensure daily_log exists for the capture date
       await supabase.from("daily_logs").upsert(
         {
           user_id: user.id,
-          date: todayDate,
+          date: captureDate,
         },
         { onConflict: "user_id,date", ignoreDuplicates: true }
       );
 
       // Create capture record with log_date and note_type='daily'
       console.log("Creating capture record...");
-      const { error: insertError } = await supabase.from("captures").insert({
+
+      // For backfill mode, set created_at to match the log_date (at noon UTC to avoid timezone issues)
+      const captureRecord: any = {
         user_id: user.id,
         type: "voice",
         file_url: publicUrl,
         processing_status: "pending",
         note_type: "daily",
-        log_date: todayDate,
-      });
+        log_date: captureDate,
+      };
+
+      // If in backfill mode with a valid date, set created_at to that date
+      if (BACKFILL_MODE && backfillDate) {
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (dateRegex.test(backfillDate)) {
+          // Set created_at to the backfill date at 12:00 PM (noon) to avoid timezone edge cases
+          captureRecord.created_at = `${backfillDate}T12:00:00Z`;
+          console.log("Setting created_at to:", captureRecord.created_at);
+        }
+      }
+
+      const { error: insertError } = await supabase.from("captures").insert(captureRecord);
 
       if (insertError) {
         console.error("Insert error:", insertError);
@@ -392,6 +428,35 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
 
         {!uploading && (
           <View style={styles.mainContent}>
+            {/* Backfill Date Input - only show when BACKFILL_MODE is enabled and not recording */}
+            {BACKFILL_MODE && !recording && (
+              <View style={styles.backfillContainer} pointerEvents="box-none">
+                <Text style={[styles.backfillLabel, { color: colors.tx2 }]}>
+                  Backfill Date (YYYY-MM-DD):
+                </Text>
+                <TextInput
+                  style={[
+                    styles.backfillInput,
+                    {
+                      color: colors.tx,
+                      backgroundColor: colors.ui2,
+                      borderColor: colors.ui3,
+                    },
+                  ]}
+                  value={backfillDate}
+                  onChangeText={setBackfillDate}
+                  placeholder="e.g., 2023-06-15"
+                  placeholderTextColor={colors.tx3}
+                  keyboardType="default"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={true}
+                  selectTextOnFocus={true}
+                  returnKeyType="done"
+                />
+              </View>
+            )}
+
             {/* KI Mandala - animated logo mandala */}
             <Animated.View
               style={{
@@ -462,6 +527,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  backfillContainer: {
+    position: "absolute",
+    top: 40,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    zIndex: 10,
+  },
+  backfillLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 8,
+  },
+  backfillInput: {
+    width: "100%",
+    maxWidth: 280,
+    height: 48,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    textAlign: "center",
+    fontVariant: ["tabular-nums"],
+    zIndex: 11,
   },
   durationContainer: {
     position: "absolute",

@@ -6,6 +6,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import { FileHandler } from "@tiptap/extension-file-handler";
 import ImageResize from "tiptap-extension-resize-image";
+import { Extension } from "@tiptap/core";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import imageCompression from "browser-image-compression";
@@ -42,6 +43,33 @@ type Document = {
 type DocumentEditorProps = {
   document: Document;
 };
+
+// Custom extension to delete line on Ctrl+X when no text is selected
+const DeleteLine = Extension.create({
+  name: "deleteLine",
+
+  addKeyboardShortcuts() {
+    return {
+      "Mod-x": ({ editor }) => {
+        const { from, to } = editor.state.selection;
+
+        // Only delete line if nothing is selected (cursor position)
+        if (from === to) {
+          const $from = editor.state.doc.resolve(from);
+          const start = $from.start($from.depth);
+          const end = $from.end($from.depth);
+
+          // Delete the entire node/line
+          editor.commands.deleteRange({ from: start, to: end });
+          return true; // Prevent default behavior
+        }
+
+        // If text is selected, allow default cut behavior
+        return false;
+      },
+    };
+  },
+});
 
 export default function DocumentEditor({ document }: DocumentEditorProps) {
   const router = useRouter();
@@ -122,6 +150,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     immediatelyRender: false,
     extensions: [
       StarterKit,
+      DeleteLine,
       Placeholder.configure({
         placeholder: "Start writing your thoughts...",
       }),
@@ -196,6 +225,8 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
       attributes: {
         class:
           "prose prose-flexoki max-w-none focus:outline-none min-h-[500px] px-4 py-2",
+        autocorrect: "off",
+        autocapitalize: "off",
       },
     },
   });
