@@ -24,7 +24,7 @@ import CycleModal from "../components/CycleModal";
 import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
 
 // BACKFILL MODE - Set to true to enable date input for historical data entry
-const BACKFILL_MODE = true;
+const BACKFILL_MODE = false;
 
 export default function CaptureScreen({ navigation }: CaptureScreenProps) {
   const isFocused = useIsFocused();
@@ -353,12 +353,16 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         } else {
           console.warn("Invalid backfill date format, using today");
           const today = new Date();
-          captureDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          captureDate = `${today.getFullYear()}-${String(
+            today.getMonth() + 1
+          ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
         }
       } else {
         // Normal mode or no backfill date - use today
         const today = new Date();
-        captureDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        captureDate = `${today.getFullYear()}-${String(
+          today.getMonth() + 1
+        ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
       }
 
       console.log("Capture date:", captureDate);
@@ -395,7 +399,9 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         }
       }
 
-      const { error: insertError } = await supabase.from("captures").insert(captureRecord);
+      const { error: insertError } = await supabase
+        .from("captures")
+        .insert(captureRecord);
 
       if (insertError) {
         console.error("Insert error:", insertError);

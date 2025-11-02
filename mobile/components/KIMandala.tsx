@@ -1,7 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { View, Animated, StyleSheet, TouchableOpacity } from "react-native";
 import { KILogo } from "./Logo";
-import { MandalaSettings, DEFAULT_MANDALA_SETTINGS } from "../constants/mandalaDefaults";
+import {
+  MandalaSettings,
+  DEFAULT_MANDALA_SETTINGS,
+} from "../constants/mandalaDefaults";
 import { COLOR_PALETTE } from "../constants/colorPalette";
 
 interface KIMandalaProps {
@@ -36,7 +39,8 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
       // Start all layer rotations with alternating directions
       const animations = rotations.map((rotation, index) => {
         const isClockwise = index % 2 === 0;
-        const baseSpeed = settings.baseRotationSpeed + index * settings.rotationSpeedIncrement;
+        const baseSpeed =
+          settings.baseRotationSpeed + index * settings.rotationSpeedIncrement;
         const speed = baseSpeed / settings.rotationSpeedMultiplier; // Divide to make higher multiplier = faster
 
         return Animated.loop(
@@ -59,13 +63,13 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
       const pulseAnimation = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseScale, {
-            toValue: 1.4,
-            duration: 800,
+            toValue: 4,
+            duration: 1500,
             useNativeDriver: true,
           }),
           Animated.timing(pulseScale, {
             toValue: 1,
-            duration: 800,
+            duration: 1500,
             useNativeDriver: true,
           }),
         ])
@@ -98,13 +102,17 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
   // Using dynamic settings with multipliers
   const layers = Array.from({ length: 11 }, (_, index) => {
     const layerIndex = index + 1;
-    const baseLogoSize = settings.baseLogoSize + layerIndex * settings.logoSizeIncrement;
+    const baseLogoSize =
+      settings.baseLogoSize + layerIndex * settings.logoSizeIncrement;
     const logoSize = baseLogoSize * settings.logoSizeMultiplier;
 
-    const baseRadius = settings.baseRadius + layerIndex * (settings.radiusSpacing + baseLogoSize * 0.01);
+    const baseRadius =
+      settings.baseRadius +
+      layerIndex * (settings.radiusSpacing + baseLogoSize * 0.01);
     const radius = baseRadius * settings.radiusSpacingMultiplier;
 
-    const baseLogoCount = settings.baseLogoCount + layerIndex * settings.logoCountIncrement;
+    const baseLogoCount =
+      settings.baseLogoCount + layerIndex * settings.logoCountIncrement;
     const logoCount = Math.round(baseLogoCount * settings.logoCountMultiplier);
 
     const rotation = rotations[index];
