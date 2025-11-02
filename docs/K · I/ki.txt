@@ -1,0 +1,78 @@
+# K · I Documentation for ALL
+
+>  K · I is a daily living system that utilizes technology to augment the Self and cultivate unconditional LOVE, using languages you already know — mind, body, soul. 
+
+# Overview
+Self toolkit
+
+# Acknowledgements
+
+Thank you to [Andrew Huberman], [David Senra], [Paulo Coelho], [Steve Jobs], [Wim Hof], [yung pueblo] and all other teachers for the work that you do, whose knowledge and stories provide clarity, inspiration, and guidance every day in the building of K · I. 
+Thank you to [Anna Skare] for being you, a source of such light and love to all. 
+Thank you to [Ben Paluk] and [Cadence Dimen] for your friendship and for pushing me to be my best. 
+Thank you to [Callie Mulligan], [Chloe Manke], and [Sam Lattanze] for your friendship and for memories that will always hold a special place in my heart.  
+Thank you to [Connie Tomasetti | Mom] for your endless compassion and kindness to all. 
+Thank you to [Coconut Grove Run Club] for being such a vibrant community that contributed to my growth.  
+Thank you to [Coffee & Chill Miami | NY Teams] for welcoming me with open arms and creating communities overflowing with energy.  
+Thank you to [Connor Dunham],[Sebastian Baez], and [Skyler Kahng] for being a safe space for my soul and for DANCE. 
+Thank you to [Danielle Tomasetti] for your sharing your curiousities and inspiring me in your pursuit of Self. 
+Thank you to [Emory Haines], [Jamie Narciso], [Katherine Weiner], [Sydney Giordano], [Tasha Riek], and all others who have been there for me since day one. 
+Thank you to [Grace Liu] who inspires me in the pursuit of your dreams. 
+Thank you to [Grace Tomasetti] whose strength and courage inspires me every day. 
+Thank you to [Hannah Tomasetti] for your unconditional love and for inspiring me in pursuit of your dreams. 
+Thank you to [Hoodoo Brown BBQ Team | Family] for the generosity and joy you have filled me with. 
+Thank you to [Humza Raza] for sharing your heart and mind with me. 
+Thank you to [University of Miami | ITD] for creating the perfect environment for me to grow. 
+    to [Devika Milner], [Jeffrey Duerk], and [Lokesh Ramamoorthi] who provided guidance and helped me in building belief in my Self. 
+    to [Roni Kennedy], [Anna Munson], [Katherine Kuang], [Quin McGowan], [Andrew Lentchner], [Anthony Santoro], [Nico Gallardo], and [Grant Martin] for your friendship and insights inside and outside of the classroom. 
+    to [Marcia Weldon] and [Michelle Destefano] for being incredible role models and teachers. 
+    to [Eddie Gonzalez] for igniting my curiousity of design. 
+    to [UM Girl Gains], especially [Corinne Kelly] and [Taylor Dutil], for helping me to build confidence in my body and trust in my Self. 
+Thank you to [Jorge Morejon] for being an incredible mentor and sharing your story. 
+Thank you to [Katherine Anne Porter] whose words have imprinted on my soul. 
+Thank you to [Leah Castaneda] for your endless kindness and love. 
+Thank you to [Luke Barrientos] for your unconditional support and reminding me of the importance of now.
+Thank you to [Maddison Miller] for sharing your story and creating space for me to share mine. 
+Thank you to [Michael Zvon] for our friendship, creating a space to expand my curiousities. 
+Thank you to [Miranda Bialek] for being an incredible friend and partner in crime. 
+Thank you to [Momma B] for your kindness and for sharing your love with others. 
+Thank you to [Morgan Krempasky] and [Sam Yoon] for your light and for being a safe space for my heart.  
+Thank you to [Nate Joseph] who has been a constant source of inspiration and grounded me from the start. 
+Thank you to [Nick Agliardo] for your friendship and for inspiring me in how you think.
+Thank you to [Owen Gaydos] for your friendship and for inspiring in how you show up every day.
+Thank you to [Richard Tomasetti | Dad] for always believing in me and showing me what it means to love selflessly. 
+Thank you to [Sammy Tolani] for inspiring me in how you live your life and for your endless friendship and generosity. 
+Thank you to [Sara Blakely] for being an inspiration in pursuit of my dream. 
+Thank you to  for paving the way and inspiring me with your mind and vision. 
+Thank you to [svelte team] for creating a beautiful tool with documentation that has provided me guidance while writing this very document.
+Thank you to [Tatiana] for showing me such kindness today on the subway [on 11/2/2025].
+Thank you to [Y Combinator] for opening my mind to endless possibilities. 
+Thank you to [Zoey Lee] for inspiring me every day in how you live. 
+
+Thank you to [all the others who have | will] touch my heart. 
+To all those relentlessly pursuing their dreams and inspire me every day. 
+I would not be the person I am today without all of you. 
+
+I am overflowing with love and energy.
+
+Now let's build K · I for the future is NOW. 
+
+## Resources
+- spotify/apple music
+
+## Documentation Notes
+
+ - | used to signify BOTH
+ - capitalization is intentional
+ - every word is typed with intention. 
+
+
+
+ # OVERVIEW
+
+{# TOOL
+## CONTEXT
+## INSTRUCTIONS
+## EXAMPLES}
+
+# FINAL NOTES

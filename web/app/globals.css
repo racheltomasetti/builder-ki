@@ -25,7 +25,7 @@ html.dark {
   --ui-2: #343331;
   --ui-3: #403e3c;
   --accent: #e35336;
-  --accent-2: #3aa99f;
+  --accent-2: #24837b;
 }
 
 /* Light theme */
@@ -39,7 +39,7 @@ html.light {
   --ui-2: #dad8ce;
   --ui-3: #cecdc3;
   --accent: #e35336;
-  --accent-2: #24837b;
+  --accent-2: #3aa99f;
 }
 
 body {
