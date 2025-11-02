@@ -25,7 +25,7 @@ html.dark {
   --ui-2: #343331;
   --ui-3: #403e3c;
   --accent: #e35336;
-  --accent-2: #8f9779;
+  --accent-2: #3aa99f;
 }
 
 /* Light theme */
@@ -39,7 +39,7 @@ html.light {
   --ui-2: #dad8ce;
   --ui-3: #cecdc3;
   --accent: #e35336;
-  --accent-2: #8f9779;
+  --accent-2: #24837b;
 }
 
 body {
@@ -101,23 +101,23 @@ body {
 
 /* Cycle phase colors */
 .cycle-menstrual {
-  background-color: #205EA6; /* Blue - inner winter & reflection */
+  background-color: #205ea6; /* Blue - inner winter & reflection */
 }
 
 .cycle-follicular {
-  background-color: #66800B; /* Green - inner spring & growth */
+  background-color: #66800b; /* Green - inner spring & growth */
 }
 
 .cycle-ovulation {
-  background-color: #AD8301; /* Yellow - inner summer & energy */
+  background-color: #ad8301; /* Yellow - inner summer & energy */
 }
 
 .cycle-luteal {
-  background-color: #BC5215; /* Orange - inner autumn & focus */
+  background-color: #bc5215; /* Orange - inner autumn & focus */
 }
 
 .cycle-unknown {
-  background-color: #95A5A6; /* Gray */
+  background-color: #95a5a6; /* Gray */
 }
 
 /* Tiptap Editor Prose Styles */

@@ -136,20 +136,20 @@ export default function DashboardPage() {
         <div className="flex justify-center gap-2 mb-6">
           <button
             onClick={() => setViewMode("feed")}
-            className={`px-6 py-2 rounded-lg font-medium transition-all ${
+            className={`px-6 py-2 rounded-lg transition-all ${
               viewMode === "feed"
-                ? "bg-flexoki-accent text-flexoki-bg"
-                : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 hover:bg-flexoki-ui-3"
+                ? "bg-flexoki-accent text-flexoki-bg font-bold"
+                : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 font-medium hover:text-xl hover:font-bold"
             }`}
           >
             stream of consciousness
           </button>
           <button
             onClick={() => setViewMode("daily")}
-            className={`px-6 py-2 rounded-lg font-medium transition-all ${
+            className={`px-6 py-2 rounded-lg transition-all ${
               viewMode === "daily"
-                ? "bg-flexoki-accent text-flexoki-bg"
-                : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 hover:bg-flexoki-ui-3"
+                ? "bg-flexoki-accent text-flexoki-bg font-bold"
+                : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 font-medium hover:text-xl hover:font-bold"
             }`}
           >
             daily log

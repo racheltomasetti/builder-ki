@@ -562,17 +562,17 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
           type="text"
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
-          className="text-5xl font-bold bg-transparent border-none text-flexoki-tx focus:outline-none w-full mb-6 placeholder-flexoki-tx-3 leading-tight"
+          className="text-6xl font-bold bg-transparent border-none text-flexoki-tx focus:outline-none w-full mb-6 placeholder-flexoki-tx-3 leading-tight"
           placeholder="Untitled Document"
           style={{ lineHeight: "2.2" }}
         />
 
         {/* Editor Toolbar */}
         {editor && (
-          <div className="mb-4 flex gap-2 pb-4 border-b border-flexoki-ui-3 flex-wrap">
+          <div className="sticky top-0 z-10 bg-flexoki-bg mb-4 flex gap-2 pb-4 border-b border-flexoki-ui-3 flex-wrap shadow-sm">
             <button
               onClick={() => editor.chain().focus().toggleBold().run()}
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 editor.isActive("bold")
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -582,7 +582,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             </button>
             <button
               onClick={() => editor.chain().focus().toggleItalic().run()}
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 editor.isActive("italic")
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -594,7 +594,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
               onClick={() =>
                 editor.chain().focus().toggleHeading({ level: 2 }).run()
               }
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 editor.isActive("heading", { level: 2 })
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -606,7 +606,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
               onClick={() =>
                 editor.chain().focus().toggleHeading({ level: 3 }).run()
               }
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 editor.isActive("heading", { level: 3 })
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -616,7 +616,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             </button>
             <button
               onClick={() => editor.chain().focus().toggleBulletList().run()}
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 editor.isActive("bulletList")
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -626,7 +626,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             </button>
             <button
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 editor.isActive("orderedList")
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -636,12 +636,12 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             </button>
 
             {/* Separator */}
-            <div className="w-px h-6 bg-flexoki-ui-3 mx-1"></div>
+            <div className="mt-3 w-px h-6 bg-flexoki-ui-3 mx-1"></div>
 
             {/* Alignment Buttons */}
             <button
               onClick={() => editor.chain().focus().setTextAlign("left").run()}
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 editor.isActive({ textAlign: "left" })
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -667,7 +667,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
               onClick={() =>
                 editor.chain().focus().setTextAlign("center").run()
               }
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 editor.isActive({ textAlign: "center" })
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -691,7 +691,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             </button>
             <button
               onClick={() => editor.chain().focus().setTextAlign("right").run()}
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 editor.isActive({ textAlign: "right" })
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -715,13 +715,13 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             </button>
 
             {/* Separator */}
-            <div className="w-px h-6 bg-flexoki-ui-3 mx-1"></div>
+            <div className="mt-3 w-px h-6 bg-flexoki-ui-3 mx-1"></div>
 
             {/* Image Upload Button */}
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingImage}
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 isUploadingImage
                   ? "bg-flexoki-ui-2 text-flexoki-tx-3 cursor-not-allowed"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -766,7 +766,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             {/* Media Library Button */}
             <button
               onClick={() => setIsMediaLibraryOpen(!isMediaLibraryOpen)}
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 isMediaLibraryOpen
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
@@ -793,7 +793,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             {/* Thinking Partner Button */}
             <button
               onClick={() => setIsThinkingPartnerOpen(!isThinkingPartnerOpen)}
-              className={`px-3 py-1 rounded text-sm ${
+              className={`mt-3 px-3 py-1 rounded text-sm ${
                 isThinkingPartnerOpen
                   ? "bg-flexoki-accent text-white"
                   : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"

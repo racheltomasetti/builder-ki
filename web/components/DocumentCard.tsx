@@ -223,31 +223,31 @@ export default function DocumentCard({
 
       {/* Card */}
       <div
-        className={`bg-flexoki-ui rounded-lg shadow-md hover:shadow-lg transition-all group relative overflow-hidden ${
-          isFocused ? "ring-2 shadow-[rgb(58,169,159)]/20" : ""
+        onClick={handleClick}
+        className={`bg-flexoki-ui rounded-lg shadow-md hover:shadow-lg hover:bg-flexoki-ui-2 transition-all group relative overflow-hidden cursor-pointer ${
+          isFocused
+            ? "ring-2 ring-flexoki-accent shadow-[rgb(58,169,159)]/20"
+            : ""
         }`}
         style={
           isFocused
             ? {
-                borderColor: "rgb(58, 169, 159)",
-                borderWidth: "2px",
+                borderColor: "var(--accent-2)",
+                borderWidth: "5px",
                 borderStyle: "solid",
               }
             : {}
         }
       >
-        {/* Clickable area */}
-        <div
-          onClick={handleClick}
-          className="cursor-pointer p-6 hover:bg-flexoki-ui-2 transition-colors"
-        >
+        {/* Content area */}
+        <div className="p-6">
           {/* Title */}
-          <h3 className="text-xl font-semibold text-flexoki-tx mb-2 line-clamp-2 group-hover:text-flexoki-accent transition-colors">
+          <h3 className="text-xl font-semibold text-flexoki-tx mb-2 line-clamp-2 group-hover:text-3xl">
             {document.title}
           </h3>
 
           {/* Preview */}
-          <p className="text-flexoki-tx-2 text-sm mb-4 line-clamp-3">
+          <p className="text-flexoki-tx-2 text-sm mb-4 line-clamp-3 group-hover:text-lg">
             {preview || "Empty document"}
           </p>
 

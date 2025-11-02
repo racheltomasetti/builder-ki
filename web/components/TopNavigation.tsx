@@ -68,20 +68,20 @@ export default function TopNavigation({ user }: TopNavigationProps) {
             <div className="flex items-center gap-6">
               <a
                 href="/dashboard"
-                className={`text-lg font-medium transition-colors ${
+                className={`text-xl transition-colors ${
                   isActive("/dashboard")
-                    ? "text-flexoki-accent"
-                    : "text-flexoki-tx hover:text-flexoki-accent"
+                    ? "text-flexoki-accent font-bold"
+                    : "text-flexoki-tx font-medium hover:text-2xl hover:font-bold"
                 }`}
               >
                 THOUGHTS
               </a>
               <a
                 href="/dashboard/documents"
-                className={`text-lg font-medium transition-colors ${
+                className={`text-xl medium transition-colors ${
                   isActive("/dashboard/documents")
-                    ? "text-flexoki-accent"
-                    : "text-flexoki-tx hover:text-flexoki-accent"
+                    ? "text-flexoki-accent font-bold"
+                    : "text-flexoki-tx font-medium hover:text-2xl hover:font-bold"
                 }`}
               >
                 DOCS
@@ -92,7 +92,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
             <span className="text-base text-flexoki-tx-2">{user?.email}</span>
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg text-flexoki-tx-2 hover:bg-flexoki-ui-2 transition-colors"
+              className="p-2 rounded-lg text-flexoki-tx-2 hover:bg-flexoki-ui-2  transition-colors"
               title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
               {theme === "dark" ? (

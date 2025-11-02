@@ -53,14 +53,21 @@ export default function DocumentsList({
       }
 
       // Enter key after Ctrl+F to activate focus mode
-      if (e.key === "Enter" && sessionStorage.getItem("waitingForFocusEnter") === "true") {
+      if (
+        e.key === "Enter" &&
+        sessionStorage.getItem("waitingForFocusEnter") === "true"
+      ) {
         e.preventDefault();
         setFocusMode(true);
         sessionStorage.removeItem("waitingForFocusEnter");
       }
 
       // Clear the flag if any other key is pressed
-      if (e.key !== "f" && e.key !== "Enter" && sessionStorage.getItem("waitingForFocusEnter")) {
+      if (
+        e.key !== "f" &&
+        e.key !== "Enter" &&
+        sessionStorage.getItem("waitingForFocusEnter")
+      ) {
         sessionStorage.removeItem("waitingForFocusEnter");
       }
     };
@@ -143,10 +150,10 @@ export default function DocumentsList({
           {/* Focus Mode Toggle */}
           <button
             onClick={() => setFocusMode(!focusMode)}
-            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-xl font-bold ${
               focusMode
-                ? "bg-flexoki-accent text-white"
-                : "bg-flexoki-ui-2 text-flexoki-tx border border-flexoki-ui-3 hover:bg-flexoki-ui-3"
+                ? "bg-flexoki-ui-2 text-white hover:bg-flexoki-ui-3 hover:text-2xl"
+                : "bg-flexoki-accent opacity-90 text-white border border-flexoki-ui-3 hover:bg-flexoki-accent hover:opacity-100 hover:text-2xl"
             }`}
           >
             {focusMode ? (
@@ -168,46 +175,15 @@ export default function DocumentsList({
                 All Documents
               </>
             ) : (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Focus Mode
-              </>
+              <>· FOCUS ·</>
             )}
           </button>
-
           {/* New Document Button */}
           <button
             onClick={handleCreateNew}
-            className="px-4 py-2 bg-flexoki-accent text-white rounded-lg hover:bg-opacity-90 transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-flexoki-accent-2 opacity-90 text-white text-xl font-bold rounded-lg hover:opacity-100 hover:text-2xl transition-colors flex items-center gap-2"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            New Document
+            ~ CREATE ~
           </button>
         </div>
       </div>
