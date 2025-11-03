@@ -107,21 +107,10 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
     }
   };
 
-  // Hide/show navigation bars when recording + add cycle indicator to header
+  // Hide header completely for minimal UI + hide tab bar when recording
   useEffect(() => {
     navigation.setOptions({
-      headerShown: !recording,
-      headerLeft: !recording
-        ? () => (
-            <View style={{ marginLeft: 12 }}>
-              <CycleIndicator
-                cycleDay={cycleInfo?.cycleDay || null}
-                cyclePhase={cycleInfo?.cyclePhase || null}
-                onPress={() => setCycleModalVisible(true)}
-              />
-            </View>
-          )
-        : undefined,
+      headerShown: false,
       tabBarStyle: recording
         ? { display: "none" }
         : {
@@ -133,7 +122,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
             paddingTop: 4,
           },
     });
-  }, [recording, navigation, colors, cycleInfo]);
+  }, [recording, navigation, colors]);
 
   // Bobbing animation for idle state
   useEffect(() => {

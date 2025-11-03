@@ -110,7 +110,7 @@ export default function MainTabsNavigator() {
         name="MediaUpload"
         component={MediaUploadScreen}
         options={{
-          tabBarLabel: "Media",
+          tabBarLabel: "Upload",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="image-outline" size={size} color={color} />
           ),
