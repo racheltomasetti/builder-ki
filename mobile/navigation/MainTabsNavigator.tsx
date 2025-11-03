@@ -12,7 +12,6 @@ import { useThemeColors } from "../theme/colors";
 import DailyLogScreen from "../screens/DailyLogScreen";
 import CaptureScreen from "../screens/CaptureScreen";
 import MediaUploadScreen from "../screens/MediaUploadScreen";
-import { KILogo } from "../components/Logo";
 import type {
   MainTabsParamList,
   RootStackParamList,
@@ -72,18 +71,14 @@ export default function MainTabsNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
-          headerTitle: () => (
-            <KILogo size={70} color={colors.tx} strokeWidth={2.5} />
-          ),
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Settings")}
-              style={styles.settingsButton}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="settings-outline" size={28} color={colors.tx} />
-            </TouchableOpacity>
-          ),
+          headerTitle: "~ K·I ~",
+          headerTitleStyle: {
+            fontSize: 25,
+            color: colors.tx,
+          },
+          headerTitleContainerStyle: {
+            paddingBottom: 8,
+          },
         }}
       />
       <Tab.Screen
@@ -114,18 +109,14 @@ export default function MainTabsNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="image-outline" size={size} color={color} />
           ),
-          headerTitle: () => (
-            <KILogo size={70} color={colors.tx} strokeWidth={2.5} />
-          ),
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Settings")}
-              style={styles.settingsButton}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="settings-outline" size={28} color={colors.tx} />
-            </TouchableOpacity>
-          ),
+          headerTitle: "~ K·I ~",
+          headerTitleStyle: {
+            fontSize: 25,
+            color: colors.tx,
+          },
+          headerTitleContainerStyle: {
+            paddingBottom: 8,
+          },
         }}
       />
     </Tab.Navigator>

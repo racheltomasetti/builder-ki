@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Search, Calendar, Image as ImageIcon, ArrowLeft, Upload, Grid3x3, Grid2x2, LayoutGrid } from "lucide-react";
+import {
+  Search,
+  Calendar,
+  Image as ImageIcon,
+  ArrowLeft,
+  Upload,
+  Grid3x3,
+  Grid2x2,
+  LayoutGrid,
+} from "lucide-react";
 import MediaGrid from "@/components/MediaGrid";
 import MediaModal from "@/components/MediaModal";
 import UploadModal from "@/components/UploadModal";
@@ -29,7 +38,9 @@ export default function MediaLibraryPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [gridSize, setGridSize] = useState<"small" | "medium" | "large">("medium");
+  const [gridSize, setGridSize] = useState<"small" | "medium" | "large">(
+    "medium"
+  );
   const supabase = createClient();
 
   useEffect(() => {
@@ -55,8 +66,7 @@ export default function MediaLibraryPage() {
       const { data, error } = await supabase
         .from("media_items")
         .select("*")
-        .eq("user_id", user.id)
-        .order("original_date", { ascending: false });
+        .eq("user_id", user.id);
 
       if (error) {
         console.error("Supabase error:", error);
@@ -65,7 +75,26 @@ export default function MediaLibraryPage() {
       }
 
       console.log("Fetched media items:", data);
-      setMediaItems(data || []);
+
+      // Smart sorting: Use original_date for backfilled photos (from library),
+      // use created_at for live captures. Most recent first.
+      // Use id as secondary sort for stable ordering when dates are identical.
+      const sortedData = (data || []).sort((a, b) => {
+        const dateA = a.original_date || a.created_at;
+        const dateB = b.original_date || b.created_at;
+        const dateDiff = new Date(dateB).getTime() - new Date(dateA).getTime();
+
+        // If dates are the same, sort by created_at timestamp (most recent first)
+        if (dateDiff === 0) {
+          return (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+        }
+
+        return dateDiff;
+      });
+
+      setMediaItems(sortedData);
     } catch (err: any) {
       console.error("Error fetching media items:", err);
       setError(err.message);
@@ -183,11 +212,13 @@ export default function MediaLibraryPage() {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <ImageIcon className="w-8 h-8 text-flexoki-accent" />
-            <h1 className="text-3xl font-bold text-flexoki-tx">Media Library</h1>
+            <h1 className="text-3xl font-bold text-flexoki-tx">
+              Media Library
+            </h1>
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-flexoki-accent text-flexoki-bg rounded-lg hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 px-4 py-2 bg-flexoki-accent text-flexoki-tx rounded-lg hover:opacity-90 transition-opacity hover:text-2xl hover:font-bold"
           >
             <Upload className="w-5 h-5" />
             <span className="font-medium">Upload</span>

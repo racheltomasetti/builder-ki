@@ -120,11 +120,12 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
       {/* Preview Mode Overlay - Full Screen */}
       {isPreviewMode && (
-        <View style={styles.previewOverlay}>
+        <View style={[styles.previewOverlay, { backgroundColor: colors.bg }]}>
           <View style={styles.previewMandalaContainer}>
             <KIMandala
               isRecording={true}
               color={tempSettings.layerColors[0]}
+              centerLogoColor={colors.tx}
               centerSize={200}
               onPress={() => {}}
               settings={tempSettings}
@@ -135,10 +136,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               setIsPreviewMode(false);
               setIsCustomizeModalVisible(true); // Reopen modal when closing preview
             }}
-            style={[
-              styles.closePreviewButton,
-              { backgroundColor: "rgba(227, 83, 54, 0.8)" },
-            ]}
+            style={[styles.closePreviewButton, { backgroundColor: "#af3029" }]}
           >
             <MaterialIcons name="close" size={20} color="#fff" />
             <Text style={styles.closePreviewText}>Close Preview</Text>
@@ -242,10 +240,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               {/* Customize Button */}
               <TouchableOpacity
                 onPress={handleOpenCustomize}
-                style={[
-                  styles.customizeButton,
-                  { backgroundColor: "rgba(227, 83, 54, 0.8)" },
-                ]}
+                style={[styles.customizeButton, { backgroundColor: "#af3029" }]}
               >
                 <MaterialIcons name="palette" size={20} color="#fff" />
                 <Text style={styles.customizeButtonText}>CUSTOMIZE</Text>
@@ -390,7 +385,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.95)",
+    // backgroundColor set dynamically via colors.bg
     zIndex: 9999,
     justifyContent: "center",
     alignItems: "center",

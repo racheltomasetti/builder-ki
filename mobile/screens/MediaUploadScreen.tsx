@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system/legacy";
@@ -18,7 +20,11 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { Video, ResizeMode } from "expo-av";
 import { supabase } from "../lib/supabase";
 import { useThemeColors } from "../theme/colors";
-import type { MediaUploadScreenProps } from "../types/navigation";
+import type {
+  MediaUploadScreenProps,
+  RootStackParamList,
+} from "../types/navigation";
+import { KILogo } from "../components/Logo";
 import CycleIndicator from "../components/CycleIndicator";
 import CycleModal from "../components/CycleModal";
 import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
@@ -32,11 +38,13 @@ interface MediaItem {
 }
 
 export default function MediaUploadScreen({
-  navigation,
+  navigation: tabNavigation,
 }: MediaUploadScreenProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = useThemeColors(isDark);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [uploading, setUploading] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -80,9 +88,9 @@ export default function MediaUploadScreen({
     }
   };
 
-  // Set cycle indicator in header
+  // Set cycle indicator and settings logo in header
   useEffect(() => {
-    navigation.setOptions({
+    tabNavigation.setOptions({
       headerLeft: () => (
         <View style={{ marginLeft: 12 }}>
           <CycleIndicator
@@ -92,8 +100,17 @@ export default function MediaUploadScreen({
           />
         </View>
       ),
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Settings")}
+          style={{ marginRight: 12 }}
+          activeOpacity={0.7}
+        >
+          <KILogo size={55} color={colors.tx} />
+        </TouchableOpacity>
+      ),
     });
-  }, [navigation, cycleInfo]);
+  }, [tabNavigation, navigation, cycleInfo, colors]);
 
   // Delete media item
   const deleteMediaItem = async (itemId: string) => {

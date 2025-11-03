@@ -68,7 +68,7 @@ export const LightTheme = {
   ui: FlexokiColors.base[100],
   ui2: FlexokiColors.base[150],
   ui3: FlexokiColors.base[200],
-  accent: '#e35336',
+  accent: '#af3029',
   accent2: '#3aa99f', 
 }
 
@@ -81,7 +81,7 @@ export const DarkTheme = {
   ui: FlexokiColors.base[900],
   ui2: FlexokiColors.base[850],
   ui3: FlexokiColors.base[800],
-  accent: '#e35336',
+  accent: '#af3029',
   accent2: '#24837b'
 }
 

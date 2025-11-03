@@ -23,8 +23,8 @@ html.dark {
   --tx-3: #575653;
   --ui: #282726;
   --ui-2: #343331;
-  --ui-3: #403e3c;
-  --accent: #e35336;
+  --ui-3: hsl(30, 3%, 24%);
+  --accent: #af3029;
   --accent-2: #24837b;
 }
 
@@ -38,7 +38,7 @@ html.light {
   --ui: #e6e4d9;
   --ui-2: #dad8ce;
   --ui-3: #cecdc3;
-  --accent: #e35336;
+  --accent: #af3029;
   --accent-2: #3aa99f;
 }
 

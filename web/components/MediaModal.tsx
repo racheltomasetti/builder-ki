@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 // Using standard img to avoid Next/Image remote optimization issues in modal
 import {
@@ -55,6 +55,22 @@ export default function MediaModal({
   const currentItem = currentIndex >= 0 ? allMedia[currentIndex] : mediaItem;
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < allMedia.length - 1;
+
+  // Extract all unique tags from all media items
+  const allAvailableTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    allMedia.forEach((item) => {
+      if (item.tags && Array.isArray(item.tags)) {
+        item.tags.forEach((tag) => tagSet.add(tag));
+      }
+    });
+    return Array.from(tagSet).sort();
+  }, [allMedia]);
+
+  // Filter out tags that are already added to the current item
+  const suggestedTags = useMemo(() => {
+    return allAvailableTags.filter((tag) => !editedTags.includes(tag));
+  }, [allAvailableTags, editedTags]);
 
   // Reset edit state when currentItem changes
   useEffect(() => {
@@ -383,6 +399,27 @@ export default function MediaModal({
                     Add
                   </button>
                 </div>
+                {/* Tag Suggestions */}
+                {suggestedTags.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs text-white/60 mb-1">
+                      Click to add existing tags:
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {suggestedTags.map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={() => {
+                            setEditedTags([...editedTags, tag]);
+                          }}
+                          className="px-2 py-1 bg-white/5 hover:bg-flexoki-accent/20 border border-white/10 hover:border-flexoki-accent/50 rounded text-xs transition-all"
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               currentItem.tags &&

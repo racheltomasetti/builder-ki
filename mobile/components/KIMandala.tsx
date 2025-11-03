@@ -56,7 +56,7 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
 
       // Shrink center logo to a small size (11px when centerSize is 200)
       const centerAnimation = Animated.timing(centerScale, {
-        toValue: 0.4,
+        toValue: 0.3,
         duration: 300,
         useNativeDriver: true,
       });
@@ -110,7 +110,7 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
       logoCount,
       logoSize,
       rotation,
-      opacity: 0.15 + layerIndex * 0.05, // Fade in as layers go out
+      opacity: 0.5 + layerIndex * 0.05, // Fade in as layers go out
       color: layerColor,
     };
   });

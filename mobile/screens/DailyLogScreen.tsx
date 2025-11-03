@@ -10,12 +10,18 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { supabase } from "../lib/supabase";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system/legacy";
 import { useThemeColors } from "../theme/colors";
-import type { DailyLogScreenProps } from "../types/navigation";
+import type {
+  DailyLogScreenProps,
+  RootStackParamList,
+} from "../types/navigation";
 import { KIMandala } from "../components/KIMandala";
+import { KILogo } from "../components/Logo";
 import CycleIndicator from "../components/CycleIndicator";
 import CycleModal from "../components/CycleModal";
 import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
@@ -30,10 +36,14 @@ interface TodayStatus {
   reflectionTime?: string;
 }
 
-export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
+export default function DailyLogScreen({
+  navigation: tabNavigation,
+}: DailyLogScreenProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = useThemeColors(isDark);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [currentNoteType, setCurrentNoteType] = useState<NoteType | null>(null);
@@ -63,8 +73,8 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
@@ -111,7 +121,7 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
 
   // Hide/show navigation bars when recording + add cycle indicator to header
   useEffect(() => {
-    navigation.setOptions({
+    tabNavigation.setOptions({
       headerShown: !recording,
       headerLeft: !recording
         ? () => (
@@ -122,6 +132,17 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
                 onPress={() => setCycleModalVisible(true)}
               />
             </View>
+          )
+        : undefined,
+      headerRight: !recording
+        ? () => (
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Settings")}
+              style={{ marginRight: 12 }}
+              activeOpacity={0.7}
+            >
+              <KILogo size={55} color={colors.tx} />
+            </TouchableOpacity>
           )
         : undefined,
       tabBarStyle: recording
@@ -135,7 +156,7 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
             paddingTop: 4,
           },
     });
-  }, [recording, navigation, colors, cycleInfo]);
+  }, [recording, tabNavigation, navigation, colors, cycleInfo]);
 
   // Load today's status from database
   const loadTodayStatus = async () => {
@@ -432,9 +453,7 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
 
   if (loading) {
     return (
-      <View
-        style={[styles.container, { backgroundColor: colors.bg }]}
-      >
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
         </View>
@@ -489,18 +508,14 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
             </View>
 
             {/* Intention Section */}
-            <View
-              style={[styles.section, { backgroundColor: colors.ui }]}
-            >
+            <View style={[styles.section, { backgroundColor: colors.ui }]}>
               <View style={styles.sectionHeader}>
                 <Ionicons
                   name="sunny-outline"
                   size={24}
                   color={colors.accent}
                 />
-                <Text
-                  style={[styles.sectionTitle, { color: colors.tx }]}
-                >
+                <Text style={[styles.sectionTitle, { color: colors.tx }]}>
                   Morning Intention
                 </Text>
               </View>
@@ -512,9 +527,7 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
                     size={24}
                     color={colors.accent}
                   />
-                  <Text
-                    style={[styles.completedText, { color: colors.tx2 }]}
-                  >
+                  <Text style={[styles.completedText, { color: colors.tx2 }]}>
                     Set at {todayStatus.intentionTime}
                   </Text>
                 </View>
@@ -528,9 +541,7 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
                   activeOpacity={0.8}
                 >
                   <Ionicons name="mic" size={24} color={colors.bg} />
-                  <Text
-                    style={[styles.actionButtonText, { color: colors.bg }]}
-                  >
+                  <Text style={[styles.actionButtonText, { color: colors.bg }]}>
                     Set Today's Intention
                   </Text>
                 </TouchableOpacity>
@@ -538,28 +549,21 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
             </View>
 
             {/* Daily Captures Count */}
-            <View
-              style={[styles.section, { backgroundColor: colors.ui }]}
-            >
+            <View style={[styles.section, { backgroundColor: colors.ui }]}>
               <View style={styles.sectionHeader}>
                 <Ionicons
                   name="recording-outline"
                   size={24}
                   color={colors.accent2}
                 />
-                <Text
-                  style={[styles.sectionTitle, { color: colors.tx }]}
-                >
+                <Text style={[styles.sectionTitle, { color: colors.tx }]}>
                   Daily Captures
                 </Text>
               </View>
 
               <View style={styles.captureCountContainer}>
                 <Text
-                  style={[
-                    styles.captureCountNumber,
-                    { color: colors.accent2 },
-                  ]}
+                  style={[styles.captureCountNumber, { color: colors.accent2 }]}
                 >
                   {todayStatus.captureCount}
                 </Text>
@@ -569,7 +573,7 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
               </View>
 
               <TouchableOpacity
-                onPress={() => navigation.navigate("Capture")}
+                onPress={() => tabNavigation.navigate("Capture")}
                 style={[
                   styles.secondaryButton,
                   { borderColor: colors.accent2 },
@@ -577,7 +581,10 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
                 activeOpacity={0.8}
               >
                 <Text
-                  style={[styles.secondaryButtonText, { color: colors.accent2 }]}
+                  style={[
+                    styles.secondaryButtonText,
+                    { color: colors.accent2 },
+                  ]}
                 >
                   Capture Thought
                 </Text>
@@ -585,18 +592,10 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
             </View>
 
             {/* Reflection Section */}
-            <View
-              style={[styles.section, { backgroundColor: colors.ui }]}
-            >
+            <View style={[styles.section, { backgroundColor: colors.ui }]}>
               <View style={styles.sectionHeader}>
-                <Ionicons
-                  name="moon-outline"
-                  size={24}
-                  color={colors.accent}
-                />
-                <Text
-                  style={[styles.sectionTitle, { color: colors.tx }]}
-                >
+                <Ionicons name="moon-outline" size={24} color={colors.accent} />
+                <Text style={[styles.sectionTitle, { color: colors.tx }]}>
                   Evening Reflection
                 </Text>
               </View>
@@ -608,22 +607,14 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
                     size={24}
                     color={colors.accent}
                   />
-                  <Text
-                    style={[styles.completedText, { color: colors.tx2 }]}
-                  >
+                  <Text style={[styles.completedText, { color: colors.tx2 }]}>
                     Reflected at {todayStatus.reflectionTime}
                   </Text>
                 </View>
               ) : !isReflectionAvailable ? (
                 <View style={styles.disabledContainer}>
-                  <Ionicons
-                    name="time-outline"
-                    size={24}
-                    color={colors.tx2}
-                  />
-                  <Text
-                    style={[styles.disabledText, { color: colors.tx2 }]}
-                  >
+                  <Ionicons name="time-outline" size={24} color={colors.tx2} />
+                  <Text style={[styles.disabledText, { color: colors.tx2 }]}>
                     Available after 6:00 PM
                   </Text>
                 </View>
@@ -637,9 +628,7 @@ export default function DailyLogScreen({ navigation }: DailyLogScreenProps) {
                   activeOpacity={0.8}
                 >
                   <Ionicons name="mic" size={24} color={colors.bg} />
-                  <Text
-                    style={[styles.actionButtonText, { color: colors.bg }]}
-                  >
+                  <Text style={[styles.actionButtonText, { color: colors.bg }]}>
                     Add Reflection
                   </Text>
                 </TouchableOpacity>

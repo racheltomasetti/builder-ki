@@ -43,6 +43,9 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
 }) => {
   const colors = useThemeColors(isDark);
 
+  // Track which layer color is being edited (0 = Layer 1, 1 = Layer 2)
+  const [selectedLayerIndex, setSelectedLayerIndex] = useState<0 | 1>(0);
+
   // Expanded sections state
   const [expandedSections, setExpandedSections] = useState({
     preview: true,
@@ -61,14 +64,16 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
   };
 
   const handleColorSelect = (colorItem: ColorPaletteItem) => {
-    // Update the first layer color
+    // Update the selected layer color
+    const newLayerColors: [string, string] = [...settings.layerColors] as [string, string];
+    newLayerColors[selectedLayerIndex] = colorItem.hex;
     onSettingsChange({
-      layerColors: [colorItem.hex, settings.layerColors[1]] as [string, string],
+      layerColors: newLayerColors,
     });
   };
 
   const getCurrentColor = () => {
-    return settings.layerColors[0];
+    return settings.layerColors[selectedLayerIndex];
   };
 
   const handleApplyAndClose = () => {
@@ -127,7 +132,7 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                     false: colors.ui3,
                     true: "rgba(227, 83, 54, 0.5)",
                   }}
-                  thumbColor={isPreviewMode ? "rgb(227, 83, 54)" : colors.ui3}
+                  thumbColor={isPreviewMode ? "#af3029" : colors.ui3}
                 />
               </View>
             </View>
@@ -159,6 +164,54 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
 
                 {expandedSections.colors && (
                   <View style={styles.colorSection}>
+                    {/* Layer Toggle - Select which layer to customize */}
+                    <View style={styles.layerToggleContainer}>
+                      <TouchableOpacity
+                        onPress={() => setSelectedLayerIndex(0)}
+                        style={[
+                          styles.layerToggleButton,
+                          {
+                            backgroundColor: selectedLayerIndex === 0
+                              ? settings.layerColors[0]
+                              : colors.ui2
+                          },
+                          selectedLayerIndex === 0 && styles.layerToggleButtonActive,
+                        ]}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.layerToggleText,
+                            { color: selectedLayerIndex === 0 ? "#fff" : colors.tx },
+                          ]}
+                        >
+                          Layer 1
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => setSelectedLayerIndex(1)}
+                        style={[
+                          styles.layerToggleButton,
+                          {
+                            backgroundColor: selectedLayerIndex === 1
+                              ? settings.layerColors[1]
+                              : colors.ui2
+                          },
+                          selectedLayerIndex === 1 && styles.layerToggleButtonActive,
+                        ]}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.layerToggleText,
+                            { color: selectedLayerIndex === 1 ? "#fff" : colors.tx },
+                          ]}
+                        >
+                          Layer 2
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
                     {/* Color Grid - for layer colors only (center is theme-based) */}
                     <View style={styles.colorGrid}>
                       {COLOR_PALETTE.map((colorItem) => (
@@ -406,7 +459,7 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                 style={[
                   styles.button,
                   styles.applyButton,
-                  { backgroundColor: "rgba(227, 83, 54, 0.8)" },
+                  { backgroundColor: "#af3029" },
                 ]}
               >
                 <MaterialIcons name="check" size={20} color="#fff" />
@@ -505,6 +558,40 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 12,
+  },
+  layerToggleContainer: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 16,
+  },
+  layerToggleButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "transparent",
+    alignItems: "center",
+    // iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    // Android shadow
+    elevation: 2,
+  },
+  layerToggleButtonActive: {
+    borderWidth: 3,
+    borderColor: "#fff",
+    // Stronger shadow when active
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  layerToggleText: {
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
   colorToggleContainer: {
     flexDirection: "row",

@@ -29,7 +29,7 @@ export interface MandalaSettings {
 
 export const DEFAULT_MANDALA_SETTINGS: MandalaSettings = {
   // Colors - alternating accent colors from web globals.css
-  layerColors: ["#e35336", "#24837b"], // Accent (red) and accent-2 (teal) alternating
+  layerColors: ["#af3029", "#24837b"], // Accent (red) and accent-2 (teal) alternating
 
   // Base values - extracted from KIMandala.tsx lines 90-94
   baseLogoSize: 55,

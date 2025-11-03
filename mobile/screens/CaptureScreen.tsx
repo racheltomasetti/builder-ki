@@ -41,7 +41,13 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
   const [backfillDate, setBackfillDate] = useState("");
 
   // Load saved mandala settings
-  const { settings, loadSettings } = useMandalaSettings();
+  const { settings, loadSettings, resetToDefaults } = useMandalaSettings();
+
+  // TEMPORARY: Clear old settings to load new defaults
+  // Remove this after running once
+  // useEffect(() => {
+  //   resetToDefaults();
+  // }, []);
 
   // Reload settings when screen comes into focus
   useEffect(() => {
