@@ -15,6 +15,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
+import { Video, ResizeMode } from "expo-av";
 import { supabase } from "../lib/supabase";
 import { useThemeColors } from "../theme/colors";
 import type { MediaUploadScreenProps } from "../types/navigation";
@@ -217,18 +218,42 @@ export default function MediaUploadScreen({
     }
   };
 
-  // Open gallery to select photos
-  const selectPhotos = async () => {
+  // Open camera to record video
+  const recordVideo = async () => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) return;
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["videos"],
+        allowsEditing: false,
+        quality: 0.7, // Medium quality for videos
+        videoMaxDuration: 300, // 5 minutes max (can be adjusted)
+        videoQuality: 1, // 0 = low, 1 = medium, 2 = high
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        await uploadMedia([result.assets[0]]);
+      }
+    } catch (err: any) {
+      console.error("Video recording error:", err);
+      Alert.alert("Error", "Failed to record video: " + err.message);
+    }
+  };
+
+  // Open gallery to select photos and videos
+  const selectMedia = async () => {
     const hasPermission = await requestMediaLibraryPermission();
     if (!hasPermission) return;
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: ["images", "videos"],
         allowsEditing: false,
         allowsMultipleSelection: true,
         quality: 0.8,
         exif: true, // Request EXIF data
+        videoQuality: 1, // Medium quality for videos
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -236,7 +261,7 @@ export default function MediaUploadScreen({
       }
     } catch (err: any) {
       console.error("Gallery error:", err);
-      Alert.alert("Error", "Failed to select photos: " + err.message);
+      Alert.alert("Error", "Failed to select media: " + err.message);
     }
   };
 
@@ -426,8 +451,35 @@ export default function MediaUploadScreen({
     }
   };
 
-  // Upload single image to storage and create media_items record
-  const uploadSingleImage = async (asset: ImagePicker.ImagePickerAsset) => {
+  // Extract video metadata (duration, dimensions, file size)
+  const extractVideoMetadata = async (uri: string) => {
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(uri);
+      let metadata: any = {
+        fileSize: fileInfo.exists ? fileInfo.size : null,
+      };
+
+      // Get video duration and dimensions from asset info if available
+      // Note: expo-image-picker provides width, height, and duration in the asset object
+      // We'll extract those from the asset parameter passed to uploadSingleMedia
+
+      // Fallback: Use file modification date
+      let originalDate: string | null = null;
+      if (fileInfo.exists && fileInfo.modificationTime) {
+        originalDate = new Date(fileInfo.modificationTime * 1000)
+          .toISOString()
+          .split("T")[0];
+      }
+
+      return { originalDate, metadata };
+    } catch (err) {
+      console.error("Video metadata extraction error:", err);
+      return { originalDate: null, metadata: {} };
+    }
+  };
+
+  // Upload single image or video to storage and create media_items record
+  const uploadSingleMedia = async (asset: ImagePicker.ImagePickerAsset) => {
     try {
       const {
         data: { user },
@@ -440,41 +492,101 @@ export default function MediaUploadScreen({
       }
 
       console.log("Processing asset:", asset.uri);
+      console.log("Asset type:", asset.type);
       console.log("Asset has exif:", !!asset.exif);
       console.log("Asset has assetId:", !!asset.assetId);
 
-      // Check if it's a HEIC/HEIF file and convert to JPEG
+      // Determine if this is an image or video
+      const isVideo = asset.type === "video";
       let processedUri = asset.uri;
       let isHeic = false;
+      let originalDate: string | null = null;
+      let metadata: any = {};
+      let finalExt: string;
+      let contentType: string;
+      let fileType: "image" | "video";
 
-      const uri = asset.uri.toLowerCase();
-      if (uri.includes(".heic") || uri.includes(".heif")) {
-        console.log("Detected HEIC/HEIF file, converting to JPEG...");
-        processedUri = await convertHeicToJpeg(asset.uri);
-        isHeic = true;
+      if (isVideo) {
+        // Handle video
+        console.log("Processing video...");
+        fileType = "video";
+
+        // Extract video metadata
+        const videoData = await extractVideoMetadata(asset.uri);
+        originalDate = videoData.originalDate;
+        metadata = videoData.metadata;
+
+        // Add video-specific metadata from asset
+        if (asset.duration) {
+          metadata.duration = asset.duration / 1000; // Convert ms to seconds
+        }
+        if (asset.width && asset.height) {
+          metadata.dimensions = {
+            width: asset.width,
+            height: asset.height,
+          };
+        }
+
+        // Determine video file extension
+        const uri = asset.uri.toLowerCase();
+        if (uri.includes(".mp4")) {
+          finalExt = "mp4";
+          contentType = "video/mp4";
+        } else if (uri.includes(".mov")) {
+          finalExt = "mov";
+          contentType = "video/quicktime";
+        } else if (uri.includes(".m4v")) {
+          finalExt = "m4v";
+          contentType = "video/x-m4v";
+        } else {
+          finalExt = "mp4"; // Default to mp4
+          contentType = "video/mp4";
+        }
+
+        console.log("Video metadata:", {
+          duration: metadata.duration,
+          dimensions: metadata.dimensions,
+          fileSize: metadata.fileSize,
+        });
+      } else {
+        // Handle image
+        console.log("Processing image...");
+        fileType = "image";
+
+        const uri = asset.uri.toLowerCase();
+
+        // Check if it's a HEIC/HEIF file and convert to JPEG
+        if (uri.includes(".heic") || uri.includes(".heif")) {
+          console.log("Detected HEIC/HEIF file, converting to JPEG...");
+          processedUri = await convertHeicToJpeg(asset.uri);
+          isHeic = true;
+        }
+
+        // Extract EXIF data from the processed URI
+        const exifData = await extractExifData(
+          processedUri,
+          asset.exif,
+          asset.assetId ?? undefined
+        );
+        originalDate = exifData.originalDate;
+        metadata = exifData.metadata;
+
+        console.log("Final extracted data:", {
+          originalDate,
+          hasLocation: !!metadata.location,
+          wasConverted: isHeic,
+        });
+
+        // Determine file extension - always use jpg for converted files
+        finalExt = isHeic
+          ? "jpg"
+          : uri.includes(".jpg") || uri.includes(".jpeg")
+          ? "jpg"
+          : uri.includes(".png")
+          ? "png"
+          : "jpg";
+        contentType = `image/${finalExt === "jpg" ? "jpeg" : finalExt}`;
       }
-
-      // Extract EXIF data from the processed URI (pass both EXIF and assetId if available)
-      const { originalDate, metadata } = await extractExifData(
-        processedUri,
-        asset.exif,
-        asset.assetId ?? undefined
-      );
-      console.log("Final extracted data:", {
-        originalDate,
-        hasLocation: !!metadata.location,
-        wasConverted: isHeic,
-      });
-
-      // Determine file extension - always use jpg for converted files
-      const finalExt = isHeic
-        ? "jpg"
-        : uri.includes(".jpg") || uri.includes(".jpeg")
-        ? "jpg"
-        : uri.includes(".png")
-        ? "png"
-        : "jpg";
-      const contentType = `image/${finalExt === "jpg" ? "jpeg" : finalExt}`;
 
       const fileName = `${user.id}/${Date.now()}-${Math.random()
         .toString(36)
@@ -521,7 +633,7 @@ export default function MediaUploadScreen({
       const { error: insertError } = await supabase.from("media_items").insert({
         user_id: user.id,
         file_url: publicUrl,
-        file_type: "image",
+        file_type: fileType,
         original_date: originalDate,
         log_date: logDate,
         metadata: metadata,
@@ -529,17 +641,20 @@ export default function MediaUploadScreen({
 
       if (insertError) throw insertError;
 
-      console.log("Media item uploaded successfully:", fileName);
+      console.log(`${fileType} uploaded successfully:`, fileName);
       if (isHeic) {
         console.log("✅ HEIC file converted to JPEG and uploaded");
       }
+      if (isVideo) {
+        console.log("✅ Video uploaded successfully");
+      }
     } catch (err: any) {
-      console.error("Upload single image error:", err);
+      console.error("Upload single media error:", err);
       throw err;
     }
   };
 
-  // Upload media with EXIF extraction
+  // Upload media with EXIF/metadata extraction
   const uploadMedia = async (assets: ImagePicker.ImagePickerAsset[]) => {
     setUploading(true);
 
@@ -552,7 +667,7 @@ export default function MediaUploadScreen({
 
       for (const asset of assets) {
         try {
-          await uploadSingleImage(asset);
+          await uploadSingleMedia(asset);
           successCount++;
         } catch (err) {
           console.error("Failed to upload asset:", err);
@@ -564,14 +679,14 @@ export default function MediaUploadScreen({
       if (failCount === 0) {
         Alert.alert(
           "Success!",
-          `${successCount} photo(s) uploaded successfully!`
+          `${successCount} item(s) uploaded successfully!`
         );
       } else if (successCount === 0) {
-        Alert.alert("Error", "Failed to upload all photos");
+        Alert.alert("Error", "Failed to upload all items");
       } else {
         Alert.alert(
           "Partial Success",
-          `${successCount} photo(s) uploaded, ${failCount} failed`
+          `${successCount} item(s) uploaded, ${failCount} failed`
         );
       }
 
@@ -579,7 +694,7 @@ export default function MediaUploadScreen({
       await loadRecentMedia();
     } catch (err: any) {
       console.error("Upload error:", err);
-      Alert.alert("Error", "Failed to upload photos: " + err.message);
+      Alert.alert("Error", "Failed to upload media: " + err.message);
     } finally {
       setUploading(false);
     }
@@ -599,41 +714,56 @@ export default function MediaUploadScreen({
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Main Content - centered */}
       <View style={styles.mainContent}>
-        <View style={[styles.uploadCard, { backgroundColor: colors.ui }]}>
+        <View style={[styles.uploadCard, { backgroundColor: colors.ui2 }]}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.headerTitle, { color: colors.tx }]}>
               Upload Media
             </Text>
             <Text style={[styles.headerSubtitle, { color: colors.tx2 }]}>
-              Add photos from your journey
+              Add photos and videos
             </Text>
           </View>
 
           {/* Upload Actions */}
           {!uploading && (
             <View style={styles.actionsContainer}>
-              <TouchableOpacity
-                onPress={takePhoto}
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: colors.accent },
-                ]}
-                activeOpacity={0.8}
-                disabled={uploading}
-              >
-                <Ionicons name="camera" size={32} color={colors.bg} />
-                <Text style={[styles.actionButtonText, { color: colors.bg }]}>
-                  Take Photo
-                </Text>
-              </TouchableOpacity>
+              {/* Photo and Video buttons side by side */}
+              <View style={styles.rowButtons}>
+                <TouchableOpacity
+                  onPress={takePhoto}
+                  style={[
+                    styles.halfButton,
+                    { backgroundColor: colors.accent },
+                  ]}
+                  activeOpacity={0.8}
+                  disabled={uploading}
+                >
+                  <Ionicons name="camera" size={28} color={colors.bg} />
+                  <Text style={[styles.halfButtonText, { color: colors.bg }]}>
+                    Photo
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={recordVideo}
+                  style={[
+                    styles.halfButton,
+                    { backgroundColor: colors.accent2 },
+                  ]}
+                  activeOpacity={0.8}
+                  disabled={uploading}
+                >
+                  <Ionicons name="videocam" size={28} color={colors.bg} />
+                  <Text style={[styles.halfButtonText, { color: colors.bg }]}>
+                    Video
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
               <TouchableOpacity
-                onPress={selectPhotos}
-                style={[
-                  styles.actionButton,
-                  { backgroundColor: colors.accent2 },
-                ]}
+                onPress={selectMedia}
+                style={[styles.actionButton, { backgroundColor: colors.tx }]}
                 activeOpacity={0.8}
                 disabled={uploading}
               >
@@ -650,12 +780,14 @@ export default function MediaUploadScreen({
             <View style={styles.uploadingContainer}>
               <ActivityIndicator size="large" color={colors.accent} />
               <Text style={[styles.uploadingText, { color: colors.tx2 }]}>
-                Uploading photos...
+                Uploading media...
               </Text>
             </View>
           )}
         </View>
       </View>
+
+      <View style={[styles.divider, { backgroundColor: colors.ui3 }]} />
 
       {/* Recently Uploaded - fixed at bottom */}
       {!uploading && recentMedia.length > 0 && (
@@ -666,27 +798,59 @@ export default function MediaUploadScreen({
           <View style={styles.recentGrid}>
             {recentMedia.map((item) => (
               <View key={item.id} style={styles.recentItem}>
-                <Image
-                  source={{ uri: item.file_url }}
-                  style={[styles.recentImage, { backgroundColor: colors.ui2 }]}
-                  resizeMode="cover"
-                  onError={(e) => {
-                    console.error(
-                      "Image load error for:",
-                      item.file_url,
-                      e.nativeEvent.error
-                    );
-                  }}
-                  onLoad={() => {
-                    console.log("Image loaded successfully:", item.file_url);
-                  }}
-                />
+                {item.file_type === "video" ? (
+                  // For videos, show the video player with poster/thumbnail
+                  <View style={styles.videoThumbnailContainer}>
+                    <Video
+                      source={{ uri: item.file_url }}
+                      style={[
+                        styles.recentImage,
+                        { backgroundColor: colors.ui2 },
+                      ]}
+                      resizeMode={ResizeMode.COVER}
+                      shouldPlay={false}
+                      isLooping={false}
+                      useNativeControls={false}
+                      onError={(error) => {
+                        console.error("Video load error:", error);
+                      }}
+                    />
+                    {/* Play icon overlay for videos */}
+                    <View style={styles.playIconOverlay}>
+                      <Ionicons name="play-circle" size={36} color="white" />
+                    </View>
+                  </View>
+                ) : (
+                  // For images, use Image component
+                  <Image
+                    source={{ uri: item.file_url }}
+                    style={[
+                      styles.recentImage,
+                      { backgroundColor: colors.ui2 },
+                    ]}
+                    resizeMode="cover"
+                    onError={(e) => {
+                      console.error(
+                        "Image load error for:",
+                        item.file_url,
+                        e.nativeEvent.error
+                      );
+                    }}
+                    onLoad={() => {
+                      console.log("Image loaded successfully:", item.file_url);
+                    }}
+                  />
+                )}
                 <TouchableOpacity
                   style={[styles.deleteButton, { backgroundColor: "#ef4444" }]}
                   onPress={() => {
                     Alert.alert(
-                      "Delete Image",
-                      "Are you sure you want to delete this image? This action cannot be undone.",
+                      `Delete ${
+                        item.file_type === "video" ? "Video" : "Image"
+                      }`,
+                      `Are you sure you want to delete this ${
+                        item.file_type === "video" ? "video" : "image"
+                      }? This action cannot be undone.`,
                       [
                         { text: "Cancel", style: "cancel" },
                         {
@@ -772,6 +936,24 @@ const styles = StyleSheet.create({
     gap: 16,
     width: "100%",
   },
+  rowButtons: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  halfButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    borderRadius: 16,
+    gap: 8,
+  },
+  halfButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+  },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -812,12 +994,32 @@ const styles = StyleSheet.create({
   recentItem: {
     alignItems: "center",
     flex: 0,
+    position: "relative",
   },
   recentImage: {
     width: 100,
     height: 100,
     borderRadius: 12,
     marginBottom: 8,
+  },
+  videoThumbnailContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    marginBottom: 8,
+    overflow: "hidden",
+    position: "relative",
+  },
+  playIconOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderRadius: 12,
   },
   recentDate: {
     fontSize: 11,
@@ -840,5 +1042,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
+  },
+  divider: {
+    height: 1,
+    marginVertical: 20,
   },
 });
