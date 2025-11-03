@@ -94,9 +94,7 @@ export default function MainTabsNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="mic-outline" size={size} color={color} />
           ),
-          headerTitle: () => (
-            <KILogo size={70} color={colors.tx} strokeWidth={2.5} />
-          ),
+          headerTitle: () => <View />,
           headerRight: () => (
             <TouchableOpacity
               onPress={() => navigation.navigate("Settings")}

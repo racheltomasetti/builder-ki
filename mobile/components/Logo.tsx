@@ -1,5 +1,6 @@
 // components/KILogo.tsx
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { Animated } from "react-native";
 import Svg, { Path, Circle } from "react-native-svg";
 
 interface KILogoProps {
@@ -17,6 +18,27 @@ export const KILogo: React.FC<KILogoProps> = ({
   dotSize = 3,
   letterSpacing = 20,
 }) => {
+  const bobbingAnim = useRef(new Animated.Value(0)).current;
+
+  // Bobbing animation
+  useEffect(() => {
+    const bobbing = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bobbingAnim, {
+          toValue: -4,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(bobbingAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    bobbing.start();
+    return () => bobbing.stop();
+  }, [bobbingAnim]);
   const viewBoxSize = 100;
   const leftX = 50 - letterSpacing;
   const rightX = 50 + letterSpacing;
@@ -31,11 +53,16 @@ export const KILogo: React.FC<KILogoProps> = ({
   const circleRadius = (squareHeight * Math.sqrt(2)) / 2;
 
   return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
+    <Animated.View
+      style={{
+        transform: [{ translateY: bobbingAnim }],
+      }}
     >
+      <Svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
+      >
       {/* Circle that touches all four corners of the square */}
       <Circle
         cx="50"
@@ -97,5 +124,6 @@ export const KILogo: React.FC<KILogoProps> = ({
       {/* Center dot */}
       <Circle cx="50" cy="50" r={dotSize} fill={color} />
     </Svg>
+    </Animated.View>
   );
 };
