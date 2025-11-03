@@ -124,8 +124,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           <View style={styles.previewMandalaContainer}>
             <KIMandala
               isRecording={true}
-              color={tempSettings.color}
-              centerCircleColor={tempSettings.centerCircleColor}
+              color={tempSettings.layerColors[0]}
               centerSize={200}
               onPress={() => {}}
               settings={tempSettings}
@@ -205,7 +204,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         {/* Mandala Customization Section */}
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionLabel, { color: colors.tx2 }]}>
-            CREATE YOUR K·I
+            CUSTOMIZE YOUR K·I
           </Text>
           <BlurView
             intensity={80}

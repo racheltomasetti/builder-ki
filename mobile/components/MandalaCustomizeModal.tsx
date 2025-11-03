@@ -62,7 +62,9 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
 
   const handleColorSelect = (colorItem: ColorPaletteItem) => {
     // Update the first layer color
-    onSettingsChange({ layerColors: [colorItem.hex, settings.layerColors[1]] as [string, string] });
+    onSettingsChange({
+      layerColors: [colorItem.hex, settings.layerColors[1]] as [string, string],
+    });
   };
 
   const getCurrentColor = () => {
@@ -103,7 +105,7 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
             {/* Header */}
             <View style={styles.header}>
               <Text style={[styles.title, { color: colors.tx }]}>
-                CREATE YOUR K·I
+                CUSTOMIZE YOUR K·I
               </Text>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <MaterialIcons name="close" size={24} color={colors.tx} />
