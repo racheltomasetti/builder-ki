@@ -68,8 +68,8 @@ export const LightTheme = {
   ui: FlexokiColors.base[100],
   ui2: FlexokiColors.base[150],
   ui3: FlexokiColors.base[200],
-  accent: FlexokiColors.cyan[600],
-  accent2: FlexokiColors.yellow[600],
+  accent: '#e35336',
+  accent2: '#3aa99f', 
 }
 
 export const DarkTheme = {
@@ -81,8 +81,8 @@ export const DarkTheme = {
   ui: FlexokiColors.base[900],
   ui2: FlexokiColors.base[850],
   ui3: FlexokiColors.base[800],
-  accent: FlexokiColors.cyan[500],
-  accent2: FlexokiColors.yellow[600],
+  accent: '#e35336',
+  accent2: '#24837b'
 }
 
 // Hook to get current theme colors based on color scheme

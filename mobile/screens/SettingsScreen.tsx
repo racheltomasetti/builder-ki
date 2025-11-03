@@ -230,8 +230,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                   <View style={styles.mandalaPreview}>
                     <KIMandala
                       isRecording={false}
-                      color={settings.color}
-                      centerCircleColor={settings.centerCircleColor}
+                      color={settings.layerColors[0]}
+                      centerLogoColor={colors.tx}
                       centerSize={400}
                       onPress={() => {}}
                       settings={settings}

@@ -22,7 +22,37 @@ export const useMandalaSettings = () => {
       const stored = await AsyncStorage.getItem(MANDALA_SETTINGS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        setSettings(parsed);
+
+        // Migration: Convert old 'color' and 'centerCircleColor' properties
+        let needsMigration = false;
+        const migratedSettings: MandalaSettings = {
+          ...DEFAULT_MANDALA_SETTINGS,
+          ...parsed,
+        };
+
+        // Convert old 'color' to 'layerColors' array
+        if (parsed.color && !parsed.layerColors) {
+          migratedSettings.layerColors = [parsed.color, DEFAULT_MANDALA_SETTINGS.layerColors[1]] as [string, string];
+          delete (migratedSettings as any).color;
+          needsMigration = true;
+        }
+
+        // Remove old 'centerCircleColor' (now using theme-aware color)
+        if (parsed.centerCircleColor) {
+          delete (migratedSettings as any).centerCircleColor;
+          needsMigration = true;
+        }
+
+        if (needsMigration) {
+          // Save migrated settings
+          await AsyncStorage.setItem(
+            MANDALA_SETTINGS_STORAGE_KEY,
+            JSON.stringify(migratedSettings)
+          );
+          setSettings(migratedSettings);
+        } else {
+          setSettings(parsed);
+        }
       }
     } catch (error) {
       console.error("Failed to load mandala settings:", error);

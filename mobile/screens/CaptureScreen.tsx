@@ -471,9 +471,9 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
             >
               <KIMandala
                 isRecording={!!recording}
-                color={settings.color}
-                centerCircleColor={settings.centerCircleColor}
-                centerSize={200}
+                color={settings.layerColors[0]}
+                centerLogoColor={colors.tx}
+                centerSize={300}
                 onPress={recording ? stopRecording : startRecording}
                 settings={settings}
               />
@@ -484,7 +484,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         {/* Recording duration - fixed at bottom, only show when recording */}
         {recording && (
           <View style={styles.durationContainer}>
-            <Text style={[styles.durationText, { color: colors.accent2 }]}>
+            <Text style={[styles.durationText, { color: colors.tx }]}>
               {formatDuration(recordingDuration)}
             </Text>
           </View>

@@ -43,9 +43,6 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
 }) => {
   const colors = useThemeColors(isDark);
 
-  // Color target state: which color we're currently editing
-  const [colorTarget, setColorTarget] = useState<"layers" | "center">("layers");
-
   // Expanded sections state
   const [expandedSections, setExpandedSections] = useState({
     preview: true,
@@ -64,15 +61,12 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
   };
 
   const handleColorSelect = (colorItem: ColorPaletteItem) => {
-    if (colorTarget === "layers") {
-      onSettingsChange({ color: colorItem.hex });
-    } else {
-      onSettingsChange({ centerCircleColor: colorItem.hex });
-    }
+    // Update the first layer color
+    onSettingsChange({ layerColors: [colorItem.hex, settings.layerColors[1]] as [string, string] });
   };
 
   const getCurrentColor = () => {
-    return colorTarget === "layers" ? settings.color : settings.centerCircleColor;
+    return settings.layerColors[0];
   };
 
   const handleApplyAndClose = () => {
@@ -163,51 +157,7 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
 
                 {expandedSections.colors && (
                   <View style={styles.colorSection}>
-                    {/* Color Target Toggle */}
-                    <View style={styles.colorToggleContainer}>
-                      <TouchableOpacity
-                        onPress={() => setColorTarget("layers")}
-                        style={[
-                          styles.colorToggleButton,
-                          colorTarget === "layers" && [
-                            styles.colorToggleButtonActive,
-                            { backgroundColor: "rgba(227, 83, 54, 0.8)" },
-                          ],
-                          { borderColor: colors.ui3 },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.colorToggleText,
-                            { color: colorTarget === "layers" ? "#fff" : colors.tx2 },
-                          ]}
-                        >
-                          Layer Color
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => setColorTarget("center")}
-                        style={[
-                          styles.colorToggleButton,
-                          colorTarget === "center" && [
-                            styles.colorToggleButtonActive,
-                            { backgroundColor: "rgba(227, 83, 54, 0.8)" },
-                          ],
-                          { borderColor: colors.ui3 },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.colorToggleText,
-                            { color: colorTarget === "center" ? "#fff" : colors.tx2 },
-                          ]}
-                        >
-                          Center Color
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Color Grid */}
+                    {/* Color Grid - for layer colors only (center is theme-based) */}
                     <View style={styles.colorGrid}>
                       {COLOR_PALETTE.map((colorItem) => (
                         <TouchableOpacity

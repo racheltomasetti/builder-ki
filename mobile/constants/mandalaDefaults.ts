@@ -7,8 +7,8 @@
 
 export interface MandalaSettings {
   // Colors
-  color: string;
-  centerCircleColor: string;
+  layerColors: [string, string]; // Alternating colors for mandala layers
+  // Note: centerLogoColor is now theme-aware and passed via props (colors.tx)
 
   // Base values (from current implementation)
   baseLogoSize: number;
@@ -28,9 +28,8 @@ export interface MandalaSettings {
 }
 
 export const DEFAULT_MANDALA_SETTINGS: MandalaSettings = {
-  // Colors - matching the original theme colors (yellow for layers, cyan for center)
-  color: "#ad8301", // Yellow for mandala layers
-  centerCircleColor: "#3aa99f", // Cyan for center circle
+  // Colors - alternating accent colors from web globals.css
+  layerColors: ["#e35336", "#24837b"], // Accent (red) and accent-2 (teal) alternating
 
   // Base values - extracted from KIMandala.tsx lines 90-94
   baseLogoSize: 55,

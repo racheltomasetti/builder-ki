@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { View, Animated, StyleSheet, TouchableOpacity } from "react-native";
 import { KILogo } from "./Logo";
+import Svg from "react-native-svg";
 import {
   MandalaSettings,
   DEFAULT_MANDALA_SETTINGS,
@@ -15,6 +16,7 @@ interface KIMandalaProps {
   settings?: MandalaSettings;
   centerCircleColor?: string;
   rainbowMode?: boolean;
+  centerLogoColor?: string; // Theme-aware color for center logo (e.g., colors.tx)
 }
 
 export const KIMandala: React.FC<KIMandalaProps> = ({
@@ -25,6 +27,7 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
   settings = DEFAULT_MANDALA_SETTINGS,
   centerCircleColor,
   rainbowMode = false,
+  centerLogoColor,
 }) => {
   // Create 11 rotation animations (one for each layer)
   const rotations = useRef(
@@ -32,7 +35,6 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
   ).current;
 
   const centerScale = useRef(new Animated.Value(1)).current;
-  const pulseScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (isRecording) {
@@ -52,51 +54,31 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
         );
       });
 
-      // Shrink center circle to a dot (11px when centerSize is 200)
+      // Shrink center logo to a small size (11px when centerSize is 200)
       const centerAnimation = Animated.timing(centerScale, {
-        toValue: 0.055, // Shrinks to 5.5% of original size (11px dot)
+        toValue: 0.4,
         duration: 300,
         useNativeDriver: true,
       });
 
-      // Pulse animation for the center dot
-      const pulseAnimation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseScale, {
-            toValue: 4,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseScale, {
-            toValue: 1,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-
       animations.forEach((anim) => anim.start());
       centerAnimation.start();
-      pulseAnimation.start();
 
       return () => {
         animations.forEach((anim) => anim.stop());
       };
     } else {
-      // Reset center circle to full size
+      // Reset center logo to full size
       Animated.timing(centerScale, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
 
-      // Reset pulse to normal size
-      pulseScale.setValue(1);
-
       // Reset all rotations
       rotations.forEach((rotation) => rotation.setValue(0));
     }
-  }, [isRecording, rotations, centerScale, pulseScale, settings]);
+  }, [isRecording, rotations, centerScale, settings]);
 
   // Calculate positions and sizes for each layer
   // Using dynamic settings with multipliers
@@ -118,9 +100,10 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
     const rotation = rotations[index];
 
     // Get rainbow color for this layer if rainbow mode is enabled
+    // Otherwise alternate between the two layer colors from settings
     const layerColor = rainbowMode
       ? COLOR_PALETTE[index % COLOR_PALETTE.length].hex
-      : color;
+      : settings.layerColors[index % 2];
 
     return {
       radius,
@@ -186,7 +169,7 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
           </Animated.View>
         ))}
 
-      {/* Center circle - only this is touchable */}
+      {/* Center logo - only this is touchable */}
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.8}
@@ -194,17 +177,19 @@ export const KIMandala: React.FC<KIMandalaProps> = ({
       >
         <Animated.View
           style={[
-            styles.centerCircle,
+            styles.centerLogo,
             {
-              width: centerSize,
-              height: centerSize,
-              borderRadius: centerSize / 2,
-              backgroundColor: centerCircleColor || color,
-              transform: [{ scale: centerScale }, { scale: pulseScale }],
-              shadowColor: centerCircleColor || color,
+              transform: [{ scale: centerScale }],
             },
           ]}
-        />
+        >
+          <KILogo
+            size={centerSize}
+            color={centerLogoColor || centerCircleColor || color}
+            strokeWidth={centerSize * 0.01} // Scale stroke width with size
+            dotSize={centerSize * 0.015} // Scale dot size with size
+          />
+        </Animated.View>
       </TouchableOpacity>
     </View>
   );
@@ -230,7 +215,7 @@ const styles = StyleSheet.create({
   centerTouchable: {
     position: "absolute",
   },
-  centerCircle: {
+  centerLogo: {
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,

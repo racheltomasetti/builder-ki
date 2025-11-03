@@ -152,7 +152,7 @@ export default function DocumentsList({
             onClick={() => setFocusMode(!focusMode)}
             className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-xl font-bold ${
               focusMode
-                ? "bg-flexoki-ui-2 text-white hover:bg-flexoki-ui-3 hover:text-2xl"
+                ? "bg-flexoki-ui-2 text-flexoki-tx-2 hover:bg-flexoki-ui-3 hover:text-2xl"
                 : "bg-flexoki-accent opacity-90 text-white border border-flexoki-ui-3 hover:bg-flexoki-accent hover:opacity-100 hover:text-2xl"
             }`}
           >
