@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import TopNavigation from "@/components/TopNavigation";
+import { FilterPreferencesProvider } from "@/lib/filterPreferences";
 
 export default function DashboardLayout({
   children,
@@ -50,19 +51,23 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-flexoki-bg">
-        {!isDocumentEditor && <TopNavigation user={null} />}
-        <div className={`flex items-center justify-center ${isDocumentEditor ? 'h-screen' : 'h-[calc(100vh-4rem)]'}`}>
-          <p className="text-flexoki-tx-2">Loading...</p>
+      <FilterPreferencesProvider>
+        <div className="min-h-screen bg-flexoki-bg">
+          {!isDocumentEditor && <TopNavigation user={null} />}
+          <div className={`flex items-center justify-center ${isDocumentEditor ? 'h-screen' : 'h-[calc(100vh-4rem)]'}`}>
+            <p className="text-flexoki-tx-2">Loading...</p>
+          </div>
         </div>
-      </div>
+      </FilterPreferencesProvider>
     );
   }
 
   return (
-    <div className="min-h-screen bg-flexoki-bg">
-      {!isDocumentEditor && <TopNavigation user={user} />}
-      {children}
-    </div>
+    <FilterPreferencesProvider>
+      <div className="min-h-screen bg-flexoki-bg">
+        {!isDocumentEditor && <TopNavigation user={user} />}
+        {children}
+      </div>
+    </FilterPreferencesProvider>
   );
 }

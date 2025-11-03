@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import CustomDropdown from "./CustomDropdown";
+import { useFilterPreferences } from "@/lib/filterPreferences";
 
 type FilterState = {
   noteType: string;
@@ -28,7 +29,13 @@ export default function FilterToolbar({
   filters,
   onFiltersChange,
 }: FilterToolbarProps) {
+  const { preferences } = useFilterPreferences();
   const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
+
+  // Don't render if toolbar is disabled
+  if (!preferences.showToolbar) {
+    return null;
+  }
 
   const updateFilter = (key: keyof FilterState, value: string) => {
     const newFilters = { ...filters, [key]: value };
@@ -119,65 +126,73 @@ export default function FilterToolbar({
       </div>
 
       {/* Dropdown Filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-${preferences.enabledCategories.length} gap-3 mb-3`}>
         {/* Note Type Filter */}
-        <CustomDropdown
-          value={filters.noteType}
-          onChange={(value) => updateFilter("noteType", value)}
-          options={[
-            { value: "all", label: "All Note Types" },
-            { value: "general", label: "General" },
-            { value: "intention", label: "Intention" },
-            { value: "daily", label: "Daily" },
-            { value: "reflection", label: "Reflection" },
-          ]}
-        />
+        {preferences.enabledCategories.includes("noteType") && (
+          <CustomDropdown
+            value={filters.noteType}
+            onChange={(value) => updateFilter("noteType", value)}
+            options={[
+              { value: "all", label: "All Note Types" },
+              { value: "general", label: "General" },
+              { value: "intention", label: "Intention" },
+              { value: "daily", label: "Daily" },
+              { value: "reflection", label: "Reflection" },
+            ]}
+          />
+        )}
 
         {/* Cycle Phase Filter */}
-        <CustomDropdown
-          value={filters.cyclePhase}
-          onChange={(value) => updateFilter("cyclePhase", value)}
-          options={[
-            { value: "all", label: "All Cycle Phases" },
-            { value: "menstrual", label: "🔵 Menstrual" },
-            { value: "follicular", label: "🟢 Follicular" },
-            { value: "ovulation", label: "🟡 Ovulation" },
-            { value: "luteal", label: "🟠 Luteal" },
-            { value: "no_cycle_data", label: "No Cycle Data" },
-          ]}
-        />
+        {preferences.enabledCategories.includes("cyclePhase") && (
+          <CustomDropdown
+            value={filters.cyclePhase}
+            onChange={(value) => updateFilter("cyclePhase", value)}
+            options={[
+              { value: "all", label: "All Cycle Phases" },
+              { value: "menstrual", label: "🔵 Menstrual" },
+              { value: "follicular", label: "🟢 Follicular" },
+              { value: "ovulation", label: "🟡 Ovulation" },
+              { value: "luteal", label: "🟠 Luteal" },
+              { value: "no_cycle_data", label: "No Cycle Data" },
+            ]}
+          />
+        )}
 
         {/* Cycle Day Filter */}
-        <CustomDropdown
-          value={filters.cycleDay}
-          onChange={(value) => updateFilter("cycleDay", value)}
-          options={[
-            { value: "all", label: "All Cycle Days" },
-            ...Array.from({ length: 28 }, (_, i) => ({
-              value: (i + 1).toString(),
-              label: `Day ${i + 1}`,
-            })),
-          ]}
-        />
+        {preferences.enabledCategories.includes("cycleDay") && (
+          <CustomDropdown
+            value={filters.cycleDay}
+            onChange={(value) => updateFilter("cycleDay", value)}
+            options={[
+              { value: "all", label: "All Cycle Days" },
+              ...Array.from({ length: 28 }, (_, i) => ({
+                value: (i + 1).toString(),
+                label: `Day ${i + 1}`,
+              })),
+            ]}
+          />
+        )}
 
         {/* Date Range Filter */}
-        <CustomDropdown
-          value={filters.dateRange}
-          onChange={(value) => {
-            updateFilter("dateRange", value);
-            if (value === "custom") {
-              setShowCustomDatePicker(true);
-            }
-          }}
-          options={[
-            { value: "all_time", label: "All Time" },
-            { value: "last_7_days", label: "Last 7 Days" },
-            { value: "last_30_days", label: "Last 30 Days" },
-            { value: "this_month", label: "This Month" },
-            { value: "last_month", label: "Last Month" },
-            { value: "custom", label: "Custom Range" },
-          ]}
-        />
+        {preferences.enabledCategories.includes("dateRange") && (
+          <CustomDropdown
+            value={filters.dateRange}
+            onChange={(value) => {
+              updateFilter("dateRange", value);
+              if (value === "custom") {
+                setShowCustomDatePicker(true);
+              }
+            }}
+            options={[
+              { value: "all_time", label: "All Time" },
+              { value: "last_7_days", label: "Last 7 Days" },
+              { value: "last_30_days", label: "Last 30 Days" },
+              { value: "this_month", label: "This Month" },
+              { value: "last_month", label: "Last Month" },
+              { value: "custom", label: "Custom Range" },
+            ]}
+          />
+        )}
       </div>
 
       {/* Custom Date Picker */}

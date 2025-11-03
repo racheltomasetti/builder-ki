@@ -3,8 +3,9 @@
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/lib/theme";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import SettingsModal from "./SettingsModal";
 
 type TopNavigationProps = {
   user: User | null;
@@ -15,11 +16,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
   const pathname = usePathname();
   const supabase = createClient();
   const { theme, toggleTheme } = useTheme();
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/auth");
-  };
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -67,9 +64,10 @@ export default function TopNavigation({ user }: TopNavigationProps) {
   }, [pathname, router]);
 
   return (
-    <nav className="bg-flexoki-ui shadow-sm border-b border-flexoki-ui-3">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+    <>
+      <nav className="bg-flexoki-ui shadow-sm border-b border-flexoki-ui-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
           <div className="flex items-center gap-8">
             <div className="flex items-center">
               <h1 className="text-3xl font-bold text-flexoki-tx italic">K·I</h1>
@@ -111,51 +109,42 @@ export default function TopNavigation({ user }: TopNavigationProps) {
               </a>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center">
             <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg text-flexoki-tx-2 hover:bg-flexoki-ui-2  transition-colors"
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 rounded-lg text-flexoki-tx-2 hover:bg-flexoki-ui-2 transition-colors"
+              title="Settings"
             >
-              {theme === "dark" ? (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                  />
-                </svg>
-              )}
-            </button>
-            <button
-              onClick={handleSignOut}
-              className="px-4 py-2 text-lg font-medium text-flexoki-tx hover:text-flexoki-tx transition-colors"
-            >
-              Sign out
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
             </button>
           </div>
         </div>
       </div>
-    </nav>
+      </nav>
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        user={user}
+      />
+    </>
   );
 }
