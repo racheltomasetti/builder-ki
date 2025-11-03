@@ -260,12 +260,10 @@ export default function DashboardPage() {
     <>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          {/* <h2 className="text-2xl font-bold text-flexoki-tx italic">
-            captures
-          </h2> */}
           <p className="text-flexoki-tx opacity-85 text-2xl mt-1 italic text-center font-bold">
-            where the mind goes to wander
+            ~ where the mind goes to wander ~
           </p>
+          <hr className="mt-4 border-flexoki-ui-3" />
         </div>
 
         {/* View Toggle */}

@@ -207,6 +207,13 @@ export default function MediaLibraryPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-6">
+        <p className="text-flexoki-tx opacity-85 text-2xl mt-1 italic text-center font-bold">
+          · where thoughts take shape ·
+        </p>
+        <hr className="mt-4 border-flexoki-ui-3" />
+      </div>
+
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
