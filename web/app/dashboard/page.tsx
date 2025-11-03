@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import VoiceCard from "@/components/VoiceCard";
 import DailyView from "@/components/DailyView";
+import FilterToolbar from "@/components/FilterToolbar";
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
+import { countMatches } from "@/lib/highlightText";
 
 type Insight = {
   id: string;
@@ -25,6 +27,17 @@ type Capture = {
   insights: Insight[];
   cycle_day?: number | null;
   cycle_phase?: string | null;
+  note_type?: string | null;
+  log_date?: string | null;
+};
+
+type FilterState = {
+  noteType: string; // 'all', 'general', 'intention', 'daily', 'reflection'
+  cyclePhase: string; // 'all', 'menstrual', 'follicular', 'ovulation', 'luteal', 'no_cycle_data'
+  cycleDay: string; // 'all', '1', '2', ... '28'
+  dateRange: string; // 'all_time', 'last_7_days', 'last_30_days', 'this_month', 'last_month', 'custom'
+  customDateStart?: string;
+  customDateEnd?: string;
 };
 
 export default function DashboardPage() {
@@ -37,6 +50,12 @@ export default function DashboardPage() {
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
+  const [filters, setFilters] = useState<FilterState>({
+    noteType: "all",
+    cyclePhase: "all",
+    cycleDay: "all",
+    dateRange: "all_time",
+  });
   const supabase = createClient();
 
   // Debounce search query with 300ms delay
@@ -48,18 +67,135 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Filter captures based on debounced search
-  const filteredCaptures = debouncedSearch.trim()
-    ? allCaptures.filter((capture) => {
-        const matchesTranscription = capture.transcription
-          ?.toLowerCase()
-          .includes(debouncedSearch.toLowerCase());
-        const matchesInsights = capture.insights?.some((insight) =>
-          insight.content.toLowerCase().includes(debouncedSearch.toLowerCase())
+  // Filter captures based on search and filters
+  const filteredCaptures = allCaptures.filter((capture) => {
+    // Search filter
+    if (debouncedSearch.trim()) {
+      const matchesTranscription = capture.transcription
+        ?.toLowerCase()
+        .includes(debouncedSearch.toLowerCase());
+      const matchesInsights = capture.insights?.some((insight) =>
+        insight.content.toLowerCase().includes(debouncedSearch.toLowerCase())
+      );
+      if (!matchesTranscription && !matchesInsights) {
+        return false;
+      }
+    }
+
+    // Note Type filter
+    if (filters.noteType !== "all") {
+      const captureNoteType = capture.note_type || "general";
+      if (captureNoteType !== filters.noteType) {
+        return false;
+      }
+    }
+
+    // Cycle Phase filter
+    if (filters.cyclePhase !== "all") {
+      if (filters.cyclePhase === "no_cycle_data") {
+        if (capture.cycle_phase != null) {
+          return false;
+        }
+      } else {
+        if (capture.cycle_phase !== filters.cyclePhase) {
+          return false;
+        }
+      }
+    }
+
+    // Cycle Day filter
+    if (filters.cycleDay !== "all") {
+      const targetDay = parseInt(filters.cycleDay);
+      if (capture.cycle_day !== targetDay) {
+        return false;
+      }
+    }
+
+    // Date Range filter
+    if (filters.dateRange !== "all_time") {
+      const captureDate = new Date(capture.created_at);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (filters.dateRange === "last_7_days") {
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        if (captureDate < sevenDaysAgo) {
+          return false;
+        }
+      } else if (filters.dateRange === "last_30_days") {
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        if (captureDate < thirtyDaysAgo) {
+          return false;
+        }
+      } else if (filters.dateRange === "this_month") {
+        const firstDayOfMonth = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          1
         );
-        return matchesTranscription || matchesInsights;
-      })
-    : allCaptures;
+        if (captureDate < firstDayOfMonth) {
+          return false;
+        }
+      } else if (filters.dateRange === "last_month") {
+        const firstDayOfLastMonth = new Date(
+          today.getFullYear(),
+          today.getMonth() - 1,
+          1
+        );
+        const firstDayOfThisMonth = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          1
+        );
+        if (
+          captureDate < firstDayOfLastMonth ||
+          captureDate >= firstDayOfThisMonth
+        ) {
+          return false;
+        }
+      } else if (filters.dateRange === "custom") {
+        if (filters.customDateStart) {
+          const startDate = new Date(filters.customDateStart);
+          startDate.setHours(0, 0, 0, 0);
+          if (captureDate < startDate) {
+            return false;
+          }
+        }
+        if (filters.customDateEnd) {
+          const endDate = new Date(filters.customDateEnd);
+          endDate.setHours(23, 59, 59, 999);
+          if (captureDate > endDate) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  });
+
+  // Calculate total number of word matches across all captures
+  const totalMatches = debouncedSearch.trim()
+    ? filteredCaptures.reduce((total, capture) => {
+        let captureTotal = 0;
+
+        // Count matches in transcription
+        if (capture.transcription) {
+          captureTotal += countMatches(capture.transcription, debouncedSearch);
+        }
+
+        // Count matches in insights
+        if (capture.insights) {
+          capture.insights.forEach((insight) => {
+            captureTotal += countMatches(insight.content, debouncedSearch);
+          });
+        }
+
+        return total + captureTotal;
+      }, 0)
+    : 0;
 
   useEffect(() => {
     const loadCaptures = async () => {
@@ -154,15 +290,6 @@ export default function DashboardPage() {
           >
             daily log
           </button>
-
-          {/* HIDNG MEDIA LIBRARY FOR NOW, FIGURING OUT PLACEMENT */}
-          {/* <Link
-            href="/dashboard/media"
-            className="px-6 py-2 rounded-lg font-medium transition-all bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 hover:bg-flexoki-ui-3 flex items-center gap-2"
-          >
-            <ImageIcon className="w-4 h-4" />
-            media library
-          </Link> */}
         </div>
 
         {/* Daily View Navigation - Only show in daily mode */}
@@ -240,6 +367,26 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Filter Toolbar */}
+            <FilterToolbar filters={filters} onFiltersChange={setFilters} />
+
+            {/* Search Results Count */}
+            {debouncedSearch.trim() && (
+              <div className="mb-6 text-center">
+                <p className="text-flexoki-tx-2 text-lg">
+                  Found{" "}
+                  <span className="font-bold text-flexoki-accent">
+                    {totalMatches}
+                  </span>{" "}
+                  {totalMatches === 1 ? "match" : "matches"} across{" "}
+                  <span className="font-bold text-flexoki-accent">
+                    {filteredCaptures.length}
+                  </span>{" "}
+                  {filteredCaptures.length === 1 ? "capture" : "captures"}
+                </p>
+              </div>
+            )}
+
             {/* Feed Content */}
             {filteredCaptures.length === 0 ? (
               <div className="bg-flexoki-ui rounded-lg shadow-md p-6">
@@ -286,6 +433,7 @@ export default function DashboardPage() {
                     key={capture.id}
                     capture={capture}
                     onDelete={fetchCaptures}
+                    searchQuery={debouncedSearch}
                   />
                 ))}
               </div>

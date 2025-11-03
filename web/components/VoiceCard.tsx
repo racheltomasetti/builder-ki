@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import CycleInfo from "@/components/CycleInfo";
+import { highlightText } from "@/lib/highlightText";
 
 type Insight = {
   id: string;
@@ -27,9 +28,14 @@ type Capture = {
 type VoiceCardProps = {
   capture: Capture;
   onDelete?: () => void;
+  searchQuery?: string;
 };
 
-export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
+export default function VoiceCard({
+  capture,
+  onDelete,
+  searchQuery,
+}: VoiceCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
@@ -137,7 +143,7 @@ export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
   };
 
   return (
-    <div className="bg-flexoki-ui rounded-lg shadow-md p-6 relative">
+    <div className="bg-flexoki-ui-2 rounded-lg shadow-md p-6 relative">
       {/* Confirmation Modal */}
       {showConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
@@ -233,7 +239,9 @@ export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
             Transcription
           </h3>
           <p className="text-flexoki-tx text-lg leading-relaxed">
-            {capture.transcription}
+            {searchQuery
+              ? highlightText(capture.transcription, searchQuery)
+              : capture.transcription}
           </p>
         </div>
       )}
@@ -257,7 +265,9 @@ export default function VoiceCard({ capture, onDelete }: VoiceCardProps) {
                   {insight.type === "concept" && "🏷️"}
                 </span>
                 <span className="text-flexoki-tx flex-1">
-                  {insight.content}
+                  {searchQuery
+                    ? highlightText(insight.content, searchQuery)
+                    : insight.content}
                 </span>
               </div>
             ))}
