@@ -37,6 +37,7 @@ type Document = {
   content: any;
   created_at: string;
   updated_at: string;
+  is_public: boolean;
   captures?: Capture | null;
 };
 
@@ -84,6 +85,8 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
   const [panelWidth, setPanelWidth] = useState(400); // Default width for ThinkingPartner
   const [mediaLibraryWidth, setMediaLibraryWidth] = useState(500); // Default width for MediaLibrary
   const [isTranscriptionExpanded, setIsTranscriptionExpanded] = useState(false);
+  const [isPublic, setIsPublic] = useState(document.is_public);
+  const [isTogglingPublic, setIsTogglingPublic] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize Supabase client using the proper helper
@@ -382,6 +385,40 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     setIsMediaLibraryOpen(false);
   };
 
+  // Handle toggling public/private state
+  const handleTogglePublic = async () => {
+    setIsTogglingPublic(true);
+
+    const newPublicState = !isPublic;
+
+    try {
+      // Optimistically update local state
+      setIsPublic(newPublicState);
+
+      // Call API to update public state
+      const response = await fetch(`/api/documents/${document.id}/public`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ is_public: newPublicState }),
+      });
+
+      if (!response.ok) {
+        // Revert optimistic update on error
+        setIsPublic(!newPublicState);
+        throw new Error("Failed to update public state");
+      }
+    } catch (error) {
+      console.error("Error toggling public state:", error);
+      alert("Failed to update public state");
+      // Revert optimistic update
+      setIsPublic(!newPublicState);
+    } finally {
+      setIsTogglingPublic(false);
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-flexoki-bg transition-all duration-300"
@@ -396,27 +433,6 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
       {/* Header */}
       <div className="bg-flexoki border-b border-flexoki-ui-3">
         <div className="relative px-6 py-4">
-          {/* Back button - left aligned */}
-          <button
-            onClick={() => router.push("/dashboard/documents")}
-            className="absolute left-6 top-1/2 -translate-y-1/2 text-flexoki-tx-2 hover:text-flexoki-tx transition-colors flex items-center gap-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-
           {/* Save Status - centered */}
           <div className="flex justify-center">
             <div className="flex items-center gap-2 text-sm text-flexoki-tx-3">
@@ -553,6 +569,56 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Back button and Share button - below header and voice note */}
+      <div className="px-6 pt-6 flex justify-between items-center">
+        {/* Back button - left aligned */}
+        <button
+          onClick={() => router.push("/dashboard/documents")}
+          className="text-flexoki-tx-2 hover:text-flexoki-tx transition-colors flex items-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </button>
+
+        {/* Share button - right aligned */}
+        <button
+          onClick={handleTogglePublic}
+          disabled={isTogglingPublic}
+          className={`px-4 py-2 text-xl rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 ${
+            isPublic
+              ? "bg-green-600 text-white hover:bg-green-700 hover:text-2xl hover:font-bold"
+              : "bg-flexoki-ui-2 bg-green-600 font-bold bg-opacity-50 text-flexoki-tx hover:text-2xl"
+          }`}
+          title={
+            isPublic
+              ? "Document is public - click to make private"
+              : "Document is private - click to share"
+          }
+        >
+          {isPublic ? (
+            <>
+              <span>{isTogglingPublic ? "Updating..." : "Public"}</span>
+            </>
+          ) : (
+            <>
+              <span>{isTogglingPublic ? "Updating..." : "SHARE"}</span>
+            </>
+          )}
+        </button>
       </div>
 
       {/* Editor */}

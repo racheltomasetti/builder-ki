@@ -19,6 +19,7 @@ type Document = {
   created_at: string;
   updated_at: string;
   is_focused: boolean;
+  is_public: boolean;
   captures?: Capture | null;
 };
 
@@ -225,15 +226,13 @@ export default function DocumentCard({
       <div
         onClick={handleClick}
         className={`bg-flexoki-ui rounded-lg shadow-md hover:shadow-lg hover:bg-flexoki-ui-2 transition-all group relative overflow-hidden cursor-pointer ${
-          isFocused
-            ? "ring-2 ring-flexoki-accent shadow-[rgb(58,169,159)]/20"
-            : ""
+          isFocused ? "shadow-[rgb(58,169,159)]/20" : ""
         }`}
         style={
           isFocused
             ? {
-                borderColor: "var(--accent-2)",
-                borderWidth: "5px",
+                borderColor: "var(--accent)",
+                borderWidth: "3px",
                 borderStyle: "solid",
               }
             : {}
@@ -313,6 +312,44 @@ export default function DocumentCard({
                 <span>From voice note</span>
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Lock/Unlock icon (display only) */}
+        <div
+          className="absolute top-4 right-24 p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+          title={document.is_public ? "Public document" : "Private document"}
+        >
+          {document.is_public ? (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+              />
+            </svg>
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-flexoki-tx-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
           )}
         </div>
 

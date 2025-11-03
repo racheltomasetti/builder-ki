@@ -19,6 +19,7 @@ type Document = {
   created_at: string;
   updated_at: string;
   is_focused: boolean;
+  is_public: boolean;
   captures?: Capture | null;
 };
 
@@ -183,7 +184,7 @@ export default function DocumentsList({
             onClick={handleCreateNew}
             className="px-4 py-2 bg-flexoki-accent-2 opacity-90 text-white text-xl font-bold rounded-lg hover:opacity-100 hover:text-2xl transition-colors flex items-center gap-2"
           >
-            ~ CREATE ~
+            · CREATE ·
           </button>
         </div>
       </div>
