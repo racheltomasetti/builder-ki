@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Search, Calendar, Image as ImageIcon, ArrowLeft } from "lucide-react";
+import { Search, Calendar, Image as ImageIcon, ArrowLeft, Upload, Grid3x3, Grid2x2, LayoutGrid } from "lucide-react";
 import MediaGrid from "@/components/MediaGrid";
 import MediaModal from "@/components/MediaModal";
+import UploadModal from "@/components/UploadModal";
 import Link from "next/link";
 
 type MediaItem = {
@@ -27,6 +28,8 @@ export default function MediaLibraryPage() {
   const [filterDate, setFilterDate] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [gridSize, setGridSize] = useState<"small" | "medium" | "large">("medium");
   const supabase = createClient();
 
   useEffect(() => {
@@ -177,9 +180,18 @@ export default function MediaLibraryPage() {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <ImageIcon className="w-8 h-8 text-flexoki-accent" />
-          <h1 className="text-3xl font-bold text-flexoki-tx">Media Library</h1>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <ImageIcon className="w-8 h-8 text-flexoki-accent" />
+            <h1 className="text-3xl font-bold text-flexoki-tx">Media Library</h1>
+          </div>
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-flexoki-accent text-flexoki-bg rounded-lg hover:opacity-90 transition-opacity"
+          >
+            <Upload className="w-5 h-5" />
+            <span className="font-medium">Upload</span>
+          </button>
         </div>
         <p className="text-flexoki-tx-2">
           {mediaItems.length} {mediaItems.length === 1 ? "item" : "items"}{" "}
@@ -188,7 +200,7 @@ export default function MediaLibraryPage() {
       </div>
 
       {/* Basic Filters */}
-      <div className="mb-6 space-y-4 sm:space-y-0 sm:flex sm:gap-4">
+      <div className="mb-6 space-y-4 sm:space-y-0 sm:flex sm:gap-4 sm:items-center">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-flexoki-tx-3" />
@@ -211,6 +223,43 @@ export default function MediaLibraryPage() {
             onChange={(e) => setFilterDate(e.target.value)}
             className="block w-full pl-10 pr-4 py-3 bg-flexoki-ui border border-flexoki-ui-3 rounded-lg text-flexoki-tx focus:outline-none focus:ring-2 focus:ring-flexoki-accent focus:border-transparent transition-all"
           />
+        </div>
+
+        {/* Grid Size Controls */}
+        <div className="flex items-center gap-1 bg-flexoki-ui border border-flexoki-ui-3 rounded-lg p-1">
+          <button
+            onClick={() => setGridSize("small")}
+            className={`p-2 rounded transition-colors ${
+              gridSize === "small"
+                ? "bg-flexoki-accent text-flexoki-bg"
+                : "text-flexoki-tx-2 hover:bg-flexoki-ui-2"
+            }`}
+            title="Small thumbnails"
+          >
+            <LayoutGrid className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setGridSize("medium")}
+            className={`p-2 rounded transition-colors ${
+              gridSize === "medium"
+                ? "bg-flexoki-accent text-flexoki-bg"
+                : "text-flexoki-tx-2 hover:bg-flexoki-ui-2"
+            }`}
+            title="Medium thumbnails"
+          >
+            <Grid3x3 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setGridSize("large")}
+            className={`p-2 rounded transition-colors ${
+              gridSize === "large"
+                ? "bg-flexoki-accent text-flexoki-bg"
+                : "text-flexoki-tx-2 hover:bg-flexoki-ui-2"
+            }`}
+            title="Large thumbnails"
+          >
+            <Grid2x2 className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -249,18 +298,26 @@ export default function MediaLibraryPage() {
           mediaItems={filteredMedia}
           onDelete={handleDeleteMedia}
           onMediaClick={setSelectedMedia}
+          size={gridSize}
         />
       )}
 
       {/* Media Modal */}
       {selectedMedia && (
         <MediaModal
-          key={selectedMedia.id}
           mediaItem={selectedMedia}
           onClose={() => setSelectedMedia(null)}
           allMedia={filteredMedia}
           onNavigate={setSelectedMedia}
           onUpdate={fetchMediaItems}
+        />
+      )}
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <UploadModal
+          onClose={() => setShowUploadModal(false)}
+          onUploadComplete={fetchMediaItems}
         />
       )}
     </main>

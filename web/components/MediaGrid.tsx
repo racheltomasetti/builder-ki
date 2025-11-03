@@ -18,12 +18,14 @@ interface MediaGridProps {
   mediaItems: MediaItem[];
   onDelete?: (itemId: string) => void;
   onMediaClick?: (item: MediaItem) => void;
+  size?: "small" | "medium" | "large";
 }
 
 export default function MediaGrid({
   mediaItems,
   onDelete,
   onMediaClick,
+  size = "medium",
 }: MediaGridProps) {
   const formatDate = (dateString: string | null, fallback: string) => {
     const base = dateString || fallback;
@@ -36,8 +38,15 @@ export default function MediaGrid({
     });
   };
 
+  // Define grid classes based on size
+  const gridClasses = {
+    small: "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3",
+    medium: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
+    large: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6",
+  };
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className={gridClasses[size]}>
       {mediaItems.map((item) => (
         <div
           key={item.id}

@@ -43,7 +43,6 @@ export default function MediaModal({
   onNavigate,
   onUpdate,
 }: MediaModalProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [editedCaption, setEditedCaption] = useState("");
   const [editedTags, setEditedTags] = useState<string[]>([]);
@@ -52,12 +51,8 @@ export default function MediaModal({
   const supabase = createClient();
 
   // Find current index in the filtered media array
-  useEffect(() => {
-    const index = allMedia.findIndex((item) => item.id === mediaItem.id);
-    setCurrentIndex(index >= 0 ? index : 0);
-  }, [mediaItem.id, allMedia]);
-
-  const currentItem = allMedia[currentIndex];
+  const currentIndex = allMedia.findIndex((item) => item.id === mediaItem.id);
+  const currentItem = currentIndex >= 0 ? allMedia[currentIndex] : mediaItem;
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < allMedia.length - 1;
 
@@ -71,30 +66,30 @@ export default function MediaModal({
 
   const navigateToPrevious = () => {
     if (hasPrevious) {
-      const newIndex = currentIndex - 1;
-      setCurrentIndex(newIndex);
-      onNavigate(allMedia[newIndex]);
+      onNavigate(allMedia[currentIndex - 1]);
     }
   };
 
   const navigateToNext = () => {
     if (hasNext) {
-      const newIndex = currentIndex + 1;
-      setCurrentIndex(newIndex);
-      onNavigate(allMedia[newIndex]);
+      onNavigate(allMedia[currentIndex + 1]);
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Escape") onClose();
-    if (e.key === "ArrowLeft" && hasPrevious) navigateToPrevious();
-    if (e.key === "ArrowRight" && hasNext) navigateToNext();
-  };
-
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft" && hasPrevious) {
+        onNavigate(allMedia[currentIndex - 1]);
+      }
+      if (e.key === "ArrowRight" && hasNext) {
+        onNavigate(allMedia[currentIndex + 1]);
+      }
+    };
+
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [hasPrevious, hasNext]);
+  }, [hasPrevious, hasNext, currentIndex, allMedia, onNavigate, onClose]);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Unknown date";
