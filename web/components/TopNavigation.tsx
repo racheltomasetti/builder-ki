@@ -38,13 +38,26 @@ export default function TopNavigation({ user }: TopNavigationProps) {
         return;
       }
 
-      // Right arrow: thoughts → docs
+      // Don't navigate if a modal is open (check for modal backdrop or z-50 elements)
+      const modalOpen = document.querySelector('[class*="z-50"]');
+      if (modalOpen) {
+        return;
+      }
+
+      // Right arrow: thoughts → library → docs
       if (event.key === "ArrowRight" && pathname === "/dashboard") {
+        router.push("/dashboard/media");
+      } else if (
+        event.key === "ArrowRight" &&
+        pathname === "/dashboard/media"
+      ) {
         router.push("/dashboard/documents");
       }
 
-      // Left arrow: docs → thoughts
+      // Left arrow: docs → library → thoughts
       if (event.key === "ArrowLeft" && pathname === "/dashboard/documents") {
+        router.push("/dashboard/media");
+      } else if (event.key === "ArrowLeft" && pathname === "/dashboard/media") {
         router.push("/dashboard");
       }
     };
@@ -77,6 +90,16 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                 THOUGHTS
               </a>
               <a
+                href="/dashboard/media"
+                className={`text-xl medium transition-colors ${
+                  isActive("/dashboard/media")
+                    ? "text-flexoki-accent font-bold"
+                    : "text-flexoki-tx font-medium hover:text-2xl hover:font-bold"
+                }`}
+              >
+                MEDIA
+              </a>
+              <a
                 href="/dashboard/documents"
                 className={`text-xl medium transition-colors ${
                   isActive("/dashboard/documents")
@@ -84,12 +107,11 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                     : "text-flexoki-tx font-medium hover:text-2xl hover:font-bold"
                 }`}
               >
-                DOCS
+                DOCUMENTS
               </a>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-base text-flexoki-tx-2">{user?.email}</span>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg text-flexoki-tx-2 hover:bg-flexoki-ui-2  transition-colors"

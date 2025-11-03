@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 // Using standard img to avoid Next/Image remote optimization issues in modal
 import {
   X,
@@ -10,6 +11,9 @@ import {
   Calendar,
   Tag,
   ExternalLink,
+  Edit2,
+  Save,
+  XCircle,
 } from "lucide-react";
 
 type MediaItem = {
@@ -29,6 +33,7 @@ interface MediaModalProps {
   onClose: () => void;
   allMedia: MediaItem[];
   onNavigate: (item: MediaItem) => void;
+  onUpdate?: () => void;
 }
 
 export default function MediaModal({
@@ -36,8 +41,15 @@ export default function MediaModal({
   onClose,
   allMedia,
   onNavigate,
+  onUpdate,
 }: MediaModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedCaption, setEditedCaption] = useState("");
+  const [editedTags, setEditedTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const supabase = createClient();
 
   // Find current index in the filtered media array
   useEffect(() => {
@@ -48,6 +60,14 @@ export default function MediaModal({
   const currentItem = allMedia[currentIndex];
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < allMedia.length - 1;
+
+  // Reset edit state when currentItem changes
+  useEffect(() => {
+    setIsEditing(false);
+    setEditedCaption(currentItem?.caption || "");
+    setEditedTags(currentItem?.tags || []);
+    setNewTag("");
+  }, [currentItem?.id]);
 
   const navigateToPrevious = () => {
     if (hasPrevious) {
@@ -100,6 +120,76 @@ export default function MediaModal({
     document.body.removeChild(link);
   };
 
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      console.log("Saving media item:", {
+        id: currentItem.id,
+        caption: editedCaption.trim() || null,
+        tags: editedTags.length > 0 ? editedTags : null,
+      });
+
+      const { data, error } = await supabase
+        .from("media_items")
+        .update({
+          caption: editedCaption.trim() || null,
+          tags: editedTags.length > 0 ? editedTags : null,
+        })
+        .eq("id", currentItem.id)
+        .select();
+
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      console.log("Save successful:", data);
+
+      // Update the local item
+      currentItem.caption = editedCaption.trim() || null;
+      currentItem.tags = editedTags.length > 0 ? editedTags : null;
+
+      // Notify parent to refresh data
+      if (onUpdate) {
+        onUpdate();
+      }
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error saving media item:", error);
+      alert("Failed to save changes. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditedCaption(currentItem?.caption || "");
+    setEditedTags(currentItem?.tags || []);
+    setNewTag("");
+    setIsEditing(false);
+  };
+
+  const handleAddTag = () => {
+    const trimmedTag = newTag.trim();
+    if (trimmedTag && !editedTags.includes(trimmedTag)) {
+      setEditedTags([...editedTags, trimmedTag]);
+      setNewTag("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setEditedTags(editedTags.filter((tag) => tag !== tagToRemove));
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
+
   if (!currentItem) return null;
 
   return (
@@ -111,7 +201,7 @@ export default function MediaModal({
       />
 
       {/* Modal Content */}
-      <div className="relative z-10 w-full max-w-4xl max-h-[90vh] mx-4 my-8 flex flex-col bg-black rounded-lg overflow-hidden">
+      <div className="relative z-10 w-full max-w-6xl h-[90vh] mx-4 my-8 flex flex-col bg-black rounded-lg overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 bg-black/50 text-white">
           <div className="flex items-center gap-4">
@@ -125,20 +215,54 @@ export default function MediaModal({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleDownload}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              title="Download"
-            >
-              <Download className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => window.open(currentItem.file_url, "_blank")}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              title="Open in new tab"
-            >
-              <ExternalLink className="w-5 h-5" />
-            </button>
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 px-3 py-2 bg-flexoki-accent hover:bg-flexoki-accent/90 text-flexoki-bg rounded-lg transition-colors disabled:opacity-50"
+                  title="Save changes"
+                >
+                  <Save className="w-4 h-4" />
+                  <span className="text-sm font-medium">
+                    {isSaving ? "Saving..." : "Save"}
+                  </span>
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  disabled={isSaving}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+                  title="Cancel editing"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                  title="Edit caption and tags"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">Edit</span>
+                </button>
+                <button
+                  onClick={handleDownload}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  title="Download"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => window.open(currentItem.file_url, "_blank")}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                  title="Open in new tab"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                </button>
+              </>
+            )}
             <button
               onClick={onClose}
               className="p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -202,25 +326,88 @@ export default function MediaModal({
 
         {/* Footer Info */}
         <div className="p-4 bg-black/50 text-white">
-          {currentItem.caption && (
-            <p className="text-lg font-medium mb-2">{currentItem.caption}</p>
-          )}
-
-          {currentItem.tags && currentItem.tags.length > 0 && (
-            <div className="flex items-center gap-2 mb-2">
-              <Tag className="w-4 h-4 text-white/80" />
-              <div className="flex flex-wrap gap-1">
-                {currentItem.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-white/10 rounded text-sm"
-                  >
-                    {tag}
-                  </span>
-                ))}
+          {/* Caption Section */}
+          <div className="mb-3">
+            {isEditing ? (
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white/80">
+                  Caption
+                </label>
+                <textarea
+                  value={editedCaption}
+                  onChange={(e) => setEditedCaption(e.target.value)}
+                  placeholder="Add a caption..."
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-flexoki-accent focus:border-transparent resize-none"
+                  rows={2}
+                />
               </div>
-            </div>
-          )}
+            ) : (
+              currentItem.caption && (
+                <p className="text-lg font-medium">{currentItem.caption}</p>
+              )
+            )}
+          </div>
+
+          {/* Tags Section */}
+          <div className="mb-3">
+            {isEditing ? (
+              <div>
+                <label className="block text-sm font-medium mb-1 text-white/80">
+                  Tags
+                </label>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {editedTags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-white/10 rounded text-sm"
+                    >
+                      {tag}
+                      <button
+                        onClick={() => handleRemoveTag(tag)}
+                        className="hover:text-red-400 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder="Add a tag..."
+                    className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-flexoki-accent focus:border-transparent"
+                  />
+                  <button
+                    onClick={handleAddTag}
+                    disabled={!newTag.trim()}
+                    className="px-4 py-2 bg-flexoki-accent hover:bg-flexoki-accent/90 text-flexoki-bg rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            ) : (
+              currentItem.tags &&
+              currentItem.tags.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-white/80" />
+                  <div className="flex flex-wrap gap-1">
+                    {currentItem.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-white/10 rounded text-sm"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
 
           <div className="text-sm text-white/80">
             <p>Uploaded: {new Date(currentItem.created_at).toLocaleString()}</p>

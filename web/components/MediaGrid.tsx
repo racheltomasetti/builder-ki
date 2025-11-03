@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Trash2, Play } from "lucide-react";
 
 type MediaItem = {
   id: string;
@@ -44,20 +44,43 @@ export default function MediaGrid({
           className="group relative bg-flexoki-ui-2 rounded-lg overflow-hidden shadow border border-flexoki-ui-3 cursor-pointer hover:border-flexoki-accent transition-colors"
           onClick={() => onMediaClick?.(item)}
         >
-          <div className="aspect-square overflow-hidden">
-            {/* Using img instead of Next/Image to avoid remote domain config issues */}
-            <img
-              src={item.file_url}
-              alt={item.caption || "media item"}
-              className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-              loading="lazy"
-              onError={(e) => {
-                const img = e.currentTarget as HTMLImageElement;
-                // Fallback to a generic file icon if image format isn't supported (e.g., HEIC)
-                img.src = "/file.svg";
-                img.className = "h-full w-full object-contain p-6 opacity-80";
-              }}
-            />
+          <div className="aspect-square overflow-hidden relative">
+            {item.file_type === "video" ? (
+              <>
+                <video
+                  src={item.file_url}
+                  className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                  preload="metadata"
+                  onError={(e) => {
+                    const video = e.currentTarget as HTMLVideoElement;
+                    video.style.display = "none";
+                    const fallback = document.createElement("img");
+                    fallback.src = "/file.svg";
+                    fallback.className = "h-full w-full object-contain p-6 opacity-80";
+                    video.parentElement?.appendChild(fallback);
+                  }}
+                />
+                {/* Play button overlay for videos */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="bg-black/60 rounded-full p-4 backdrop-blur-sm">
+                    <Play className="w-8 h-8 text-white fill-white" />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <img
+                src={item.file_url}
+                alt={item.caption || "media item"}
+                className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                loading="lazy"
+                onError={(e) => {
+                  const img = e.currentTarget as HTMLImageElement;
+                  // Fallback to a generic file icon if image format isn't supported (e.g., HEIC)
+                  img.src = "/file.svg";
+                  img.className = "h-full w-full object-contain p-6 opacity-80";
+                }}
+              />
+            )}
           </div>
           <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/70 via-black/20 to-transparent text-white">
             <p className="text-xs opacity-80">

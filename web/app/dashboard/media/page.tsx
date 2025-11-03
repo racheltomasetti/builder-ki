@@ -175,17 +175,6 @@ export default function MediaLibraryPage() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Back Button */}
-      <div className="mb-6">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-2 text-flexoki-tx-2 hover:text-flexoki-accent transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Back to dashboard</span>
-        </Link>
-      </div>
-
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
@@ -271,6 +260,7 @@ export default function MediaLibraryPage() {
           onClose={() => setSelectedMedia(null)}
           allMedia={filteredMedia}
           onNavigate={setSelectedMedia}
+          onUpdate={fetchMediaItems}
         />
       )}
     </main>

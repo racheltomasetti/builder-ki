@@ -244,7 +244,6 @@ export default function DailyView({ date, onDateChange }: DailyViewProps) {
           {dayData.dailyCaptures.length > 0 && (
             <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">📝</span>
                 <h2 className="text-xl font-semibold text-flexoki-tx">
                   Daily Captures ({dayData.dailyCaptures.length})
                 </h2>
@@ -279,9 +278,8 @@ export default function DailyView({ date, onDateChange }: DailyViewProps) {
           {dayData.media.length > 0 && (
             <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">📸</span>
                 <h2 className="text-xl font-semibold text-flexoki-tx">
-                  Photos ({dayData.media.length})
+                  Media ({dayData.media.length})
                 </h2>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
