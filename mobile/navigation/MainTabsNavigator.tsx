@@ -44,6 +44,7 @@ export default function MainTabsNavigator() {
           fontSize: 12,
           fontWeight: "600",
           marginBottom: 4,
+          fontFamily: "Perpetua",
         },
         tabBarIconStyle: {
           marginTop: 4,
@@ -56,6 +57,7 @@ export default function MainTabsNavigator() {
         },
         headerTitleStyle: {
           color: colors.tx,
+          fontFamily: "Perpetua",
         },
         headerTitleContainerStyle: {
           paddingBottom: 8,
@@ -75,6 +77,7 @@ export default function MainTabsNavigator() {
           headerTitleStyle: {
             fontSize: 25,
             color: colors.tx,
+            fontFamily: "Perpetua",
           },
           headerTitleContainerStyle: {
             paddingBottom: 8,
@@ -113,6 +116,7 @@ export default function MainTabsNavigator() {
           headerTitleStyle: {
             fontSize: 25,
             color: colors.tx,
+            fontFamily: "Perpetua",
           },
           headerTitleContainerStyle: {
             paddingBottom: 8,

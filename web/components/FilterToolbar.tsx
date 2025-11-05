@@ -9,6 +9,7 @@ type FilterState = {
   cyclePhase: string;
   cycleDay: string;
   dateRange: string;
+  isFavorited: string; // 'all', 'favorited', 'not_favorited'
   customDateStart?: string;
   customDateEnd?: string;
 };
@@ -56,6 +57,7 @@ export default function FilterToolbar({
       cyclePhase: "all",
       cycleDay: "all",
       dateRange: "all_time",
+      isFavorited: "all",
     });
     setShowCustomDatePicker(false);
   };
@@ -64,7 +66,8 @@ export default function FilterToolbar({
     filters.noteType !== "all" ||
     filters.cyclePhase !== "all" ||
     filters.cycleDay !== "all" ||
-    filters.dateRange !== "all_time";
+    filters.dateRange !== "all_time" ||
+    filters.isFavorited !== "all";
 
   const getActiveFilterLabels = () => {
     const labels: Array<{ key: string; label: string }> = [];
@@ -97,6 +100,12 @@ export default function FilterToolbar({
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
       labels.push({ key: "dateRange", label: dateLabel });
+    }
+
+    if (filters.isFavorited !== "all") {
+      const favLabel =
+        filters.isFavorited === "favorited" ? "Favorited" : "Not Favorited";
+      labels.push({ key: "isFavorited", label: favLabel });
     }
 
     return labels;
@@ -193,6 +202,17 @@ export default function FilterToolbar({
             ]}
           />
         )}
+
+        {/* Favorited Filter */}
+        <CustomDropdown
+          value={filters.isFavorited}
+          onChange={(value) => updateFilter("isFavorited", value)}
+          options={[
+            { value: "all", label: "All Notes" },
+            { value: "favorited", label: "⭐ Favorited" },
+            { value: "not_favorited", label: "Not Favorited" },
+          ]}
+        />
       </div>
 
       {/* Custom Date Picker */}
@@ -262,6 +282,8 @@ export default function FilterToolbar({
                     updateFilter("cycleDay", "all");
                   if (filter.key === "dateRange")
                     updateFilter("dateRange", "all_time");
+                  if (filter.key === "isFavorited")
+                    updateFilter("isFavorited", "all");
                 }}
                 className="hover:text-flexoki-tx transition-colors"
                 title={`Remove ${filter.label} filter`}

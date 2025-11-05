@@ -172,7 +172,14 @@ body {
 }
 
 .prose-flexoki strong {
-  @apply font-bold text-flexoki-tx;
+  @apply font-bold;
+  /* Allow color to override text color */
+}
+
+/* Ensure colored text can be bold */
+.prose-flexoki strong span[style*="color"],
+.prose-flexoki span[style*="color"] strong {
+  font-weight: bold;
 }
 
 .prose-flexoki em {
@@ -204,6 +211,8 @@ body {
 .prose-flexoki img {
   @apply rounded-lg max-w-full h-auto my-4;
 }
+
+/* Colored text support - inline color styles from Tiptap Color extension work automatically */
 
 /* Image resize handles */
 .ProseMirror .resize-trigger {

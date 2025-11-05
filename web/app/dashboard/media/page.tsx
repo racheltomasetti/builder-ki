@@ -209,7 +209,7 @@ export default function MediaLibraryPage() {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
         <p className="text-flexoki-tx opacity-85 text-2xl mt-1 italic text-center font-bold">
-          · where thoughts take shape ·
+          · the garden of the mind ·
         </p>
         <hr className="mt-4 border-flexoki-ui-3" />
       </div>
@@ -220,7 +220,7 @@ export default function MediaLibraryPage() {
           <div className="flex items-center gap-3">
             <ImageIcon className="w-8 h-8 text-flexoki-accent" />
             <h1 className="text-3xl font-bold text-flexoki-tx">
-              Media Library
+              MEDIA LIBRARY
             </h1>
           </div>
           <button

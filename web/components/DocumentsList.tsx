@@ -142,7 +142,7 @@ export default function DocumentsList({
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-flexoki-tx mb-2">
-            {focusMode ? "FOCUS" : "Documents"}
+            {focusMode ? "FOCUS" : "DOCUMENTS"}
           </h1>
           <p className="text-flexoki-tx-2">
             {focusMode
@@ -191,7 +191,7 @@ export default function DocumentsList({
             onClick={handleCreateNew}
             className="px-4 py-2 bg-flexoki-accent-2 opacity-90 text-white text-xl font-bold rounded-lg hover:opacity-100 hover:text-2xl transition-colors flex items-center gap-2"
           >
-            · CREATE ·
+            ~ CREATE ~
           </button>
         </div>
       </div>

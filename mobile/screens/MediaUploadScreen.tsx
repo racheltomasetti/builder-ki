@@ -28,6 +28,7 @@ import { KILogo } from "../components/Logo";
 import CycleIndicator from "../components/CycleIndicator";
 import CycleModal from "../components/CycleModal";
 import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
+import { ThemedText } from "../components/ThemedText";
 
 interface MediaItem {
   id: string;
@@ -734,12 +735,12 @@ export default function MediaUploadScreen({
         <View style={[styles.uploadCard, { backgroundColor: colors.ui2 }]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.headerTitle, { color: colors.tx }]}>
+            <ThemedText style={[styles.headerTitle, { color: colors.tx }]}>
               Upload Media
-            </Text>
-            <Text style={[styles.headerSubtitle, { color: colors.tx2 }]}>
+            </ThemedText>
+            <ThemedText style={[styles.headerSubtitle, { color: colors.tx2 }]}>
               Add photos and videos
-            </Text>
+            </ThemedText>
           </View>
 
           {/* Upload Actions */}
@@ -757,9 +758,9 @@ export default function MediaUploadScreen({
                   disabled={uploading}
                 >
                   <Ionicons name="camera" size={28} color={colors.bg} />
-                  <Text style={[styles.halfButtonText, { color: colors.bg }]}>
+                  <ThemedText style={[styles.halfButtonText, { color: colors.bg }]}>
                     Photo
-                  </Text>
+                  </ThemedText>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -772,9 +773,9 @@ export default function MediaUploadScreen({
                   disabled={uploading}
                 >
                   <Ionicons name="videocam" size={28} color={colors.bg} />
-                  <Text style={[styles.halfButtonText, { color: colors.bg }]}>
+                  <ThemedText style={[styles.halfButtonText, { color: colors.bg }]}>
                     Video
-                  </Text>
+                  </ThemedText>
                 </TouchableOpacity>
               </View>
 
@@ -785,9 +786,9 @@ export default function MediaUploadScreen({
                 disabled={uploading}
               >
                 <Ionicons name="images" size={32} color={colors.bg} />
-                <Text style={[styles.actionButtonText, { color: colors.bg }]}>
+                <ThemedText style={[styles.actionButtonText, { color: colors.bg }]}>
                   Choose from Library
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
             </View>
           )}
@@ -796,9 +797,9 @@ export default function MediaUploadScreen({
           {uploading && (
             <View style={styles.uploadingContainer}>
               <ActivityIndicator size="large" color={colors.accent} />
-              <Text style={[styles.uploadingText, { color: colors.tx2 }]}>
+              <ThemedText style={[styles.uploadingText, { color: colors.tx2 }]}>
                 Uploading media...
-              </Text>
+              </ThemedText>
             </View>
           )}
         </View>
@@ -809,9 +810,9 @@ export default function MediaUploadScreen({
       {/* Recently Uploaded - fixed at bottom */}
       {!uploading && recentMedia.length > 0 && (
         <View style={styles.recentSection}>
-          <Text style={[styles.recentTitle, { color: colors.tx }]}>
+          <ThemedText style={[styles.recentTitle, { color: colors.tx }]}>
             Recently Uploaded
-          </Text>
+          </ThemedText>
           <View style={styles.recentGrid}>
             {recentMedia.map((item) => (
               <View key={item.id} style={styles.recentItem}>
@@ -882,13 +883,13 @@ export default function MediaUploadScreen({
                   <Ionicons name="trash" size={16} color="white" />
                 </TouchableOpacity>
                 {item.original_date && (
-                  <Text style={[styles.recentDate, { color: colors.tx2 }]}>
+                  <ThemedText style={[styles.recentDate, { color: colors.tx2 }]}>
                     {new Date(item.original_date).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
                     })}
-                  </Text>
+                  </ThemedText>
                 )}
               </View>
             ))}

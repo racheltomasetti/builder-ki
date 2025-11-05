@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar'
 import { View, ActivityIndicator, StyleSheet, useColorScheme } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { useFonts } from 'expo-font'
 import { supabase } from './lib/supabase'
 import AuthScreen from './screens/AuthScreen'
 import MainTabsNavigator from './navigation/MainTabsNavigator'
@@ -19,6 +20,11 @@ export default function App() {
 
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+
+  // Load Perpetua font
+  const [fontsLoaded] = useFonts({
+    'Perpetua': require('./assets/fonts/perpetua.ttf'),
+  })
 
   useEffect(() => {
     // Get initial session
@@ -37,7 +43,7 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  if (loading) {
+  if (loading || !fontsLoaded) {
     return (
       <View style={[styles.container, { backgroundColor: colors.bg }]}>
         <ActivityIndicator size="large" color={colors.accent} />

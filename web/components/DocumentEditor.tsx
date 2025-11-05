@@ -4,6 +4,8 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
 import { FileHandler } from "@tiptap/extension-file-handler";
 import ImageResize from "tiptap-extension-resize-image";
 import { Extension } from "@tiptap/core";
@@ -13,6 +15,7 @@ import imageCompression from "browser-image-compression";
 import { createClient } from "@/lib/supabase/client";
 import ThinkingPartner from "./ThinkingPartner";
 import MediaLibrary from "./MediaLibrary";
+import { VoiceCaptureNode } from "./VoiceCaptureNode";
 
 type Insight = {
   id: string;
@@ -152,8 +155,20 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        bold: {
+          // Allow bold to coexist with other marks like color
+          HTMLAttributes: {
+            class: 'font-bold',
+          },
+        },
+      }),
       DeleteLine,
+      VoiceCaptureNode,
+      TextStyle,
+      Color.configure({
+        types: ['textStyle'],
+      }),
       Placeholder.configure({
         placeholder: "Start writing your thoughts...",
       }),
@@ -385,6 +400,20 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     setIsMediaLibraryOpen(false);
   };
 
+  // Handle voice capture selection from library
+  const handleVoiceCaptureSelect = (captureId: string) => {
+    if (!editor) return;
+
+    editor
+      .chain()
+      .focus()
+      .setVoiceCapture({ captureId })
+      .run();
+
+    // Optionally close the media library after insertion
+    setIsMediaLibraryOpen(false);
+  };
+
   // Handle toggling public/private state
   const handleTogglePublic = async () => {
     setIsTogglingPublic(true);
@@ -601,7 +630,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
           className={`px-4 py-2 text-xl rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 ${
             isPublic
               ? "bg-green-600 text-white hover:bg-green-700 hover:text-2xl hover:font-bold"
-              : "bg-flexoki-ui-2 bg-green-600 font-bold bg-opacity-50 text-flexoki-tx hover:text-2xl"
+              : "bg-flexoki-ui-2 border border-green-600 border-opacity-50 font-bold bg-opacity-50 text-flexoki-tx hover:text-2xl hover:bg-green-700 hover:bg-opacity-70"
           }`}
           title={
             isPublic
@@ -656,6 +685,67 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
             >
               Italic
             </button>
+
+            {/* Separator */}
+            <div className="mt-3 w-px h-6 bg-flexoki-ui-3 mx-1"></div>
+
+            {/* Color Buttons */}
+            <button
+              onClick={() =>
+                editor.chain().focus().setColor("#af3029").run()
+              }
+              className={`mt-3 px-3 py-1 rounded text-sm flex items-center gap-1 ${
+                editor.getAttributes("textStyle").color === "#af3029"
+                  ? "bg-flexoki-ui-3 ring-2 ring-[#af3029]"
+                  : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
+              } transition-colors`}
+              title="Accent Color"
+            >
+              <div
+                className="w-4 h-4 rounded border border-flexoki-ui-3"
+                style={{ backgroundColor: "#af3029" }}
+              ></div>
+            </button>
+            <button
+              onClick={() =>
+                editor.chain().focus().setColor("#24837b").run()
+              }
+              className={`mt-3 px-3 py-1 rounded text-sm flex items-center gap-1 ${
+                editor.getAttributes("textStyle").color === "#24837b"
+                  ? "bg-flexoki-ui-3 ring-2 ring-[#24837b]"
+                  : "bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3"
+              } transition-colors`}
+              title="Accent 2 Color"
+            >
+              <div
+                className="w-4 h-4 rounded border border-flexoki-ui-3"
+                style={{ backgroundColor: "#24837b" }}
+              ></div>
+            </button>
+            <button
+              onClick={() => editor.chain().focus().unsetColor().run()}
+              className="mt-3 px-3 py-1 rounded text-sm bg-flexoki-ui-2 text-flexoki-tx hover:bg-flexoki-ui-3 transition-colors"
+              title="Clear Color"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            {/* Separator */}
+            <div className="mt-3 w-px h-6 bg-flexoki-ui-3 mx-1"></div>
+
             <button
               onClick={() =>
                 editor.chain().focus().toggleHeading({ level: 2 }).run()
@@ -905,6 +995,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
         panelWidth={mediaLibraryWidth}
         onWidthChange={setMediaLibraryWidth}
         onMediaSelect={handleMediaSelect}
+        onVoiceCaptureSelect={handleVoiceCaptureSelect}
       />
     </div>
   );

@@ -25,6 +25,7 @@ import { KILogo } from "../components/Logo";
 import CycleIndicator from "../components/CycleIndicator";
 import CycleModal from "../components/CycleModal";
 import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
+import { ThemedText } from "../components/ThemedText";
 
 type NoteType = "intention" | "reflection";
 
@@ -470,18 +471,18 @@ export default function DailyLogScreen({
         {uploading ? (
           <View style={styles.uploadingContainer}>
             <ActivityIndicator size="large" color={colors.accent2} />
-            <Text style={[styles.uploadingText, { color: colors.tx2 }]}>
+            <ThemedText style={[styles.uploadingText, { color: colors.tx2 }]}>
               Uploading...
-            </Text>
+            </ThemedText>
           </View>
         ) : recording ? (
           // Recording UI with Rainbow Mandala
           <View style={styles.recordingContainer}>
-            <Text style={[styles.recordingTitle, { color: colors.tx }]}>
+            <ThemedText style={[styles.recordingTitle, { color: colors.tx }]}>
               {currentNoteType === "intention"
                 ? "Setting Intention..."
                 : "Adding Reflection..."}
-            </Text>
+            </ThemedText>
 
             <View style={styles.mandalaWrapper}>
               <KIMandala
@@ -493,18 +494,18 @@ export default function DailyLogScreen({
               />
             </View>
 
-            <Text style={[styles.durationText, { color: colors.accent2 }]}>
+            <ThemedText style={[styles.durationText, { color: colors.accent2 }]}>
               {formatDuration(recordingDuration)}
-            </Text>
+            </ThemedText>
           </View>
         ) : (
           // Daily Log UI
           <>
             {/* Date Header */}
             <View style={styles.dateHeader}>
-              <Text style={[styles.dateText, { color: colors.tx }]}>
+              <ThemedText style={[styles.dateText, { color: colors.tx }]}>
                 {formatTodayDate()}
-              </Text>
+              </ThemedText>
             </View>
 
             {/* Intention Section */}
@@ -515,9 +516,9 @@ export default function DailyLogScreen({
                   size={24}
                   color={colors.accent}
                 />
-                <Text style={[styles.sectionTitle, { color: colors.tx }]}>
+                <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
                   Morning Intention
-                </Text>
+                </ThemedText>
               </View>
 
               {todayStatus.hasIntention ? (
@@ -527,9 +528,9 @@ export default function DailyLogScreen({
                     size={24}
                     color={colors.accent}
                   />
-                  <Text style={[styles.completedText, { color: colors.tx2 }]}>
+                  <ThemedText style={[styles.completedText, { color: colors.tx2 }]}>
                     Set at {todayStatus.intentionTime}
-                  </Text>
+                  </ThemedText>
                 </View>
               ) : (
                 <TouchableOpacity
@@ -541,9 +542,9 @@ export default function DailyLogScreen({
                   activeOpacity={0.8}
                 >
                   <Ionicons name="mic" size={24} color={colors.bg} />
-                  <Text style={[styles.actionButtonText, { color: colors.bg }]}>
+                  <ThemedText style={[styles.actionButtonText, { color: colors.bg }]}>
                     Set Today's Intention
-                  </Text>
+                  </ThemedText>
                 </TouchableOpacity>
               )}
             </View>
@@ -556,20 +557,20 @@ export default function DailyLogScreen({
                   size={24}
                   color={colors.accent2}
                 />
-                <Text style={[styles.sectionTitle, { color: colors.tx }]}>
+                <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
                   Daily Captures
-                </Text>
+                </ThemedText>
               </View>
 
               <View style={styles.captureCountContainer}>
-                <Text
+                <ThemedText
                   style={[styles.captureCountNumber, { color: colors.accent2 }]}
                 >
                   {todayStatus.captureCount}
-                </Text>
-                <Text style={[styles.captureCountLabel, { color: colors.tx2 }]}>
+                </ThemedText>
+                <ThemedText style={[styles.captureCountLabel, { color: colors.tx2 }]}>
                   thoughts captured
-                </Text>
+                </ThemedText>
               </View>
 
               <TouchableOpacity
@@ -580,14 +581,14 @@ export default function DailyLogScreen({
                 ]}
                 activeOpacity={0.8}
               >
-                <Text
+                <ThemedText
                   style={[
                     styles.secondaryButtonText,
                     { color: colors.accent2 },
                   ]}
                 >
                   Capture Thought
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
             </View>
 
@@ -595,9 +596,9 @@ export default function DailyLogScreen({
             <View style={[styles.section, { backgroundColor: colors.ui }]}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="moon-outline" size={24} color={colors.accent} />
-                <Text style={[styles.sectionTitle, { color: colors.tx }]}>
+                <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
                   Evening Reflection
-                </Text>
+                </ThemedText>
               </View>
 
               {todayStatus.hasReflection ? (
@@ -607,16 +608,16 @@ export default function DailyLogScreen({
                     size={24}
                     color={colors.accent}
                   />
-                  <Text style={[styles.completedText, { color: colors.tx2 }]}>
+                  <ThemedText style={[styles.completedText, { color: colors.tx2 }]}>
                     Reflected at {todayStatus.reflectionTime}
-                  </Text>
+                  </ThemedText>
                 </View>
               ) : !isReflectionAvailable ? (
                 <View style={styles.disabledContainer}>
                   <Ionicons name="time-outline" size={24} color={colors.tx2} />
-                  <Text style={[styles.disabledText, { color: colors.tx2 }]}>
+                  <ThemedText style={[styles.disabledText, { color: colors.tx2 }]}>
                     Available after 6:00 PM
-                  </Text>
+                  </ThemedText>
                 </View>
               ) : (
                 <TouchableOpacity
@@ -628,9 +629,9 @@ export default function DailyLogScreen({
                   activeOpacity={0.8}
                 >
                   <Ionicons name="mic" size={24} color={colors.bg} />
-                  <Text style={[styles.actionButtonText, { color: colors.bg }]}>
+                  <ThemedText style={[styles.actionButtonText, { color: colors.bg }]}>
                     Add Reflection
-                  </Text>
+                  </ThemedText>
                 </TouchableOpacity>
               )}
             </View>

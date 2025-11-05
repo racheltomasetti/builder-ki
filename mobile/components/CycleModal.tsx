@@ -25,6 +25,7 @@ import {
   type CyclePeriod,
   type CycleInfo,
 } from "../lib/cycleApi";
+import { ThemedText } from "./ThemedText";
 
 interface CycleModalProps {
   visible: boolean;
@@ -217,9 +218,9 @@ export default function CycleModal({
         <View style={[styles.modalContent, { backgroundColor: colors.ui }]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.tx }]}>
+            <ThemedText style={[styles.title, { color: colors.tx }]}>
               CYCLE TRACKER
-            </Text>
+            </ThemedText>
             {/* <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={28} color={colors.tx2} />
             </TouchableOpacity> */}
@@ -236,19 +237,19 @@ export default function CycleModal({
             >
               {/* Current Status */}
               <View style={styles.section}>
-                <Text style={[styles.sectionLabel, { color: colors.tx2 }]}>
+                <ThemedText style={[styles.sectionLabel, { color: colors.tx2 }]}>
                   Current Status
-                </Text>
+                </ThemedText>
                 {cycleInfo?.cycleDay ? (
-                  <Text style={[styles.statusText, { color: colors.tx }]}>
+                  <ThemedText style={[styles.statusText, { color: colors.tx }]}>
                     Day {cycleInfo.cycleDay} • {PHASE_LABELS[
                       cycleInfo.cyclePhase as keyof typeof PHASE_LABELS
                     ] || "Unknown"}
-                  </Text>
+                  </ThemedText>
                 ) : (
-                  <Text style={[styles.statusText, { color: colors.tx2 }]}>
+                  <ThemedText style={[styles.statusText, { color: colors.tx2 }]}>
                     No cycle data yet
-                  </Text>
+                  </ThemedText>
                 )}
               </View>
 
@@ -269,14 +270,14 @@ export default function CycleModal({
                     ) : (
                       <>
                         <Ionicons name="calendar" size={24} color={colors.bg} />
-                        <Text
+                        <ThemedText
                           style={[
                             styles.actionButtonText,
                             { color: colors.bg },
                           ]}
                         >
                           Log Period
-                        </Text>
+                        </ThemedText>
                       </>
                     )}
                   </TouchableOpacity>
@@ -297,14 +298,14 @@ export default function CycleModal({
                       size={20}
                       color={colors.accent2}
                     />
-                    <Text
+                    <ThemedText
                       style={[
                         styles.secondaryButtonText,
                         { color: colors.accent2 },
                       ]}
                     >
                       Log Last Period Start
-                    </Text>
+                    </ThemedText>
                   </TouchableOpacity>
                 )}
               </View>
@@ -317,13 +318,13 @@ export default function CycleModal({
                     { backgroundColor: colors.ui2 },
                   ]}
                 >
-                  <Text style={[styles.sectionLabel, { color: colors.tx2 }]}>
+                  <ThemedText style={[styles.sectionLabel, { color: colors.tx2 }]}>
                     When did your last period start?
-                  </Text>
-                  <Text style={[styles.helperText, { color: colors.tx2 }]}>
+                  </ThemedText>
+                  <ThemedText style={[styles.helperText, { color: colors.tx2 }]}>
                     This will set your cycle day tracker. Use "Start Period" for
                     future cycles.
-                  </Text>
+                  </ThemedText>
 
                   {/* Date Selection */}
                   <View style={styles.datePickerRow}>
@@ -334,11 +335,11 @@ export default function CycleModal({
                         { backgroundColor: colors.ui },
                       ]}
                     >
-                      <Text
+                      <ThemedText
                         style={[styles.dateButtonText, { color: colors.tx }]}
                       >
                         {formatDateLong(selectedDate)}
-                      </Text>
+                      </ThemedText>
                       <Ionicons
                         name="calendar"
                         size={20}
@@ -356,11 +357,11 @@ export default function CycleModal({
                         { backgroundColor: colors.ui3 },
                       ]}
                     >
-                      <Text
+                      <ThemedText
                         style={[styles.cancelButtonText, { color: colors.tx2 }]}
                       >
                         Cancel
-                      </Text>
+                      </ThemedText>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={handleLogLastPeriod}
@@ -373,14 +374,14 @@ export default function CycleModal({
                       {actionLoading ? (
                         <ActivityIndicator size="small" color={colors.bg} />
                       ) : (
-                        <Text
+                        <ThemedText
                           style={[
                             styles.confirmButtonText,
                             { color: colors.bg },
                           ]}
                         >
                           Log Period
-                        </Text>
+                        </ThemedText>
                       )}
                     </TouchableOpacity>
                   </View>
@@ -410,9 +411,9 @@ export default function CycleModal({
               {/* Recent Cycles History */}
               {recentPeriods.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={[styles.sectionLabel, { color: colors.tx2 }]}>
+                  <ThemedText style={[styles.sectionLabel, { color: colors.tx2 }]}>
                     Recent Cycles
-                  </Text>
+                  </ThemedText>
                   <View style={styles.historyList}>
                     {recentPeriods.map((period, index) => {
                       const cycleLength =
@@ -435,34 +436,34 @@ export default function CycleModal({
                           ]}
                         >
                           <View style={styles.historyItemContent}>
-                            <Text
+                            <ThemedText
                               style={[styles.historyDate, { color: colors.tx }]}
                             >
                               {period.start_date && formatDate(period.start_date)}
                               {period.end_date
                                 ? ` - ${formatDate(period.end_date)}`
                                 : " - Present"}
-                            </Text>
+                            </ThemedText>
                             <View style={styles.historyMeta}>
                               {cycleLength && !isCurrentCycle ? (
-                                <Text
+                                <ThemedText
                                   style={[
                                     styles.historyMetaText,
                                     { color: colors.tx2 },
                                   ]}
                                 >
                                   {cycleLength} days
-                                </Text>
+                                </ThemedText>
                               ) : null}
                               {isCurrentCycle ? (
-                                <Text
+                                <ThemedText
                                   style={[
                                     styles.historyMetaText,
                                     { color: colors.accent },
                                   ]}
                                 >
                                   CURRENT CYCLE
-                                </Text>
+                                </ThemedText>
                               ) : null}
                             </View>
                           </View>
@@ -480,9 +481,9 @@ export default function CycleModal({
             onPress={onClose}
             style={[styles.closeActionButton, { backgroundColor: colors.ui3 }]}
           >
-            <Text style={[styles.closeActionText, { color: colors.tx }]}>
+            <ThemedText style={[styles.closeActionText, { color: colors.tx }]}>
               Close
-            </Text>
+            </ThemedText>
           </TouchableOpacity>
         </View>
       </View>

@@ -17,6 +17,7 @@ import {
   MANDALA_CONSTRAINTS,
 } from "../constants/mandalaDefaults";
 import { COLOR_PALETTE, ColorPaletteItem } from "../constants/colorPalette";
+import { ThemedText } from "./ThemedText";
 
 interface MandalaCustomizeModalProps {
   visible: boolean;
@@ -109,9 +110,9 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
           >
             {/* Header */}
             <View style={styles.header}>
-              <Text style={[styles.title, { color: colors.tx }]}>
+              <ThemedText style={[styles.title, { color: colors.tx }]}>
                 CUSTOMIZE YOUR K·I
-              </Text>
+              </ThemedText>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <MaterialIcons name="close" size={24} color={colors.tx} />
               </TouchableOpacity>
@@ -122,9 +123,9 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
               style={[styles.stickySection, { borderBottomColor: colors.ui3 }]}
             >
               <View style={styles.row}>
-                <Text style={[styles.sectionTitle, { color: colors.tx }]}>
+                <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
                   K·I PREVIEW
-                </Text>
+                </ThemedText>
                 <Switch
                   value={isPreviewMode}
                   onValueChange={onPreviewToggle}
@@ -150,9 +151,9 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                   style={styles.sectionHeader}
                   activeOpacity={0.7}
                 >
-                  <Text style={[styles.sectionTitle, { color: colors.tx }]}>
+                  <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
                     Colors
-                  </Text>
+                  </ThemedText>
                   <MaterialIcons
                     name={
                       expandedSections.colors ? "expand-less" : "expand-more"
@@ -179,14 +180,14 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                         ]}
                         activeOpacity={0.7}
                       >
-                        <Text
+                        <ThemedText
                           style={[
                             styles.layerToggleText,
                             { color: selectedLayerIndex === 0 ? "#fff" : colors.tx },
                           ]}
                         >
                           Layer 1
-                        </Text>
+                        </ThemedText>
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() => setSelectedLayerIndex(1)}
@@ -201,14 +202,14 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                         ]}
                         activeOpacity={0.7}
                       >
-                        <Text
+                        <ThemedText
                           style={[
                             styles.layerToggleText,
                             { color: selectedLayerIndex === 1 ? "#fff" : colors.tx },
                           ]}
                         >
                           Layer 2
-                        </Text>
+                        </ThemedText>
                       </TouchableOpacity>
                     </View>
 
@@ -249,15 +250,15 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                   activeOpacity={0.7}
                 >
                   <View style={styles.sliderHeader}>
-                    <Text style={[styles.sectionTitle, { color: colors.tx }]}>
+                    <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
                       Layer Spacing
-                    </Text>
+                    </ThemedText>
                     <View style={styles.sectionHeaderRight}>
-                      <Text
+                      <ThemedText
                         style={[styles.valueText, { color: colors.accent }]}
                       >
                         {settings.radiusSpacingMultiplier.toFixed(1)}x
-                      </Text>
+                      </ThemedText>
                       <MaterialIcons
                         name={
                           expandedSections.spacing
@@ -300,15 +301,15 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                   activeOpacity={0.7}
                 >
                   <View style={styles.sliderHeader}>
-                    <Text style={[styles.sectionTitle, { color: colors.tx }]}>
+                    <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
                       Logo Size
-                    </Text>
+                    </ThemedText>
                     <View style={styles.sectionHeaderRight}>
-                      <Text
+                      <ThemedText
                         style={[styles.valueText, { color: colors.accent }]}
                       >
                         {settings.logoSizeMultiplier.toFixed(1)}x
-                      </Text>
+                      </ThemedText>
                       <MaterialIcons
                         name={
                           expandedSections.logoSize
@@ -347,15 +348,15 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                   activeOpacity={0.7}
                 >
                   <View style={styles.sliderHeader}>
-                    <Text style={[styles.sectionTitle, { color: colors.tx }]}>
+                    <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
                       Logo Count
-                    </Text>
+                    </ThemedText>
                     <View style={styles.sectionHeaderRight}>
-                      <Text
+                      <ThemedText
                         style={[styles.valueText, { color: colors.accent }]}
                       >
                         {settings.logoCountMultiplier.toFixed(1)}x
-                      </Text>
+                      </ThemedText>
                       <MaterialIcons
                         name={
                           expandedSections.logoCount
@@ -394,15 +395,15 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                   activeOpacity={0.7}
                 >
                   <View style={styles.sliderHeader}>
-                    <Text style={[styles.sectionTitle, { color: colors.tx }]}>
+                    <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
                       Rotation Speed
-                    </Text>
+                    </ThemedText>
                     <View style={styles.sectionHeaderRight}>
-                      <Text
+                      <ThemedText
                         style={[styles.valueText, { color: colors.accent }]}
                       >
                         {settings.rotationSpeedMultiplier.toFixed(1)}x
-                      </Text>
+                      </ThemedText>
                       <MaterialIcons
                         name={
                           expandedSections.rotationSpeed
@@ -449,9 +450,9 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                 ]}
               >
                 <MaterialIcons name="refresh" size={20} color={colors.tx2} />
-                <Text style={[styles.buttonText, { color: colors.tx2 }]}>
+                <ThemedText style={[styles.buttonText, { color: colors.tx2 }]}>
                   Reset
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -463,9 +464,9 @@ export const MandalaCustomizeModal: React.FC<MandalaCustomizeModalProps> = ({
                 ]}
               >
                 <MaterialIcons name="check" size={20} color="#fff" />
-                <Text style={[styles.buttonText, { color: "#fff" }]}>
+                <ThemedText style={[styles.buttonText, { color: "#fff" }]}>
                   Apply
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
             </View>
           </BlurView>

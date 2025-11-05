@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import CycleInfo from "@/components/CycleInfo";
 import { highlightText } from "@/lib/highlightText";
+import { Star } from "lucide-react";
 
 type Insight = {
   id: string;
@@ -23,6 +24,7 @@ type Capture = {
   insights: Insight[];
   cycle_day?: number | null;
   cycle_phase?: string | null;
+  is_favorited?: boolean;
 };
 
 type VoiceCardProps = {
@@ -39,6 +41,8 @@ export default function VoiceCard({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(capture.is_favorited || false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const supabase = createClient();
 
   const handleExpandThought = async () => {
@@ -83,6 +87,35 @@ export default function VoiceCard({
       console.error("Error expanding thought:", error);
       alert("Failed to expand thought: " + error.message);
       setIsExpanding(false);
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    setIsTogglingFavorite(true);
+
+    try {
+      const newFavoriteStatus = !isFavorited;
+
+      // Update in database
+      const { error } = await supabase
+        .from("captures")
+        .update({ is_favorited: newFavoriteStatus })
+        .eq("id", capture.id);
+
+      if (error) {
+        console.error("Error updating favorite status:", error);
+        alert("Failed to update favorite status: " + error.message);
+        setIsTogglingFavorite(false);
+        return;
+      }
+
+      // Update local state
+      setIsFavorited(newFavoriteStatus);
+    } catch (error: any) {
+      console.error("Unexpected error toggling favorite:", error);
+      alert("An unexpected error occurred: " + error.message);
+    } finally {
+      setIsTogglingFavorite(false);
     }
   };
 
@@ -198,6 +231,21 @@ export default function VoiceCard({
           >
             {capture.processing_status}
           </span>
+          <button
+            onClick={handleToggleFavorite}
+            disabled={isTogglingFavorite}
+            className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
+              isFavorited
+                ? "text-yellow-500 hover:text-yellow-600 hover:bg-flexoki-ui-2"
+                : "text-flexoki-tx-3 hover:text-yellow-500 hover:bg-flexoki-ui-2"
+            }`}
+            title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Star
+              className="h-5 w-5"
+              fill={isFavorited ? "currentColor" : "none"}
+            />
+          </button>
           <button
             onClick={() => setShowConfirm(true)}
             disabled={isDeleting}

@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
 
 export const metadata: Metadata = {
-  title: "K·I | LOVE",
+  title: "~ K·I ~",
   description: "toolkit of Self designed to augment the journey of becoming",
 };
 

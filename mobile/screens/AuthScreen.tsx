@@ -14,6 +14,7 @@ import {
 import { supabase } from "../lib/supabase";
 import { useThemeColors } from "../theme/colors";
 import { KILogo } from "../components/Logo";
+import { ThemedText } from "../components/ThemedText";
 
 export default function AuthScreen() {
   const colorScheme = useColorScheme();
@@ -79,9 +80,9 @@ export default function AuthScreen() {
         <View style={styles.logoContainer}>
           <KILogo size={150} color={colors.tx} strokeWidth={2.5} />
         </View>
-        <Text style={[styles.subtitle, { color: colors.tx2 }]}>
+        <ThemedText style={[styles.subtitle, { color: colors.tx2 }]}>
           {isSignUp ? "Create your account" : "Sign in to continue"}
-        </Text>
+        </ThemedText>
 
         <View style={styles.form}>
           <TextInput
@@ -132,9 +133,9 @@ export default function AuthScreen() {
             {loading ? (
               <ActivityIndicator color={colors.bg} />
             ) : (
-              <Text style={[styles.buttonText, { color: colors.bg }]}>
+              <ThemedText style={[styles.buttonText, { color: colors.bg }]}>
                 {isSignUp ? "Sign Up" : "Sign In"}
-              </Text>
+              </ThemedText>
             )}
           </TouchableOpacity>
 
@@ -143,11 +144,11 @@ export default function AuthScreen() {
             onPress={() => setIsSignUp(!isSignUp)}
             disabled={loading}
           >
-            <Text style={[styles.toggleText, { color: colors.accent }]}>
+            <ThemedText style={[styles.toggleText, { color: colors.accent }]}>
               {isSignUp
                 ? "Already have an account? Sign in"
                 : "Don't have an account? Sign up"}
-            </Text>
+            </ThemedText>
           </TouchableOpacity>
         </View>
       </View>

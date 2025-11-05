@@ -18,6 +18,7 @@ import { KIMandala } from "../components/KIMandala";
 import { MandalaCustomizeModal } from "../components/MandalaCustomizeModal";
 import { useMandalaSettings } from "../hooks/useMandalaSettings";
 import type { SettingsScreenProps } from "../types/navigation";
+import { ThemedText } from "../components/ThemedText";
 
 export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const colorScheme = useColorScheme();
@@ -113,7 +114,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           <MaterialIcons name="arrow-back" size={28} color={colors.tx} />
         </TouchableOpacity>
 
-        <Text style={[styles.headerTitle, { color: colors.tx }]}>Settings</Text>
+        <ThemedText style={[styles.headerTitle, { color: colors.tx }]}>Settings</ThemedText>
 
         <View style={styles.headerRight} />
       </View>
@@ -139,7 +140,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             style={[styles.closePreviewButton, { backgroundColor: "#af3029" }]}
           >
             <MaterialIcons name="close" size={20} color="#fff" />
-            <Text style={styles.closePreviewText}>Close Preview</Text>
+            <ThemedText style={styles.closePreviewText}>Close Preview</ThemedText>
           </TouchableOpacity>
         </View>
       )}
@@ -173,9 +174,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
       >
         {/* Profile Section */}
         <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionLabel, { color: colors.tx2 }]}>
+          <ThemedText style={[styles.sectionLabel, { color: colors.tx2 }]}>
             PROFILE
-          </Text>
+          </ThemedText>
           <BlurView
             intensity={80}
             tint={isDark ? "dark" : "light"}
@@ -191,9 +192,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             <View style={styles.cardContent}>
               <View style={styles.profileRow}>
                 <MaterialIcons name="email" size={20} color={colors.tx2} />
-                <Text style={[styles.profileText, { color: colors.tx }]}>
+                <ThemedText style={[styles.profileText, { color: colors.tx }]}>
                   {user?.email || "Loading..."}
-                </Text>
+                </ThemedText>
               </View>
             </View>
           </BlurView>
@@ -201,9 +202,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
         {/* Mandala Customization Section */}
         <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionLabel, { color: colors.tx2 }]}>
+          <ThemedText style={[styles.sectionLabel, { color: colors.tx2 }]}>
             CUSTOMIZE YOUR K·I
-          </Text>
+          </ThemedText>
           <BlurView
             intensity={80}
             tint={isDark ? "dark" : "light"}
@@ -243,7 +244,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 style={[styles.customizeButton, { backgroundColor: "#af3029" }]}
               >
                 <MaterialIcons name="palette" size={20} color="#fff" />
-                <Text style={styles.customizeButtonText}>CUSTOMIZE</Text>
+                <ThemedText style={styles.customizeButtonText}>CUSTOMIZE</ThemedText>
               </TouchableOpacity>
             </View>
           </BlurView>
@@ -251,9 +252,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
         {/* Account Section */}
         <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionLabel, { color: colors.tx2 }]}>
+          <ThemedText style={[styles.sectionLabel, { color: colors.tx2 }]}>
             ACCOUNT
-          </Text>
+          </ThemedText>
           <BlurView
             intensity={80}
             tint={isDark ? "dark" : "light"}
@@ -272,9 +273,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 style={styles.signOutButton}
               >
                 <MaterialIcons name="logout" size={20} color={colors.tx} />
-                <Text style={[styles.signOutText, { color: colors.tx }]}>
+                <ThemedText style={[styles.signOutText, { color: colors.tx }]}>
                   Sign Out
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
             </View>
           </BlurView>

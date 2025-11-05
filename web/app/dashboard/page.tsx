@@ -29,6 +29,7 @@ type Capture = {
   cycle_phase?: string | null;
   note_type?: string | null;
   log_date?: string | null;
+  is_favorited?: boolean;
 };
 
 type FilterState = {
@@ -36,6 +37,7 @@ type FilterState = {
   cyclePhase: string; // 'all', 'menstrual', 'follicular', 'ovulation', 'luteal', 'no_cycle_data'
   cycleDay: string; // 'all', '1', '2', ... '28'
   dateRange: string; // 'all_time', 'last_7_days', 'last_30_days', 'this_month', 'last_month', 'custom'
+  isFavorited: string; // 'all', 'favorited', 'not_favorited'
   customDateStart?: string;
   customDateEnd?: string;
 };
@@ -55,6 +57,7 @@ export default function DashboardPage() {
     cyclePhase: "all",
     cycleDay: "all",
     dateRange: "all_time",
+    isFavorited: "all",
   });
   const supabase = createClient();
 
@@ -170,6 +173,17 @@ export default function DashboardPage() {
             return false;
           }
         }
+      }
+    }
+
+    // Favorited filter
+    if (filters.isFavorited !== "all") {
+      const isFavorited = capture.is_favorited || false;
+      if (filters.isFavorited === "favorited" && !isFavorited) {
+        return false;
+      }
+      if (filters.isFavorited === "not_favorited" && isFavorited) {
+        return false;
       }
     }
 

@@ -270,7 +270,7 @@ export default function ThinkingPartner({
           />
           {/* Header */}
           <div className="border-b border-flexoki-ui-3 p-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-flexoki-tx">KI</h2>
+            <h2 className="text-lg font-semibold text-flexoki-tx">K·I</h2>
             {conversationId && messages.length > 0 && (
               <button
                 onClick={handleClearConversation}

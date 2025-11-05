@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Text, TouchableOpacity, StyleSheet, Animated } from "react-native";
+import { ThemedText } from "./ThemedText";
 
 interface CycleIndicatorProps {
   cycleDay: number | null;
@@ -67,7 +68,7 @@ export default function CycleIndicator({
           },
         ]}
       >
-        <Text style={styles.text}>{displayText}</Text>
+        <ThemedText style={styles.text}>{displayText}</ThemedText>
       </Animated.View>
     </TouchableOpacity>
   );

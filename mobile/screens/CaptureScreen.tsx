@@ -22,6 +22,7 @@ import type { CaptureScreenProps } from "../types/navigation";
 import CycleIndicator from "../components/CycleIndicator";
 import CycleModal from "../components/CycleModal";
 import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
+import { ThemedText } from "../components/ThemedText";
 
 // BACKFILL MODE - Set to true to enable date input for historical data entry
 const BACKFILL_MODE = false;
@@ -421,9 +422,9 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         {uploading && (
           <View style={styles.uploadingContainer}>
             <ActivityIndicator size="large" color={colors.accent2} />
-            <Text style={[styles.uploadingText, { color: colors.tx2 }]}>
+            <ThemedText style={[styles.uploadingText, { color: colors.tx2 }]}>
               Uploading voice note...
-            </Text>
+            </ThemedText>
           </View>
         )}
 
@@ -432,9 +433,9 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
             {/* Backfill Date Input - only show when BACKFILL_MODE is enabled and not recording */}
             {BACKFILL_MODE && !recording && (
               <View style={styles.backfillContainer} pointerEvents="box-none">
-                <Text style={[styles.backfillLabel, { color: colors.tx2 }]}>
+                <ThemedText style={[styles.backfillLabel, { color: colors.tx2 }]}>
                   Backfill Date (YYYY-MM-DD):
-                </Text>
+                </ThemedText>
                 <TextInput
                   style={[
                     styles.backfillInput,
@@ -479,9 +480,9 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         {/* Recording duration - fixed at bottom, only show when recording */}
         {recording && (
           <View style={styles.durationContainer}>
-            <Text style={[styles.durationText, { color: colors.tx }]}>
+            <ThemedText style={[styles.durationText, { color: colors.tx }]}>
               {formatDuration(recordingDuration)}
-            </Text>
+            </ThemedText>
           </View>
         )}
       </View>

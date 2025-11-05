@@ -92,7 +92,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                       : "text-flexoki-tx font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent"
                   }`}
                 >
-                  MEDIA
+                  GARDEN
                 </a>
                 <a
                   href="/dashboard/documents"
@@ -102,7 +102,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                       : "text-flexoki-tx font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent"
                   }`}
                 >
-                  DOCUMENTS
+                  JOURNAL
                 </a>
               </div>
             </div>
