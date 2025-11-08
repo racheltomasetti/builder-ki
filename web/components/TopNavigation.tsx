@@ -70,7 +70,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center gap-8">
               <div className="flex items-center">
-                <h1 className="text-3xl font-bold text-flexoki-tx">~ K·I ~</h1>
+                <h1 className="text-3xl font-bold text-flexoki-tx">~ ki ~</h1>
               </div>
               {/* Navigation Links */}
               <div className="flex items-center gap-6">
@@ -92,7 +92,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                       : "text-flexoki-tx font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent"
                   }`}
                 >
-                  GARDEN
+                  MEDIA
                 </a>
                 <a
                   href="/dashboard/documents"

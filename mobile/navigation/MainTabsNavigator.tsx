@@ -73,7 +73,7 @@ export default function MainTabsNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
-          headerTitle: "~ K·I ~",
+          headerTitle: "~ ki ~",
           headerTitleStyle: {
             fontSize: 25,
             color: colors.tx,
