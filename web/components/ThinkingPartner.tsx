@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
+import AgentPromptEditor from "./AgentPromptEditor";
 import { createClient } from "@/lib/supabase/client";
+import { Settings2 } from "lucide-react";
 
 type Message = {
   id: string;
@@ -32,6 +34,7 @@ export default function ThinkingPartner({
   const [isStreaming, setIsStreaming] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState(false);
+  const [isEditingPrompt, setIsEditingPrompt] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -259,42 +262,125 @@ export default function ThinkingPartner({
         }`}
         style={{ width: panelWidth }}
       >
-        <div className="flex flex-col h-full relative">
-          {/* Resize Handle */}
-          <div
-            onMouseDown={handleMouseDown}
-            className={`absolute left-0 top-0 h-full w-1 hover:w-2 cursor-col-resize bg-transparent hover:bg-flexoki-accent transition-all ${
-              isResizing ? "w-2 bg-flexoki-accent" : ""
-            }`}
-            style={{ zIndex: 50 }}
+        {/* Show either chat view or editor view */}
+        {isEditingPrompt ? (
+          <AgentPromptEditor
+            documentId={documentId}
+            onClose={() => setIsEditingPrompt(false)}
           />
-          {/* Header */}
-          <div className="border-b border-flexoki-ui-3 p-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-flexoki-tx">K·I</h2>
-            {conversationId && messages.length > 0 && (
-              <button
-                onClick={handleClearConversation}
-                className="text-flexoki-tx-3 hover:text-flexoki-accent text-sm transition-colors"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-full">
-                <span className="text-flexoki-tx-3">Loading...</span>
+        ) : (
+          <div className="flex flex-col h-full relative">
+            {/* Resize Handle */}
+            <div
+              onMouseDown={handleMouseDown}
+              className={`absolute left-0 top-0 h-full w-1 hover:w-2 cursor-col-resize bg-transparent hover:bg-flexoki-accent transition-all ${
+                isResizing ? "w-2 bg-flexoki-accent" : ""
+              }`}
+              style={{ zIndex: 50 }}
+            />
+            {/* Header */}
+            <div className="border-b border-flexoki-ui-3 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {conversationId && messages.length > 0 && (
+                  <button
+                    onClick={handleClearConversation}
+                    className="text-flexoki-tx-3 hover:text-flexoki-accent text-sm transition-colors"
+                  >
+                    CLEAR
+                  </button>
+                )}
               </div>
-            ) : messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-center px-6">
-                <div className="text-flexoki-tx-2">
-                  <p className="mb-3 text-lg">👋 Hi there!</p>
-                  <p className="text-sm mb-4">
-                    I'm your thinking partner. I can help you:
-                  </p>
-                  <div className="text-sm text-left space-y-2 mb-4 text-flexoki-tx-3">
+
+              {/* Center icon when there are messages */}
+              {messages.length > 0 && (
+                <div className="absolute left-1/2 transform -translate-x-1/2">
+                  <img src="/icon.png" className="w-11 h-11 animate-bob" />
+                </div>
+              )}
+
+              <button
+                onClick={() => setIsEditingPrompt(true)}
+                className="p-2 rounded-lg text-flexoki-tx-3 hover:text-flexoki-accent hover:bg-flexoki-ui-2 transition-colors"
+                title="CUSTOMIZE your ki"
+              >
+                <Settings2 className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {isLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-flexoki-tx-3">loading...</span>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-center px-6">
+                  <div className="text-flexoki-tx-2">
+                    {/* bobbing icon of ki - centered */}
+                    <div className="flex justify-center mb-4">
+                      <img src="/icon.png" className="w-16 h-16 animate-bob" />
+                    </div>
+                    <p className="text-lg mb-4 italic text-flexoki-tx font-bold">
+                      <span className="text-flexoki-accent">
+                        extension of the mind
+                      </span>{" "}
+                      |{" "}
+                      <span className="text-flexoki-accent-2">
+                        mirror for thinking
+                      </span>
+                    </p>
+
+                    <div className="text-md text-left space-y-3 mb-4 text-flexoki-tx-2">
+                      <p>
+                        <span className="font-semibold text-flexoki-tx">
+                          what i have access to:
+                        </span>
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>document content</li>
+                        <li>voice note transcriptions & insights</li>
+                        <li>recent thought captures for context</li>
+                        <li>our conversation history</li>
+                      </ul>
+
+                      <p className="mt-3">
+                        <span className="font-semibold text-flexoki-tx">
+                          how i work by default:
+                        </span>
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>reflect and clarify your thinking</li>
+                        <li>ask questions to help you explore deeper</li>
+                        <li>connect ideas across your captures over time</li>
+                        <li>suggest structure when asked</li>
+                        <li>
+                          help you develop your own thinking (not do it for you)
+                        </li>
+                      </ul>
+
+                      <div className="mt-4 p-4 rounded-lg border border-flexoki-accent bg-flexoki-accent/5">
+                        <p className="mb-2">
+                          <span className="font-semibold text-flexoki-tx">
+                            customize me:
+                          </span>
+                        </p>
+                        <p>
+                          click the{" "}
+                          <span className="inline-flex items-center">
+                            <Settings2 className="h-3 w-3 mx-1" />
+                          </span>{" "}
+                          icon above to customize how i interact with you.
+                          change my personality, focus, or approach to fit your
+                          specific use case - globally or per-document.
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-flexoki-tx-3 italic mt-4">
+                      try: "what patterns do you see in my recent thinking?" or
+                      "help me explore this idea further"
+                    </p>
+                    {/* <div className="text-sm text-left space-y-2 mb-4 text-flexoki-tx-3">
                     <p>• Explore ideas in your document</p>
                     <p>• Reference your past captures</p>
                     <p>• Identify patterns across time</p>
@@ -304,68 +390,69 @@ export default function ThinkingPartner({
                   <p className="text-xs text-flexoki-tx-3 italic">
                     Try: "What patterns do you see in my recent thinking?" or
                     "Help me craft a story about..."
-                  </p>
+                  </p> */}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <>
-                {messages.map((msg) => (
-                  <MessageBubble key={msg.id} message={msg} />
-                ))}
-                {isStreaming && (
-                  <div className="flex justify-start mb-4">
-                    <div className="bg-flexoki-ui-2 rounded-lg px-4 py-3">
-                      <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-flexoki-tx-3 rounded-full animate-pulse"></span>
-                        <span
-                          className="w-2 h-2 bg-flexoki-tx-3 rounded-full animate-pulse"
-                          style={{ animationDelay: "0.2s" }}
-                        ></span>
-                        <span
-                          className="w-2 h-2 bg-flexoki-tx-3 rounded-full animate-pulse"
-                          style={{ animationDelay: "0.4s" }}
-                        ></span>
+              ) : (
+                <>
+                  {messages.map((msg) => (
+                    <MessageBubble key={msg.id} message={msg} />
+                  ))}
+                  {isStreaming && (
+                    <div className="flex justify-start mb-4">
+                      <div className="bg-flexoki-ui-2 rounded-lg px-4 py-3">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 bg-flexoki-tx-3 rounded-full animate-pulse"></span>
+                          <span
+                            className="w-2 h-2 bg-flexoki-tx-3 rounded-full animate-pulse"
+                            style={{ animationDelay: "0.2s" }}
+                          ></span>
+                          <span
+                            className="w-2 h-2 bg-flexoki-tx-3 rounded-full animate-pulse"
+                            style={{ animationDelay: "0.4s" }}
+                          ></span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </>
-            )}
-          </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </>
+              )}
+            </div>
 
-          {/* Input */}
-          <div className="border-t border-flexoki-ui-3 p-4">
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask for help, structure suggestions, or connections..."
-              className="w-full px-3 py-2 bg-flexoki-ui-2 border border-flexoki-ui-3 rounded-lg text-flexoki-tx placeholder-flexoki-tx-3 focus:outline-none focus:ring-2 focus:ring-flexoki-accent resize-none"
-              rows={3}
-              disabled={isStreaming}
-            />
-            <div className="flex justify-between items-center mt-2">
-              <span className="text-xs text-flexoki-tx-3">
-                {isStreaming
-                  ? "Thinking..."
-                  : "Press Enter to send, Shift+Enter for new line"}
-              </span>
-              <button
-                onClick={handleSendMessage}
-                disabled={!input.trim() || isStreaming}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  !input.trim() || isStreaming
-                    ? "bg-flexoki-ui-3 text-flexoki-tx-3 cursor-not-allowed"
-                    : "bg-flexoki-accent text-white hover:bg-opacity-90"
-                }`}
-              >
-                Send
-              </button>
+            {/* Input */}
+            <div className="border-t border-flexoki-ui-3 p-4">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask for help, structure suggestions, or connections..."
+                className="w-full px-3 py-2 bg-flexoki-ui-2 border border-flexoki-ui-3 rounded-lg text-flexoki-tx placeholder-flexoki-tx-3 focus:outline-none focus:ring-2 focus:ring-flexoki-accent resize-none"
+                rows={3}
+                disabled={isStreaming}
+              />
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-xs text-flexoki-tx-3">
+                  {isStreaming
+                    ? "thinking..."
+                    : "press Enter to send, Shift+Enter for new line"}
+                </span>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!input.trim() || isStreaming}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    !input.trim() || isStreaming
+                      ? "bg-flexoki-ui-3 text-flexoki-tx-3 cursor-not-allowed"
+                      : "bg-flexoki-accent text-white hover:bg-opacity-90"
+                  }`}
+                >
+                  SEND
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );

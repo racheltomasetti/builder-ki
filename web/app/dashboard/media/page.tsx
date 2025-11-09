@@ -220,15 +220,15 @@ export default function MediaLibraryPage() {
           <div className="flex items-center gap-3">
             <ImageIcon className="w-8 h-8 text-flexoki-accent" />
             <h1 className="text-3xl font-bold text-flexoki-tx">
-              MEDIA LIBRARY
+              media library
             </h1>
           </div>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-flexoki-accent text-flexoki-tx rounded-lg hover:opacity-90 transition-opacity hover:text-2xl hover:font-bold"
+            className="flex items-center gap-2 px-4 py-2 bg-flexoki-accent text-flexoki-tx rounded-lg hover:opacity-90 transition-opacity hover:text-xl hover:font-bold hover:bg-flexoki-accent-2"
           >
             <Upload className="w-5 h-5" />
-            <span className="font-medium">Upload</span>
+            <span className="font-medium">UPLOAD</span>
           </button>
         </div>
         <p className="text-flexoki-tx-2">

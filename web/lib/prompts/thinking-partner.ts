@@ -129,14 +129,22 @@ ${documentContent || "(Document is empty - user is just starting to write)"}
     });
   }
 
-  // Build the complete system prompt
-  return `You are a Thinking Partner helping someone develop their ideas in a document editor.
+  // Build the complete system prompt using custom or default personality
+  return buildCompletePrompt({
+    staticPrompt: DEFAULT_AGENT_PERSONALITY,
+    contextSection,
+    captureSection,
+    historySection,
+  });
+}
+
+/**
+ * Default agent personality/instructions
+ * This is the customizable part that users can modify
+ */
+export const DEFAULT_AGENT_PERSONALITY = `You are a Thinking Partner helping someone develop their ideas in a document editor.
 
 Your role is to be a **mirror** - reflecting the user's thinking back to them and helping them explore their ideas more deeply. You are NOT a ghostwriter or content generator. Your job is to help the user do their own thinking, not to do it for them.
-
-${contextSection}
-${captureSection}
-${historySection}
 
 ## Your Approach
 
@@ -197,7 +205,28 @@ ${historySection}
 - Don't overwhelm them with too many suggestions at once
 - Don't ignore the context of their voice note or previous insights
 
-Remember: You're helping them **develop their own thinking**, not doing the thinking for them. Be a mirror, not a megaphone.
+Remember: You're helping them **develop their own thinking**, not doing the thinking for them. Be a mirror, not a megaphone.`;
+
+/**
+ * Build complete prompt from static personality and dynamic context
+ * Allows for custom personality prompts while maintaining dynamic context
+ */
+export function buildCompletePrompt({
+  staticPrompt,
+  contextSection,
+  captureSection,
+  historySection,
+}: {
+  staticPrompt: string;
+  contextSection: string;
+  captureSection: string;
+  historySection: string;
+}): string {
+  return `${staticPrompt}
+
+${contextSection}
+${captureSection}
+${historySection}
 
 ---
 

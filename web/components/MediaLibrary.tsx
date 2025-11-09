@@ -144,16 +144,18 @@ export default function MediaLibrary({
         );
       } else {
         // Voice capture search
-        return (
-          (item.data.transcription || "")
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase())
-        );
+        return (item.data.transcription || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
       }
     });
 
-  const mediaCount = libraryItems.filter((item) => item.type === "media").length;
-  const voiceCount = libraryItems.filter((item) => item.type === "voice").length;
+  const mediaCount = libraryItems.filter(
+    (item) => item.type === "media"
+  ).length;
+  const voiceCount = libraryItems.filter(
+    (item) => item.type === "voice"
+  ).length;
 
   const getDisplayDate = (item: LibraryItem) => {
     const date =
@@ -246,7 +248,9 @@ export default function MediaLibrary({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Search ${activeTab === "media" ? "photos & videos" : "voice notes"}...`}
+              placeholder={`Search ${
+                activeTab === "media" ? "photos & videos" : "voice notes"
+              }...`}
               className="block w-full pl-9 pr-4 py-2 bg-flexoki-ui border border-flexoki-ui-3 rounded-lg text-sm text-flexoki-tx placeholder-flexoki-tx-3 focus:outline-none focus:ring-2 focus:ring-flexoki-accent focus:border-transparent transition-all"
             />
           </div>
@@ -266,7 +270,9 @@ export default function MediaLibrary({
               <ImageIcon className="w-4 h-4" />
               <span>Photos & Videos</span>
               {mediaCount > 0 && (
-                <span className="text-xs text-flexoki-tx-3">({mediaCount})</span>
+                <span className="text-xs text-flexoki-tx-3">
+                  ({mediaCount})
+                </span>
               )}
             </div>
             {activeTab === "media" && (
@@ -298,7 +304,9 @@ export default function MediaLibrary({
               </svg>
               <span>Voice Notes</span>
               {voiceCount > 0 && (
-                <span className="text-xs text-flexoki-tx-3">({voiceCount})</span>
+                <span className="text-xs text-flexoki-tx-3">
+                  ({voiceCount})
+                </span>
               )}
             </div>
             {activeTab === "voice" && (
@@ -355,34 +363,37 @@ export default function MediaLibrary({
             </div>
           ) : activeTab === "media" ? (
             <div className="grid grid-cols-2 gap-3">
-              {filteredItems.map((item) => (
-                <button
-                  key={`media-${item.data.id}`}
-                  onClick={() => {
-                    if (item.type === "media") {
-                      onMediaSelect(item.data.file_url);
-                    }
-                  }}
-                  className="group relative aspect-square rounded-lg overflow-hidden bg-flexoki-ui-2 hover:ring-2 hover:ring-flexoki-accent transition-all"
-                >
-                  <img
-                    src={item.data.file_url}
-                    alt={item.data.caption || "Media"}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
-                    <p className="text-xs text-white font-medium truncate">
-                      {getDisplayDate(item)}
-                    </p>
-                    {item.type === "media" && item.data.caption && (
-                      <p className="text-xs text-white/80 truncate">
-                        {item.data.caption}
+              {filteredItems.map((item) => {
+                const mediaItem = item.type === "media" ? item.data : null;
+                return (
+                  <button
+                    key={`media-${item.data.id}`}
+                    onClick={() => {
+                      if (item.type === "media") {
+                        onMediaSelect(item.data.file_url);
+                      }
+                    }}
+                    className="group relative aspect-square rounded-lg overflow-hidden bg-flexoki-ui-2 hover:ring-2 hover:ring-flexoki-accent transition-all"
+                  >
+                    <img
+                      src={item.data.file_url}
+                      alt={mediaItem?.caption || "Media"}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
+                      <p className="text-xs text-white font-medium truncate">
+                        {getDisplayDate(item)}
                       </p>
-                    )}
-                  </div>
-                </button>
-              ))}
+                      {mediaItem?.caption && (
+                        <p className="text-xs text-white/80 truncate">
+                          {mediaItem.caption}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div className="space-y-3">

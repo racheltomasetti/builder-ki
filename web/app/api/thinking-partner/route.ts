@@ -1,5 +1,8 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { buildThinkingPartnerPrompt } from "@/lib/prompts/thinking-partner";
+import {
+  buildThinkingPartnerPrompt,
+  DEFAULT_AGENT_PERSONALITY,
+} from "@/lib/prompts/thinking-partner";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const runtime = "edge";
@@ -30,7 +33,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Fetch document with linked capture and insights
+    // Fetch document with linked capture and insights (including custom prompt)
     const { data: document, error: docError } = await supabase
       .from("documents")
       .select(
@@ -55,6 +58,19 @@ export async function POST(request: Request) {
         status: 404,
       });
     }
+
+    // Fetch user's default agent prompt setting
+    const { data: userSettings } = await supabase
+      .from("user_settings")
+      .select("default_agent_prompt")
+      .eq("user_id", user.id)
+      .single();
+
+    // Determine which prompt to use (priority: document > user default > system default)
+    const customPrompt =
+      document.custom_agent_prompt ||
+      userSettings?.default_agent_prompt ||
+      DEFAULT_AGENT_PERSONALITY;
 
     // Get or create conversation for this document
     let { data: conversation, error: convError } = await supabase
@@ -139,15 +155,110 @@ export async function POST(request: Request) {
 
     console.log(`Filtered to ${relevantCaptures.length} relevant captures`);
 
-    // Build system prompt with context
-    const systemPrompt = buildThinkingPartnerPrompt({
+    // Build system prompt with context using custom or default personality
+    const context = {
       documentTitle: document.title,
       documentContent: documentPlainText,
       transcription: document.captures?.transcription,
       insights: document.captures?.insights || [],
       conversationHistory: historyMessages || [],
       captureDatabase: relevantCaptures,
-    });
+    };
+
+    // Use buildThinkingPartnerPrompt but we'll override with custom prompt
+    // First build with default to get the context sections
+    const defaultPrompt = buildThinkingPartnerPrompt(context);
+
+    // Then rebuild using custom personality
+    // Extract context sections by rebuilding just the context
+    let contextSection = `## Current Document
+
+**Title:** ${context.documentTitle || "Untitled Document"}
+
+**Content:**
+${context.documentContent || "(Document is empty - user is just starting to write)"}
+`;
+
+    if (context.transcription || context.insights) {
+      contextSection += `\n## Original Voice Note Context\n`;
+
+      if (context.transcription) {
+        contextSection += `\n**Original Transcription:**\n"${context.transcription}"\n`;
+      }
+
+      if (context.insights && context.insights.length > 0) {
+        contextSection += `\n**Extracted Insights:**\n`;
+
+        const groupedInsights = context.insights.reduce((acc: Record<string, string[]>, insight: any) => {
+          if (!acc[insight.type]) acc[insight.type] = [];
+          acc[insight.type].push(insight.content);
+          return acc;
+        }, {});
+
+        Object.entries(groupedInsights).forEach(([type, items]) => {
+          contextSection += `\n**${type.charAt(0).toUpperCase() + type.slice(1)}s:**\n`;
+          items.forEach((item) => {
+            contextSection += `- ${item}\n`;
+          });
+        });
+      }
+    }
+
+    let captureSection = "";
+    if (context.captureDatabase && context.captureDatabase.length > 0) {
+      captureSection = `\n## Thought Capture Database\n\n`;
+      captureSection += `You have access to ${context.captureDatabase.length} relevant thought captures from the user's history. These are actual voice notes they've recorded, providing rich context for understanding their thinking journey.\n\n`;
+
+      context.captureDatabase.forEach((capture: any, index: number) => {
+        const date =
+          capture.log_date ||
+          new Date(capture.created_at).toISOString().split("T")[0];
+        const noteTypeLabel =
+          capture.note_type === "intention"
+            ? "Morning Intention"
+            : capture.note_type === "reflection"
+            ? "Evening Reflection"
+            : "Daily Capture";
+
+        captureSection += `### ${index + 1}. [${date}] ${noteTypeLabel}\n`;
+
+        if (capture.transcription) {
+          const truncated =
+            capture.transcription.length > 300
+              ? capture.transcription.slice(0, 300) + "..."
+              : capture.transcription;
+          captureSection += `**Transcription:** "${truncated}"\n`;
+        }
+
+        if (capture.insights && capture.insights.length > 0) {
+          captureSection += `**Insights:**\n`;
+          capture.insights.forEach((insight: any) => {
+            captureSection += `- [${insight.type}] ${insight.content}\n`;
+          });
+        }
+
+        captureSection += `\n`;
+      });
+    }
+
+    let historySection = "";
+    if (context.conversationHistory.length > 0) {
+      historySection = `\n## Previous Conversation\n\n`;
+      context.conversationHistory.forEach((msg: any) => {
+        historySection += `**${msg.role === "user" ? "User" : "Assistant"}:** ${msg.content}\n\n`;
+      });
+    }
+
+    // Build complete prompt with custom personality
+    const systemPrompt = `${customPrompt}
+
+${contextSection}
+${captureSection}
+${historySection}
+
+---
+
+Now respond to the user's latest message with curiosity and attention to their specific context.`;
 
     // Save user message to database
     const { error: userMsgError } = await supabase.from("messages").insert({

@@ -70,39 +70,41 @@ export default function TopNavigation({ user }: TopNavigationProps) {
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center gap-8">
               <div className="flex items-center">
-                <h1 className="text-3xl font-bold text-flexoki-tx">~ ki ~</h1>
+                <h1 className="text-3xl font-bold text-flexoki-accent italic">
+                  ki
+                </h1>
               </div>
               {/* Navigation Links */}
               <div className="flex items-center gap-6">
                 <a
                   href="/dashboard"
-                  className={`text-xl transition-colors ${
+                  className={`text-xl italic transition-colors ${
                     isActive("/dashboard")
-                      ? "text-flexoki-accent font-bold"
-                      : "text-flexoki-tx font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent"
+                      ? "text-flexoki-accent-2 font-bold"
+                      : "text-flexoki-accent font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
                   }`}
                 >
-                  THOUGHTS
+                  thoughts
                 </a>
                 <a
                   href="/dashboard/media"
-                  className={`text-xl medium transition-colors ${
+                  className={`text-xl italic medium transition-colors ${
                     isActive("/dashboard/media")
-                      ? "text-flexoki-accent font-bold"
-                      : "text-flexoki-tx font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent"
+                      ? "text-flexoki-accent-2 font-bold"
+                      : "text-flexoki-accent font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
                   }`}
                 >
-                  MEDIA
+                  media
                 </a>
                 <a
                   href="/dashboard/documents"
-                  className={`text-xl medium transition-colors ${
+                  className={`text-xl italic medium transition-colors ${
                     isActive("/dashboard/documents")
-                      ? "text-flexoki-accent font-bold"
-                      : "text-flexoki-tx font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent"
+                      ? "text-flexoki-accent-2 font-bold"
+                      : "text-flexoki-accent font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
                   }`}
                 >
-                  JOURNAL
+                  journal
                 </a>
               </div>
             </div>

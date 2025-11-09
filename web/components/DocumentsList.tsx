@@ -142,7 +142,7 @@ export default function DocumentsList({
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-flexoki-tx mb-2">
-            {focusMode ? "FOCUS" : "DOCUMENTS"}
+            {focusMode ? "FOCUS" : "my documents"}
           </h1>
           <p className="text-flexoki-tx-2">
             {focusMode
@@ -180,7 +180,7 @@ export default function DocumentsList({
                     d="M10 19l-7-7m0 0l7-7m-7 7h18"
                   />
                 </svg>
-                All Documents
+                all documents
               </>
             ) : (
               <>· FOCUS ·</>
@@ -203,9 +203,9 @@ export default function DocumentsList({
             {focusMode ? (
               // Empty state for focus mode with no focused documents
               <>
-                <div className="text-6xl mb-4">🎯</div>
+                {/* <div className="text-6xl mb-4">🎯</div> */}
                 <h2 className="text-xl font-semibold text-flexoki-tx mb-2">
-                  No focused documents
+                  no focused documents yet
                 </h2>
                 <p className="text-flexoki-tx-2 mb-6">
                   Click the target icon on any document to focus on it.

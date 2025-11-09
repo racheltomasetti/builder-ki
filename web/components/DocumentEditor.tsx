@@ -159,7 +159,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
         bold: {
           // Allow bold to coexist with other marks like color
           HTMLAttributes: {
-            class: 'font-bold',
+            class: "font-bold",
           },
         },
       }),
@@ -167,7 +167,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
       VoiceCaptureNode,
       TextStyle,
       Color.configure({
-        types: ['textStyle'],
+        types: ["textStyle"],
       }),
       Placeholder.configure({
         placeholder: "Start writing your thoughts...",
@@ -404,11 +404,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
   const handleVoiceCaptureSelect = (captureId: string) => {
     if (!editor) return;
 
-    editor
-      .chain()
-      .focus()
-      .setVoiceCapture({ captureId })
-      .run();
+    editor.chain().focus().setVoiceCapture({ captureId }).run();
 
     // Optionally close the media library after insertion
     setIsMediaLibraryOpen(false);
@@ -627,15 +623,15 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
         <button
           onClick={handleTogglePublic}
           disabled={isTogglingPublic}
-          className={`px-4 py-2 text-xl rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 ${
+          className={`px-4 py-2 text-3xl rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 ${
             isPublic
-              ? "bg-green-600 text-white hover:bg-green-700 hover:text-2xl hover:font-bold"
-              : "bg-flexoki-ui-2 border border-green-600 border-opacity-50 font-bold bg-opacity-50 text-flexoki-tx hover:text-2xl hover:bg-green-700 hover:bg-opacity-70"
+              ? "bg-flexoki-accent-2 text-white hover:text-3xl hover:italic hover:font-bold"
+              : "bg-flexoki-accent font-bold text-flexoki-tx hover:text-3xl hover:italic hover:font-bold hover:bg-flexoki-accent-2"
           }`}
           title={
             isPublic
-              ? "Document is public - click to make private"
-              : "Document is private - click to share"
+              ? "document is public - click to make private"
+              : "document is private - click to share"
           }
         >
           {isPublic ? (
@@ -658,7 +654,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
           value={title}
           onChange={(e) => handleTitleChange(e.target.value)}
           className="text-6xl font-bold bg-transparent border-none text-flexoki-tx focus:outline-none w-full mb-6 placeholder-flexoki-tx-3 leading-tight"
-          placeholder="Untitled Document"
+          placeholder="to be named..."
           style={{ lineHeight: "2.2" }}
         />
 
@@ -691,9 +687,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
 
             {/* Color Buttons */}
             <button
-              onClick={() =>
-                editor.chain().focus().setColor("#af3029").run()
-              }
+              onClick={() => editor.chain().focus().setColor("#af3029").run()}
               className={`mt-3 px-3 py-1 rounded text-sm flex items-center gap-1 ${
                 editor.getAttributes("textStyle").color === "#af3029"
                   ? "bg-flexoki-ui-3 ring-2 ring-[#af3029]"
@@ -707,9 +701,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
               ></div>
             </button>
             <button
-              onClick={() =>
-                editor.chain().focus().setColor("#24837b").run()
-              }
+              onClick={() => editor.chain().focus().setColor("#24837b").run()}
               className={`mt-3 px-3 py-1 rounded text-sm flex items-center gap-1 ${
                 editor.getAttributes("textStyle").color === "#24837b"
                   ? "bg-flexoki-ui-3 ring-2 ring-[#24837b]"
