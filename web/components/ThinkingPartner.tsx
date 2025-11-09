@@ -71,7 +71,8 @@ export default function ThinkingPartner({
       if (!isResizing) return;
 
       const newWidth = window.innerWidth - e.clientX;
-      const clampedWidth = Math.max(300, Math.min(900, newWidth));
+      // thinking partner panel width is between 600 and 900 pixels
+      const clampedWidth = Math.max(600, Math.min(900, newWidth));
       onWidthChange(clampedWidth);
     };
 
@@ -308,14 +309,14 @@ export default function ThinkingPartner({
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 bg-flexoki-ui-2">
               {isLoading ? (
                 <div className="flex items-center justify-center h-full">
                   <span className="text-flexoki-tx-3">loading...</span>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-center px-6">
-                  <div className="text-flexoki-tx-2">
+                  <div className="p-6 rounded-xl border-2 border-flexoki-accent-2 bg-flexoki-accent-2/5 max-w-2xl bg-flexoki-ui shadow-lg">
                     {/* bobbing icon of ki - centered */}
                     <div className="flex justify-center mb-4">
                       <img src="/icon.png" className="w-16 h-16 animate-bob" />
@@ -330,35 +331,45 @@ export default function ThinkingPartner({
                       </span>
                     </p>
 
-                    <div className="text-md text-left space-y-3 mb-4 text-flexoki-tx-2">
-                      <p>
-                        <span className="font-semibold text-flexoki-tx">
-                          what i have access to:
-                        </span>
-                      </p>
-                      <ul className="list-disc list-inside space-y-1 ml-2">
-                        <li>document content</li>
-                        <li>voice note transcriptions & insights</li>
-                        <li>recent thought captures for context</li>
-                        <li>our conversation history</li>
-                      </ul>
+                    <div className="text-md text-left mb-4 text-flexoki-tx-2">
+                      {/* Two column layout for lists */}
+                      <div className="grid grid-cols-2 gap-6 mb-6">
+                        <div>
+                          <p className="mb-3">
+                            <span className="font-semibold text-flexoki-tx">
+                              what ki has access to:
+                            </span>
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 ml-2">
+                            <li>document content</li>
+                            <li>voice note transcriptions & insights</li>
+                            <li>recent thought captures for context</li>
+                            <li>our conversation history</li>
+                          </ul>
+                        </div>
 
-                      <p className="mt-3">
-                        <span className="font-semibold text-flexoki-tx">
-                          how i work by default:
-                        </span>
-                      </p>
-                      <ul className="list-disc list-inside space-y-1 ml-2">
-                        <li>reflect and clarify your thinking</li>
-                        <li>ask questions to help you explore deeper</li>
-                        <li>connect ideas across your captures over time</li>
-                        <li>suggest structure when asked</li>
-                        <li>
-                          help you develop your own thinking (not do it for you)
-                        </li>
-                      </ul>
+                        <div>
+                          <p className="mb-3">
+                            <span className="font-semibold text-flexoki-tx">
+                              how ki works by default:
+                            </span>
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 ml-2">
+                            <li>reflect and clarify your thinking</li>
+                            <li>ask questions to help you explore deeper</li>
+                            <li>
+                              connect ideas across your captures over time
+                            </li>
+                            <li>suggest structure when asked</li>
+                            <li>
+                              help you develop your own thinking (not do it for
+                              you)
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
 
-                      <div className="mt-4 p-4 rounded-lg border border-flexoki-accent bg-flexoki-accent/5">
+                      <div className="p-4 rounded-lg border border-flexoki-accent bg-flexoki-accent/5">
                         <p className="mb-2">
                           <span className="font-semibold text-flexoki-tx">
                             customize me:
@@ -380,17 +391,6 @@ export default function ThinkingPartner({
                       try: "what patterns do you see in my recent thinking?" or
                       "help me explore this idea further"
                     </p>
-                    {/* <div className="text-sm text-left space-y-2 mb-4 text-flexoki-tx-3">
-                    <p>• Explore ideas in your document</p>
-                    <p>• Reference your past captures</p>
-                    <p>• Identify patterns across time</p>
-                    <p>• Distill stories from your journey</p>
-                    <p>• Connect themes and insights</p>
-                  </div>
-                  <p className="text-xs text-flexoki-tx-3 italic">
-                    Try: "What patterns do you see in my recent thinking?" or
-                    "Help me craft a story about..."
-                  </p> */}
                   </div>
                 </div>
               ) : (

@@ -178,8 +178,8 @@ export default function AgentPromptEditor({
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
-            <h2 className="text-3xl font-semibold text-flexoki-accent italic">
-              CUSTOMIZE your ki
+            <h2 className="text-3xl font-semibold text-flexoki-accent-2 italic">
+              <span className="text-flexoki-accent">CUSTOMIZE</span> your ki
             </h2>
           </div>
         </div>
