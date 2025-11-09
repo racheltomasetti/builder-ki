@@ -5,6 +5,7 @@
 Create a holistic "extended mind" tool that connects the physical (BODY) and mental (MIND) dimensions of human experience. Users capture their lived experience through timer sessions that track flows, habits, and activities, with voice notes providing rich context within those flows. The web calendar visualizes this data in cycle-centric ways, revealing patterns and connections between mind and body.
 
 **Core Philosophy**: MIND & BODY are inseparable. The calendar ties together:
+
 - **BODY**: Biological cycles (menstrual cycle tracking), physical activities, habits
 - **MIND**: Thoughts (voice captures), documents, agent interactions
 - **FLOW**: Timer sessions that contextualize everything else
@@ -14,20 +15,24 @@ Create a holistic "extended mind" tool that connects the physical (BODY) and men
 ## User Flows
 
 ### Mobile: Timer Capture Flow
-1. User opens app to CaptureScreen (sees two KI logos stacked vertically)
+
+<!-- 1. User opens app to CaptureScreen
+start flow button
 2. User taps **TOP logo** (timer logo) → Modal appears
 3. User names the timer (e.g., "Deep Work", "Morning Run", "Fasting")
 4. Timer starts, shows elapsed time on screen
 5. During timer session, user can capture voice notes → voice notes auto-tagged with active timer(s)
 6. User stops timer when flow/activity ends
-7. Timer session saved to database with start_time, end_time, duration
+7. Timer session saved to database with start_time, end_time, duration -->
 
 ### Mobile: Voice + Timer Integration
+
 - If timer(s) running when voice note captured → voice note tagged with all active timer session IDs
 - If no timers running → voice note captured normally (existing flow)
 - User can see which voice notes were captured during which timer sessions
 
 ### Web: Calendar Exploration Flow
+
 1. User navigates to Calendar/Dashboard page
 2. **Primary View**: Cycle-centric visualization (28-day wheel/circle)
    - Shows timer sessions mapped to cycle phases
@@ -163,6 +168,7 @@ CREATE INDEX IF NOT EXISTS idx_captures_timer_sessions ON captures USING GIN(tim
 ## Data Relationships
 
 ### Timer → Voice Notes (One-to-Many)
+
 - One timer session can have many voice notes captured during it
 - Voice notes stored in `captures` table with `timer_session_ids` array
 - Query: "Get all voice notes for timer session X"
@@ -174,6 +180,7 @@ CREATE INDEX IF NOT EXISTS idx_captures_timer_sessions ON captures USING GIN(tim
   ```
 
 ### Voice Note → Timers (Many-to-Many)
+
 - One voice note can be associated with multiple concurrent timer sessions
 - Stored as array in `timer_session_ids` column
 - Query: "Get all timers for voice note X"
@@ -187,6 +194,7 @@ CREATE INDEX IF NOT EXISTS idx_captures_timer_sessions ON captures USING GIN(tim
   ```
 
 ### Timer → Cycle Phase (Enriched Context)
+
 - Timer sessions auto-tagged with `cycle_day` and `cycle_phase` via trigger
 - Enables filtering/grouping timers by cycle phase for insights
 - Query: "Get all timer sessions during ovulation phase"
@@ -206,7 +214,7 @@ CREATE INDEX IF NOT EXISTS idx_captures_timer_sessions ON captures USING GIN(tim
 ```typescript
 // lib/timerApi.ts
 
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 
 export interface TimerSession {
   id: string;
@@ -215,7 +223,7 @@ export interface TimerSession {
   description?: string;
   start_time: string;
   end_time?: string;
-  status: 'active' | 'paused' | 'completed';
+  status: "active" | "paused" | "completed";
   cycle_day?: number;
   cycle_phase?: string;
   created_at: string;
@@ -229,13 +237,13 @@ export async function startTimer(
   description?: string
 ): Promise<TimerSession> {
   const { data, error } = await supabase
-    .from('timer_sessions')
+    .from("timer_sessions")
     .insert({
       user_id: userId,
       name,
       description,
       start_time: new Date().toISOString(),
-      status: 'active',
+      status: "active",
     })
     .select()
     .single();
@@ -247,12 +255,12 @@ export async function startTimer(
 // Stop a timer
 export async function stopTimer(timerId: string): Promise<TimerSession> {
   const { data, error } = await supabase
-    .from('timer_sessions')
+    .from("timer_sessions")
     .update({
       end_time: new Date().toISOString(),
-      status: 'completed',
+      status: "completed",
     })
-    .eq('id', timerId)
+    .eq("id", timerId)
     .select()
     .single();
 
@@ -263,11 +271,11 @@ export async function stopTimer(timerId: string): Promise<TimerSession> {
 // Get all active timers for user
 export async function getActiveTimers(userId: string): Promise<TimerSession[]> {
   const { data, error } = await supabase
-    .from('timer_sessions')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .order('start_time', { ascending: false });
+    .from("timer_sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .order("start_time", { ascending: false });
 
   if (error) throw error;
   return data || [];
@@ -276,9 +284,9 @@ export async function getActiveTimers(userId: string): Promise<TimerSession[]> {
 // Pause a timer
 export async function pauseTimer(timerId: string): Promise<TimerSession> {
   const { data, error } = await supabase
-    .from('timer_sessions')
-    .update({ status: 'paused' })
-    .eq('id', timerId)
+    .from("timer_sessions")
+    .update({ status: "paused" })
+    .eq("id", timerId)
     .select()
     .single();
 
@@ -289,9 +297,9 @@ export async function pauseTimer(timerId: string): Promise<TimerSession> {
 // Resume a paused timer
 export async function resumeTimer(timerId: string): Promise<TimerSession> {
   const { data, error } = await supabase
-    .from('timer_sessions')
-    .update({ status: 'active' })
-    .eq('id', timerId)
+    .from("timer_sessions")
+    .update({ status: "active" })
+    .eq("id", timerId)
     .select()
     .single();
 
@@ -313,9 +321,13 @@ export function formatElapsedTime(seconds: number): string {
   const secs = seconds % 60;
 
   if (hours > 0) {
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }
-  return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  return `${minutes.toString().padStart(2, "0")}:${secs
+    .toString()
+    .padStart(2, "0")}`;
 }
 ```
 
@@ -326,15 +338,15 @@ Update `uploadVoiceCapture` function in `CaptureScreen.tsx`:
 ```typescript
 // Get active timers before upload
 const activeTimers = await getActiveTimers(user.id);
-const timerSessionIds = activeTimers.map(t => t.id);
+const timerSessionIds = activeTimers.map((t) => t.id);
 
 // Include timer_session_ids in capture record
 const captureRecord = {
   user_id: user.id,
-  type: 'voice',
+  type: "voice",
   file_url: publicUrl,
-  processing_status: 'pending',
-  note_type: 'daily',
+  processing_status: "pending",
+  note_type: "daily",
   log_date: captureDate,
   timer_session_ids: timerSessionIds, // Associate with active timers
 };
@@ -345,7 +357,7 @@ const captureRecord = {
 ```typescript
 // web/lib/calendarApi.ts
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export interface CalendarTimerSession extends TimerSession {
   voice_notes?: VoiceCapture[];
@@ -370,12 +382,12 @@ export async function getTimerSessionsWithVoiceNotes(
 
   // Get timer sessions in date range
   const { data: sessions, error: sessionsError } = await supabase
-    .from('timer_sessions')
-    .select('*')
-    .eq('user_id', userId)
-    .gte('start_time', startDate)
-    .lte('start_time', endDate)
-    .order('start_time', { ascending: true });
+    .from("timer_sessions")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("start_time", startDate)
+    .lte("start_time", endDate)
+    .order("start_time", { ascending: true });
 
   if (sessionsError) throw sessionsError;
 
@@ -383,11 +395,11 @@ export async function getTimerSessionsWithVoiceNotes(
   const sessionsWithNotes = await Promise.all(
     (sessions || []).map(async (session) => {
       const { data: captures } = await supabase
-        .from('captures')
-        .select('id, transcription, created_at, file_url, timer_session_ids')
-        .eq('user_id', userId)
-        .contains('timer_session_ids', [session.id])
-        .order('created_at', { ascending: true });
+        .from("captures")
+        .select("id, transcription, created_at, file_url, timer_session_ids")
+        .eq("user_id", userId)
+        .contains("timer_session_ids", [session.id])
+        .order("created_at", { ascending: true });
 
       // Calculate duration
       const start = new Date(session.start_time).getTime();
@@ -413,7 +425,11 @@ export async function getTimerSessionsByCyclePhase(
   startDate: string,
   endDate: string
 ): Promise<Record<string, CalendarTimerSession[]>> {
-  const sessions = await getTimerSessionsWithVoiceNotes(userId, startDate, endDate);
+  const sessions = await getTimerSessionsWithVoiceNotes(
+    userId,
+    startDate,
+    endDate
+  );
 
   const grouped: Record<string, CalendarTimerSession[]> = {
     menstrual: [],
@@ -422,7 +438,7 @@ export async function getTimerSessionsByCyclePhase(
     luteal: [],
   };
 
-  sessions.forEach(session => {
+  sessions.forEach((session) => {
     if (session.cycle_phase) {
       grouped[session.cycle_phase].push(session);
     }
@@ -455,6 +471,7 @@ export async function getWeekTimerSessions(
 ### UI Architecture
 
 **CaptureScreen Changes**:
+
 - Replace single KI logo with **two stacked logos**
 - **Top Logo**: Timer logo (first layer color from mandala settings)
   - Shows active timer count badge if timers running
@@ -466,6 +483,7 @@ export async function getWeekTimerSessions(
 ### New Components
 
 #### 1. `mobile/components/TimerLogo.tsx`
+
 ```typescript
 // Simplified KI logo for timer (uses first layer color)
 // Shows badge with count if active timers exist
@@ -473,6 +491,7 @@ export async function getWeekTimerSessions(
 ```
 
 #### 2. `mobile/components/TimerStartModal.tsx`
+
 ```typescript
 // Modal that appears when user taps timer logo
 // If no active timers:
@@ -486,6 +505,7 @@ export async function getWeekTimerSessions(
 ```
 
 #### 3. `mobile/components/ActiveTimerBar.tsx`
+
 ```typescript
 // Horizontal bar showing active timers with live elapsed time
 // Appears at top of screen when timer(s) running
@@ -498,8 +518,12 @@ export async function getWeekTimerSessions(
 ```typescript
 // mobile/hooks/useTimers.ts
 
-import { useState, useEffect, useRef } from 'react';
-import { getActiveTimers, calculateElapsedTime, TimerSession } from '../lib/timerApi';
+import { useState, useEffect, useRef } from "react";
+import {
+  getActiveTimers,
+  calculateElapsedTime,
+  TimerSession,
+} from "../lib/timerApi";
 
 export function useTimers(userId: string | null) {
   const [activeTimers, setActiveTimers] = useState<TimerSession[]>([]);
@@ -515,7 +539,7 @@ export function useTimers(userId: string | null) {
         const timers = await getActiveTimers(userId);
         setActiveTimers(timers);
       } catch (error) {
-        console.error('Error loading timers:', error);
+        console.error("Error loading timers:", error);
       } finally {
         setLoading(false);
       }
@@ -529,7 +553,7 @@ export function useTimers(userId: string | null) {
     if (activeTimers.length > 0) {
       intervalRef.current = setInterval(() => {
         // Force re-render to update elapsed times
-        setActiveTimers(timers => [...timers]);
+        setActiveTimers((timers) => [...timers]);
       }, 1000);
     } else {
       if (intervalRef.current) {
@@ -610,6 +634,7 @@ interface CycleCalendarViewProps {
 ```
 
 Visual concept:
+
 ```
         Day 14 (Ovulation)
              |
@@ -633,6 +658,7 @@ Visual concept:
 ```
 
 Implementation notes:
+
 - Use SVG for circular layout
 - Calculate positions using polar coordinates
 - Timer sessions = arcs/blocks along the ring
@@ -667,6 +693,7 @@ interface WeekViewProps {
 ```
 
 Implementation notes:
+
 - Similar to Google Calendar week view
 - Timer sessions = time blocks
 - Voice notes = nested items with dot indicators
@@ -675,11 +702,13 @@ Implementation notes:
 ### Data Loading Strategy
 
 **Phase 1**: On-demand loading (user clicks refresh)
+
 - User navigates to calendar page
 - Click "Refresh" button → fetch latest timer sessions
 - No real-time subscriptions yet
 
 **Future Phase**: Real-time subscriptions
+
 - Listen to `timer_sessions` table changes
 - Auto-update UI when new timers created/stopped
 - Real-time elapsed time updates for active timers
@@ -689,6 +718,7 @@ Implementation notes:
 ## Implementation Phases
 
 ### Phase 1: Database & Backend (Week 1)
+
 **Goal**: Set up data infrastructure
 
 - [ ] Create `timer_sessions` table migration
@@ -698,6 +728,7 @@ Implementation notes:
 - [ ] Create TypeScript types for timer sessions
 
 **Deliverables**:
+
 - `supabase/timer-sessions.sql` migration file
 - Database successfully migrated in Supabase dashboard
 - Types defined in shared types file
@@ -705,9 +736,11 @@ Implementation notes:
 ---
 
 ### Phase 2: Mobile Timer Capture (Week 2-3)
+
 **Goal**: Users can start/stop timers and associate voice notes
 
 **Week 2: Timer UI & State**
+
 - [ ] Create `TimerLogo` component
 - [ ] Create `TimerStartModal` component
 - [ ] Create `ActiveTimerBar` component
@@ -715,6 +748,7 @@ Implementation notes:
 - [ ] Update `CaptureScreen` with two-logo layout
 
 **Week 3: Timer Integration**
+
 - [ ] Implement timer API functions (start, stop, pause, resume)
 - [ ] Integrate timer association with voice capture
 - [ ] Test multiple concurrent timers
@@ -722,6 +756,7 @@ Implementation notes:
 - [ ] Handle edge cases (app crash, network issues)
 
 **Deliverables**:
+
 - Users can start/stop named timers on mobile
 - Voice notes auto-tagged with active timer IDs
 - Active timers show live elapsed time
@@ -730,9 +765,11 @@ Implementation notes:
 ---
 
 ### Phase 3: Web Calendar Display (Week 4-5)
+
 **Goal**: Users can view timer sessions and voice notes in calendar
 
 **Week 4: Calendar API & Basic UI**
+
 - [ ] Create calendar API functions (`calendarApi.ts`)
 - [ ] Create basic calendar page route
 - [ ] Implement cycle-centric view (simplified version)
@@ -740,6 +777,7 @@ Implementation notes:
 - [ ] Show cycle phase colors
 
 **Week 5: Enhanced Visualization**
+
 - [ ] Add voice notes within timer session display
 - [ ] Implement click interactions (expand timer → see voice notes)
 - [ ] Create `TimerSessionCard` component
@@ -747,6 +785,7 @@ Implementation notes:
 - [ ] Add navigation between cycle days
 
 **Deliverables**:
+
 - Cycle calendar view showing timer sessions
 - Voice notes visible within timer contexts
 - Basic click interactions working
@@ -755,6 +794,7 @@ Implementation notes:
 ---
 
 ### Phase 4: Week View & Polish (Week 6)
+
 **Goal**: Add secondary view and refine UX
 
 - [ ] Implement week timeline view
@@ -765,6 +805,7 @@ Implementation notes:
 - [ ] Test with real user data
 
 **Deliverables**:
+
 - Week view fully functional
 - Smooth view switching
 - Polished, production-ready UI
@@ -772,6 +813,7 @@ Implementation notes:
 ---
 
 ### Phase 5: Future Enhancements (Backlog)
+
 - Real-time data sync (Supabase subscriptions)
 - Timer categories/tags (MIND, BODY, BOTH)
 - Timer templates/presets
@@ -786,18 +828,21 @@ Implementation notes:
 ## Technical Considerations
 
 ### Timer Accuracy
+
 - Store `start_time` as TIMESTAMPTZ for precision
 - Calculate elapsed time on-the-fly: `now() - start_time`
 - Handle timezone conversions properly
 - Account for paused timers (future enhancement)
 
 ### Performance
+
 - Index `timer_session_ids` array with GIN index for fast lookups
 - Paginate calendar data (load one cycle/week at a time)
 - Cache timer sessions on mobile to reduce DB calls
 - Debounce real-time updates (when implemented)
 
 ### Edge Cases
+
 - **App crash during timer**: Timer keeps running (based on start_time)
 - **Multiple devices**: Last write wins (Supabase handles conflicts)
 - **Network offline**: Queue timer actions, sync when online (future)
@@ -805,6 +850,7 @@ Implementation notes:
 - **Timezone changes**: Use UTC timestamps, convert to local for display
 
 ### Security
+
 - RLS policies ensure users only see their own timers
 - Validate timer ownership before stop/pause/delete operations
 - Prevent timer session ID spoofing in voice capture
@@ -814,12 +860,14 @@ Implementation notes:
 ## Success Metrics
 
 ### Phase 1-2 (Mobile Capture)
+
 - Users can create and name timers
 - Timers persist across app restarts
 - Voice notes correctly associated with active timers
 - No crashes or data loss
 
 ### Phase 3-4 (Web Display)
+
 - Calendar loads within 2 seconds
 - Timer sessions display with correct durations
 - Voice notes appear within correct timer contexts
@@ -827,6 +875,7 @@ Implementation notes:
 - Smooth interactions (no lag on click)
 
 ### Future Metrics
+
 - User retention (daily active users using timer feature)
 - Average timer sessions per user per week
 - Correlation between timer usage and voice capture frequency
@@ -857,5 +906,5 @@ Implementation notes:
 ---
 
 **Last Updated**: 2025-11-07
-**Document Owner**: Builder KI Team
+**Document Owner**: builder ki Team
 **Status**: Ready for Implementation
