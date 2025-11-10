@@ -400,6 +400,23 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
     setIsMediaLibraryOpen(false);
   };
 
+  // Handle multiple media selection from library
+  const handleMultiMediaSelect = (urls: string[]) => {
+    if (!editor) return;
+
+    // Build an array of content to insert
+    const content = urls.map((url) => ({
+      type: "imageResize",
+      attrs: { src: url },
+    }));
+
+    // Insert all images at once
+    editor.chain().focus().insertContent(content).run();
+
+    // Optionally close the media library after insertion
+    setIsMediaLibraryOpen(false);
+  };
+
   // Handle voice capture selection from library
   const handleVoiceCaptureSelect = (captureId: string) => {
     if (!editor) return;
@@ -636,7 +653,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
         >
           {isPublic ? (
             <>
-              <span>{isTogglingPublic ? "Updating..." : "Public"}</span>
+              <span>{isTogglingPublic ? "Updating..." : "SHARED"}</span>
             </>
           ) : (
             <>
@@ -987,6 +1004,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
         panelWidth={mediaLibraryWidth}
         onWidthChange={setMediaLibraryWidth}
         onMediaSelect={handleMediaSelect}
+        onMultiMediaSelect={handleMultiMediaSelect}
         onVoiceCaptureSelect={handleVoiceCaptureSelect}
       />
     </div>

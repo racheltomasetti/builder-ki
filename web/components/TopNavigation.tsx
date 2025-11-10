@@ -41,7 +41,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
         return;
       }
 
-      // Right arrow: thoughts → library → docs
+      // Right arrow: thoughts → media  → journal
       if (event.key === "ArrowRight" && pathname === "/dashboard") {
         router.push("/dashboard/media");
       } else if (
@@ -81,7 +81,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                   className={`text-xl italic transition-colors ${
                     isActive("/dashboard")
                       ? "text-flexoki-accent-2 font-bold"
-                      : "text-flexoki-accent font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
+                      : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
                   }`}
                 >
                   thoughts
@@ -91,7 +91,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                   className={`text-xl italic medium transition-colors ${
                     isActive("/dashboard/media")
                       ? "text-flexoki-accent-2 font-bold"
-                      : "text-flexoki-accent font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
+                      : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
                   }`}
                 >
                   media
@@ -101,7 +101,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                   className={`text-xl italic medium transition-colors ${
                     isActive("/dashboard/documents")
                       ? "text-flexoki-accent-2 font-bold"
-                      : "text-flexoki-accent font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
+                      : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
                   }`}
                 >
                   journal

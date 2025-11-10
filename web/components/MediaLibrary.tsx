@@ -33,6 +33,7 @@ interface MediaLibraryProps {
   panelWidth: number;
   onWidthChange: (width: number) => void;
   onMediaSelect: (url: string) => void;
+  onMultiMediaSelect?: (urls: string[]) => void;
   onVoiceCaptureSelect?: (captureId: string) => void;
 }
 
@@ -42,6 +43,7 @@ export default function MediaLibrary({
   panelWidth,
   onWidthChange,
   onMediaSelect,
+  onMultiMediaSelect,
   onVoiceCaptureSelect,
 }: MediaLibraryProps) {
   const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
@@ -49,6 +51,9 @@ export default function MediaLibrary({
   const [searchQuery, setSearchQuery] = useState("");
   const [isResizing, setIsResizing] = useState(false);
   const [activeTab, setActiveTab] = useState<"media" | "voice">("media");
+  const [selectedMediaUrls, setSelectedMediaUrls] = useState<Set<string>>(
+    new Set()
+  );
   const supabase = createClient();
 
   useEffect(() => {
@@ -171,6 +176,47 @@ export default function MediaLibrary({
       year: "numeric",
     });
   };
+
+  const handleMediaClick = (url: string) => {
+    if (selectedMediaUrls.size > 0) {
+      // If we're in multi-select mode, toggle selection
+      const newSelected = new Set(selectedMediaUrls);
+      if (newSelected.has(url)) {
+        newSelected.delete(url);
+      } else {
+        newSelected.add(url);
+      }
+      setSelectedMediaUrls(newSelected);
+    } else {
+      // Single insert mode - insert immediately
+      onMediaSelect(url);
+    }
+  };
+
+  const handleMediaLongPress = (url: string) => {
+    // Start multi-select mode
+    const newSelected = new Set(selectedMediaUrls);
+    newSelected.add(url);
+    setSelectedMediaUrls(newSelected);
+  };
+
+  const handleInsertSelected = () => {
+    if (selectedMediaUrls.size > 0) {
+      if (onMultiMediaSelect) {
+        onMultiMediaSelect(Array.from(selectedMediaUrls));
+      }
+      setSelectedMediaUrls(new Set());
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedMediaUrls(new Set());
+  };
+
+  // Clear selection when switching tabs
+  useEffect(() => {
+    setSelectedMediaUrls(new Set());
+  }, [activeTab]);
 
   const handleMouseDown = () => {
     setIsResizing(true);
@@ -365,22 +411,57 @@ export default function MediaLibrary({
             <div className="grid grid-cols-2 gap-3">
               {filteredItems.map((item) => {
                 const mediaItem = item.type === "media" ? item.data : null;
+                const isSelected =
+                  item.type === "media" &&
+                  selectedMediaUrls.has(item.data.file_url);
                 return (
                   <button
                     key={`media-${item.data.id}`}
                     onClick={() => {
                       if (item.type === "media") {
-                        onMediaSelect(item.data.file_url);
+                        handleMediaClick(item.data.file_url);
                       }
                     }}
-                    className="group relative aspect-square rounded-lg overflow-hidden bg-flexoki-ui-2 hover:ring-2 hover:ring-flexoki-accent transition-all"
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      if (item.type === "media") {
+                        handleMediaLongPress(item.data.file_url);
+                      }
+                    }}
+                    className={`group relative aspect-square rounded-lg overflow-hidden bg-flexoki-ui-2 transition-all ${
+                      isSelected
+                        ? "ring-4 ring-flexoki-accent"
+                        : "hover:ring-2 hover:ring-flexoki-accent"
+                    }`}
                   >
                     <img
                       src={item.data.file_url}
                       alt={mediaItem?.caption || "Media"}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                    <div
+                      className={`absolute inset-0 transition-colors ${
+                        isSelected
+                          ? "bg-flexoki-accent/20"
+                          : "bg-black/0 group-hover:bg-black/20"
+                      }`}
+                    />
+                    {isSelected && (
+                      <div className="absolute top-2 right-2 bg-flexoki-accent rounded-full p-1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-white"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                    )}
                     <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
                       <p className="text-xs text-white font-medium truncate">
                         {getDisplayDate(item)}
@@ -462,14 +543,59 @@ export default function MediaLibrary({
           )}
         </div>
 
-        {/* Footer Hint */}
-        <div className="p-3 border-t border-flexoki-ui-3 bg-flexoki-ui">
-          <p className="text-xs text-flexoki-tx-3 text-center">
-            {activeTab === "media"
-              ? "Click any photo or video to insert it into your document"
-              : "Click any voice note to insert it into your document"}
-          </p>
-        </div>
+        {/* Footer - Multi-select toolbar or hint */}
+        {selectedMediaUrls.size > 0 ? (
+          <div className="p-4 border-t border-flexoki-ui-3 bg-flexoki-ui-2">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="bg-flexoki-accent text-white rounded-full h-6 w-6 flex items-center justify-center text-xs font-bold">
+                  {selectedMediaUrls.size}
+                </div>
+                <span className="text-sm text-flexoki-tx font-medium">
+                  {selectedMediaUrls.size === 1
+                    ? "1 photo selected"
+                    : `${selectedMediaUrls.size} photos selected`}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleClearSelection}
+                  className="px-3 py-2 text-sm rounded-lg bg-flexoki-ui-3 text-flexoki-tx hover:bg-flexoki-ui hover:text-flexoki-tx-2 transition-colors"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={handleInsertSelected}
+                  className="px-4 py-2 text-sm rounded-lg bg-flexoki-accent text-white hover:bg-flexoki-accent-2 transition-colors font-medium flex items-center gap-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                  Insert Selected
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-3 border-t border-flexoki-ui-3 bg-flexoki-ui">
+            <p className="text-xs text-flexoki-tx-3 text-center">
+              {activeTab === "media"
+                ? "Click to insert • Right-click to multi-select"
+                : "Click any voice note to insert it into your document"}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Custom CSS for animations */}
