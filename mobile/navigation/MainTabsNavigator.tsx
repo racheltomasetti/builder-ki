@@ -5,19 +5,31 @@ import {
   TouchableOpacity,
   View,
   StyleSheet,
+  Text,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useThemeColors } from "../theme/colors";
-import DailyLogScreen from "../screens/DailyLogScreen";
+import PlanTrackScreen from "../screens/PlanTrackScreen";
 import CaptureScreen from "../screens/CaptureScreen";
-import MediaUploadScreen from "../screens/MediaUploadScreen";
+import CommunityScreen from "../screens/CommunityScreen";
 import type {
   MainTabsParamList,
   RootStackParamList,
 } from "../types/navigation";
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
+
+// Format current date as "Day of the week, Month Day, Year"
+const getFormattedDate = (): string => {
+  const today = new Date();
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  };
+  return today.toLocaleDateString("en-US", options);
+};
 
 export default function MainTabsNavigator() {
   const colorScheme = useColorScheme();
@@ -28,7 +40,7 @@ export default function MainTabsNavigator() {
 
   return (
     <Tab.Navigator
-      initialRouteName="DailyLog"
+      initialRouteName="PlanTrack"
       screenOptions={{
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.tx3,
@@ -66,20 +78,32 @@ export default function MainTabsNavigator() {
       }}
     >
       <Tab.Screen
-        name="DailyLog"
-        component={DailyLogScreen}
+        name="PlanTrack"
+        component={PlanTrackScreen}
         options={{
-          tabBarLabel: "Daily Log",
+          tabBarLabel: "Plan",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
-          headerTitle: "~ ki ~",
+          // header title is current date
+          headerTitle: () => (
+            <Text
+              style={{
+                fontSize: 18,
+                color: colors.tx,
+                fontFamily: "Perpetua",
+              }}
+            >
+              {getFormattedDate()}
+            </Text>
+          ),
           headerTitleStyle: {
-            fontSize: 25,
+            fontSize: 18,
             color: colors.tx,
             fontFamily: "Perpetua",
           },
           headerTitleContainerStyle: {
+            paddingTop: 8,
             paddingBottom: 8,
           },
         }}
@@ -88,11 +112,30 @@ export default function MainTabsNavigator() {
         name="Capture"
         component={CaptureScreen}
         options={{
-          tabBarLabel: "Capture",
+          tabBarLabel: "Daily Journal",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="mic-outline" size={size} color={color} />
+            <Ionicons name="journal-outline" size={size} color={color} />
+          ), // header title is current date
+          headerTitle: () => (
+            <Text
+              style={{
+                fontSize: 18,
+                color: colors.tx,
+                fontFamily: "Perpetua",
+              }}
+            >
+              {getFormattedDate()}
+            </Text>
           ),
-          headerTitle: () => <View />,
+          headerTitleStyle: {
+            fontSize: 18,
+            color: colors.tx,
+            fontFamily: "Perpetua",
+          },
+          headerTitleContainerStyle: {
+            paddingTop: 8,
+            paddingBottom: 8,
+          },
           headerRight: () => (
             <TouchableOpacity
               onPress={() => navigation.navigate("Settings")}
@@ -105,14 +148,14 @@ export default function MainTabsNavigator() {
         }}
       />
       <Tab.Screen
-        name="MediaUpload"
-        component={MediaUploadScreen}
+        name="Community"
+        component={CommunityScreen}
         options={{
-          tabBarLabel: "Upload",
+          tabBarLabel: "Community",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="image-outline" size={size} color={color} />
+            <Ionicons name="people-outline" size={size} color={color} />
           ),
-          headerTitle: "~ K·I ~",
+          headerTitle: "Connect",
           headerTitleStyle: {
             fontSize: 25,
             color: colors.tx,

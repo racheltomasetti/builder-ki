@@ -1,0 +1,168 @@
+# builder-ki: Cycle-Centric System Implementation Roadmap
+
+**Purpose**: High-level sequential checklist for building a cycle-centric system for understanding MIND + BODY patterns.
+
+ 📊 How to Use These Docs
+
+  - roadmap.txt - Check off capabilities as you complete them, your source of truth
+  - to-do.md - Detailed implementation steps for the current phase
+  - updated-spec.md - Full context on vision, architecture, and user stories
+
+**Last Updated**: 2025-11-12
+
+---
+
+## FOUNDATION: Core Infrastructure
+
+- [x] Database schema supports cycle tracking (captures, timer_sessions, daily_tasks, cycle_periods)
+- [x] User authentication working (web + mobile)
+- [x] File storage configured (voice, photos, videos)
+- [x] Mobile app can connect to backend
+
+---
+
+## CAPTURE: Voice, Photo, Video
+
+- [ ] Can record voice notes on mobile
+- [ ] Can take photos on mobile
+- [ ] Can record videos on mobile
+- [ ] Can upload historical media (photos/videos from device library)
+- [ ] All captures tagged with timestamp
+- [ ] Voice notes transcribed automatically
+
+---
+
+## CYCLE TRACKING: Foundation
+
+- [ ] Can log menstrual period (start/end dates)
+- [ ] System calculates cycle day automatically
+- [ ] System determines cycle phase (menstrual, follicular, ovulation, luteal)
+- [ ] All captures auto-tagged with cycle day + phase
+- [ ] Cycle indicator visible in mobile app
+
+---
+
+## PLANNING: Daily Intention & Tasks
+
+- [ ] Can record morning intention via voice
+- [ ] Can record daily plan via voice
+- [ ] System parses planning voice into structured tasks
+- [ ] Tasks show scheduled time and duration (when specified)
+- [ ] Tasks appear in mobile interface for tracking
+
+---
+
+## TRACKING: Timers & Activities
+
+- [ ] Can start timer from task
+- [ ] Timer runs and displays elapsed time
+- [ ] Can stop timer (creates activity record)
+- [ ] Multiple concurrent timers supported
+- [ ] Captures during active timer linked to that activity
+- [ ] Activity records include actual start/end times
+
+---
+
+## REFLECTION: Evening & Daily
+
+- [ ] Can record evening reflection via voice
+- [ ] Reflection trigger appears in tracking interface
+- [ ] Full day visible: intention � activities � captures � reflection
+
+---
+
+## WEB DAILY: Awareness Journal
+
+- [ ] Web shows all captures in chronological feed
+- [ ] Voice transcriptions visible with playback
+- [ ] Photos/videos display inline
+- [ ] Activity blocks show in timeline
+- [ ] Can filter by note type (intention, daily, reflection)
+- [ ] Can search across transcriptions
+- [ ] Cycle phase context visible for each day
+
+---
+
+## WEB CYCLE: Calendar Visualization
+
+- [ ] Daily view: 24-hour timeline with activities and captures
+- [ ] Weekly view: 7-day grid showing activities and captures
+- [ ] Monthly view: calendar grid with cycle phase colors
+- [ ] Cycle view: circular 28-day wheel showing full cycle
+- [ ] Can click day � zoom to detailed daily view
+- [ ] Can navigate between dates/weeks/months
+
+---
+
+## PATTERN RECOGNITION: Cycle Lens
+
+- [ ] Activity blocks sized by actual duration
+- [ ] Voice notes positioned at capture time
+- [ ] Scheduled vs actual time comparison visible
+- [ ] Can see which activities happen in which cycle phases
+- [ ] Can see when most captures occur across cycle
+- [ ] Cycle phase colors consistent throughout system
+
+---
+
+## AI THINKING PARTNER: Deep Exploration
+
+- [ ] Can create rich text documents from captures
+- [ ] Document editor supports long-form writing
+- [ ] AI thinking partner chat per document
+- [ ] Conversation history persists
+- [ ] Can expand fleeting thoughts into developed ideas
+
+---
+
+## AI CYCLE AGENTS: Contextual Guidance
+
+- [ ] Cycle agents sidebar in calendar
+- [ ] Group conversation: Nutrition + Movement + Mindset + Orchestrator
+- [ ] Agents aware of current cycle day/phase
+- [ ] Agents have access to recent captures
+- [ ] Agents have access to activity patterns
+- [ ] Agents provide cycle-aligned guidance
+
+---
+
+## BIOMETRIC INTEGRATION: Oura Ring
+
+- [ ] Oura OAuth authentication working
+- [ ] Can sync daily Oura data (HRV, sleep, readiness, activity)
+- [ ] Oura data displays in calendar views
+- [ ] Cycle agents have access to Oura data
+- [ ] Can see biometric patterns across cycle phases
+
+---
+
+## POLISH & INSIGHTS: User Experience
+
+- [ ] Mobile UI intuitive and responsive
+- [ ] Web UI clean and delightful
+- [ ] Cycle phase colors beautiful and consistent
+- [ ] No critical bugs in daily use
+- [ ] Can use system daily for full cycle (28 days)
+- [ ] System reveals patterns that weren't obvious before
+- [ ] User feels in control of health and energy
+
+---
+
+## ULTIMATE SUCCESS:
+
+**User understands how their cycle influences their mind, body, and energy**
+**User plans with their biology, not against it**
+**Cycle is a tool, not a mystery**
+
+---
+
+## OUT OF SCOPE (Future Enhancements):
+
+- Daily AI summaries (end-of-day synthesis)
+- Cycle audits (review at cycle end)
+- Cycle intentions (goal-setting per cycle)
+- Projects & knowledge graph (Neo4j)
+- Export functionality
+- Multi-device real-time sync
+- Community features (sharing, insights, connection)
+- Cycle prediction ML

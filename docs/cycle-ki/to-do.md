@@ -4,60 +4,75 @@
 **Status**: Ready for Implementation
 **Estimated Timeline**: 8 implementation hours
 
+ðŸ“Š How to Use These Docs
+
+- roadmap.txt - Check off capabilities as you complete them, your source of truth
+- to-do.md - Detailed implementation steps for the current phase
+- updated-spec.md - Full context on vision, architecture, and user stories
+
 ---
 
 ## Phase 1: Mobile Redesign (Hours 1-2)
 
-**Goal**: Transform mobile UI from Daily Log / Capture / MediaUpload ’ Plan / Capture / Track
+**Goal**: Transform mobile UI to Plan/Track (toggle) / Capture / Community
 
 ### Database Setup
 
-- [ ] **Create timer_sessions table**
+- [x] **Create timer_sessions table**
+
   - Run migration: `supabase/timer-sessions.sql`
   - Include indexes, RLS policies, triggers
   - Test: Insert sample timer_session, verify cycle info auto-populates
   - **Checkpoint**: Query `timer_sessions` table successfully, RLS working
 
-- [ ] **Create daily_tasks table**
+- [x] **Create daily_tasks table**
+
   - Run migration: `supabase/daily-tasks.sql`
   - Include indexes, RLS policies
   - Test: Insert sample task, link to timer_session
   - **Checkpoint**: Query `daily_tasks` table successfully, foreign keys working
 
-- [ ] **Add timer_session_ids to captures table**
+- [x] **Add timer_session_ids to captures table**
   - Run migration: `ALTER TABLE captures ADD COLUMN timer_session_ids UUID[]`
   - Create GIN index: `CREATE INDEX idx_captures_timer_sessions ON captures USING GIN(timer_session_ids)`
   - Test: Insert capture with array of timer IDs
   - **Checkpoint**: Can query captures by timer_session_id using `= ANY(timer_session_ids)`
 
-### Mobile: Plan Tab
+### Mobile: Plan/Track Tab (Toggle Switch)
 
-- [ ] **Create PlanScreen.tsx**
-  - New file: `mobile/screens/PlanScreen.tsx`
+- [x] **Create PlanTrackScreen.tsx**
+
+  - New file: `mobile/screens/PlanTrackScreen.tsx`
+  - Toggle switch at top: Plan | Track
+  - State management for active view
   - Import existing components: cycle indicator, voice recording
-  - Layout: cycle indicator at top, two main sections (morning/evening)
+  - **Checkpoint**: Toggle switch works, views switch correctly
 
-- [ ] **Time-based button switching logic**
-  - Check current hour (before 12pm = morning, after 6pm = evening)
-  - Morning: show "Set Intention" + "Plan Your Day" buttons
-  - Evening: show "Daily Reflection" button
-  - Between 12pm-6pm: show both options or default to morning
-  - **Checkpoint**: Open app at different times, verify correct buttons show
+- [x] **Plan View Implementation**
 
-- [ ] **Set Intention button (existing functionality)**
+  - Layout: cycle indicator at top, three main buttons
+  - "Set Intention" button (existing functionality)
+  - "Plan Your Day" button (NEW)
+  - "Daily Reflection" button (appears when triggered from Track view)
+  - **Checkpoint**: Both buttons are visible and functional, reflection functionality works
+
+- [x] **Set Intention button**
+
   - Use existing voice recording from DailyLogScreen
   - Upload to Supabase with `note_type='intention'`
   - Test: Record intention, verify appears in dashboard with correct note_type
   - **Checkpoint**: Intention voice notes appear in web DAILY journal
 
-- [ ] **Plan Your Day button (NEW)**
-  - New voice recording flow
-  - Upload to Supabase with temporary `note_type='planning'`
-  - Store file_url, wait for processing
-  - Show loading state: "Processing your plan..."
-  - **Checkpoint**: Planning voice uploads successfully, pending processing
+- [x] **Plan Your Day to do list (NEW)**
 
-- [ ] **Daily Reflection button (existing functionality)**
+  - user can add tasks to their daily plan
+  - tasks show in the track screen
+  - user can start their planned tasks, attached to timer
+  - **Checkpoint**: Day planning skeleton functioning
+
+- [x] **Daily Reflection button**
+  - Initially hidden
+  - Appears when user taps "Ready to reflect on your day?" from Track view shown after 6pm
   - Use existing voice recording from DailyLogScreen
   - Upload to Supabase with `note_type='reflection'`
   - Test: Record reflection, verify appears in dashboard
@@ -66,14 +81,16 @@
 ### Mobile: Capture Tab
 
 - [ ] **Update CaptureScreen.tsx**
+
   - Keep existing voice capture (mandala, cycle indicator)
   - Add camera button below voice button
 
 - [ ] **Add camera capture (NEW)**
+
   - Import expo-image-picker
-  - "Take Photo" button ’ launches camera
-  - "Record Video" button ’ launches video recorder
-  - No library upload option (moved to Track tab)
+  - "Take Photo" button ï¿½ launches camera
+  - "Record Video" button ï¿½ launches video recorder
+  - upload from library functionality
   - Upload to captures with `type='photo'` or `type='video'`
   - Auto-tag with cycle day/phase
   - **Checkpoint**: Take photo/video, verify uploads with cycle context
@@ -84,35 +101,41 @@
   - Test: Start timer, capture voice, verify link
   - **Checkpoint**: Capture linked to timer visible in database
 
-### Mobile: Track Tab
+### Mobile: Track View (within Plan/Track Tab)
 
-- [ ] **Create TrackScreen.tsx**
-  - New file: `mobile/screens/TrackScreen.tsx`
-  - Three sections: To-Do List, Active Timers, Media Upload
+- [ ] **Track View Implementation**
+
+  - Part of PlanTrackScreen.tsx
+  - Three sections: To-Do List, Active Timers
+  - Reflection trigger button at bottom
 
 - [ ] **To-Do List display**
+
   - Fetch `daily_tasks` for today (`task_date = today`)
   - Group by status: pending, in_progress, completed
   - Scheduled tasks show time + duration
   - Unscheduled tasks show as simple checklist
   - **Checkpoint**: Manual insert task in DB, verify displays in app
 
-- [ ] **Task tap ’ start timer**
+- [x] **Task tap ï¿½ start timer**
+
   - User taps pending task
   - Create `timer_session` with task name, start_time=now(), status='active'
   - Update task status to 'in_progress', link timer_session_id
-  - Navigate to or show Active Timer Bar
+  - Show Active Timer Bar
   - **Checkpoint**: Tap task, timer starts, task status updates
 
 - [ ] **Active Timer Bar component**
+
   - `mobile/components/ActiveTimerBar.tsx`
   - Shows when any timer has status='active'
   - Displays: timer name, elapsed time (live updating every second)
   - Buttons: Stop, Pause
-  - Horizontal scroll if multiple timers
+  - Vertical scroll if multiple timers
   - **Checkpoint**: Start timer, bar appears with live time updates
 
-- [ ] **Stop timer functionality**
+- [x] **Stop timer functionality**
+
   - User taps Stop button
   - Update timer_session: end_time=now(), status='completed'
   - Update linked task: status='completed'
@@ -120,45 +143,55 @@
   - **Checkpoint**: Stop timer, database updates, bar disappears
 
 - [ ] **Pause/Resume timer (optional)**
+
   - Pause: update status='paused'
   - Resume: update status='active'
   - Track paused duration (future enhancement)
   - **Checkpoint**: Pause/resume works, elapsed time continues correctly
 
-- [ ] **Media Upload section**
-  - Move existing MediaUploadScreen functionality here
-  - Photo/video upload from device library
-  - EXIF date extraction
-  - Used for backfilling historical data
-  - **Checkpoint**: Upload historical photo, EXIF date extracted
+- [ ] **Reflection trigger button**
+  - Button at bottom of Track view: "Ready to reflect on your day?"
+  - When tapped: toggle switches to Plan view
+  - Plan view reveals Daily Reflection button
+  - **Checkpoint**: Button appears, switches view correctly, reflection button shows
 
-- [ ] **Reflection trigger (after 6pm)**
-  - Check current hour
-  - If after 6pm, show: "Ready to reflect on the day?"
-  - Button: "Reflect" ’ navigates to Plan tab
-  - Plan tab automatically shows Daily Reflection button
-  - **Checkpoint**: After 6pm, trigger appears and navigates correctly
+### Mobile: Community Tab
+
+- [ ] **Create CommunityScreen.tsx**
+
+  - New file: `mobile/screens/CommunityScreen.tsx`
+  - Simple placeholder UI
+  - "Coming Soon" message
+  - Brief description: "Community features coming soon. Built with community input in future phases."
+  - Optional: Logo or illustration
+  - **Checkpoint**: Community tab displays placeholder content
 
 ### Mobile: Navigation Update
 
 - [ ] **Update MainTabsNavigator.tsx**
-  - Replace tab names: Plan / Capture / Track
-  - Update icons (calendar for Plan, mic for Capture, checkmark for Track)
-  - Set initial route to Plan or Capture (decide)
+
+  - Replace tab names: Plan/Track / Capture / Community
+  - Update icons (calendar for Plan/Track, journal for Capture, people/community icon for Community)
+  - Set initial route to Plan/Track or Capture (decide)
   - **Checkpoint**: Three new tabs visible, navigation works
 
 - [ ] **Remove old screens (post-migration)**
-  - Archive or remove DailyLogScreen.tsx (functionality moved to Plan)
-  - Archive or remove MediaUploadScreen.tsx (functionality moved to Track)
+  - Archive or remove DailyLogScreen.tsx (functionality moved to Plan/Track)
+  - Archive or remove MediaUploadScreen.tsx (functionality moved to Plan/Track Track view)
   - **Checkpoint**: App builds without old screens
 
 ---
 
 **PHASE 1 CHECKPOINT**:
-- Mobile has 3 new tabs: Plan / Capture / Track
-- Can record intention, planning, reflection, general captures
-- Can upload photos/videos
-- Planning voice uploads but doesn't parse yet (Phase 2)
+
+- Mobile has 3 new tabs: Plan/Track (toggle) / Capture / Community
+- Toggle switch works between Plan and Track views
+- Can record intention, plan day (Plan view)
+- Can view tasks and start timers (Track view)
+- Reflection trigger button in Track view switches to Plan view and reveals reflection button
+- Can record general captures (Capture tab)
+- Can upload photos/videos (Track view media upload)
+- Community tab shows placeholder
 - Timers start/stop, tasks update
 - Database schema ready
 
@@ -168,61 +201,31 @@
 
 **Goal**: Full timer system working end-to-end, including task parsing
 
-### Voice Planning Processing
-
-- [ ] **Create planning parser API route**
-  - New file: `web/app/api/parse-planning/route.ts`
-  - Receives: user_id, transcription, date
-  - Calls OpenAI/Anthropic with structured output prompt
-  - Returns: array of tasks `[{description, time?, duration?}]`
-
-- [ ] **Planning parser prompt**
-  - Extract tasks from transcription
-  - Parse times: "9am", "10:30", "2pm" ’ TIME format
-  - Parse durations: "45 minutes", "2 hours", "30min" ’ integer minutes
-  - Handle unscheduled: "call mom", "take walk" ’ time=NULL
-  - Return JSON: `{ tasks: [{ description: string, time?: string, duration?: number }] }`
-  - **Checkpoint**: Test prompt with sample transcriptions, verify correct parsing
-
-- [ ] **Webhook or polling for planning voice**
-  - Option A: Webhook from Whisper transcription completion
-  - Option B: Polling from mobile app after upload
-  - When transcription ready, call parser API
-  - **Checkpoint**: Upload planning voice, transcription triggers parser
-
-- [ ] **Create daily_tasks from parsed output**
-  - For each task in parser output:
-    - Insert into `daily_tasks` table
-    - Set task_date = today
-    - Set scheduled_time, estimated_duration if provided
-    - Set status='pending'
-  - **Checkpoint**: Planning voice ’ tasks appear in Track tab
-
-- [ ] **Mobile: Refresh Track tab after parsing**
-  - Listen for new tasks (polling or real-time subscription)
-  - Reload to-do list when tasks created
-  - Show loading state: "Creating your plan..."
-  - **Checkpoint**: Record planning voice, wait 5-10 sec, tasks appear
+<!-- removed voice planning functionality -->
 
 ### Timer API Functions
 
 - [ ] **Create timer API functions**
+
   - New file: `mobile/lib/timerApi.ts`
   - Functions: startTimer(), stopTimer(), pauseTimer(), resumeTimer(), getActiveTimers()
   - All functions interact with `timer_sessions` table
   - **Checkpoint**: Call each function manually, verify database updates
 
 - [ ] **startTimer(userId, name, description?)**
+
   - Insert into timer_sessions: user_id, name, start_time=now(), status='active'
   - Cycle info auto-populated by trigger
   - Return created timer object
   - **Checkpoint**: Start timer, verify cycle_day/cycle_phase populated
 
 - [ ] **stopTimer(timerId)**
+
   - Update timer_sessions: end_time=now(), status='completed'
   - **Checkpoint**: Stop timer, end_time set
 
 - [ ] **pauseTimer(timerId) / resumeTimer(timerId)**
+
   - Update status='paused' or status='active'
   - **Checkpoint**: Pause/resume updates status
 
@@ -234,6 +237,7 @@
 ### Timer State Management
 
 - [ ] **Create useTimers hook**
+
   - New file: `mobile/hooks/useTimers.ts`
   - State: activeTimers, loading
   - Load active timers on mount
@@ -244,8 +248,8 @@
 - [ ] **Integrate useTimers in TrackScreen**
   - Import useTimers hook
   - Display active timers in Active Timer Bar
-  - Start timer ’ adds to activeTimers state
-  - Stop timer ’ removes from activeTimers state
+  - Start timer ï¿½ adds to activeTimers state
+  - Stop timer ï¿½ removes from activeTimers state
   - **Checkpoint**: Timer state syncs with database
 
 ### Multiple Concurrent Timers
@@ -276,7 +280,7 @@
 ---
 
 **PHASE 2 CHECKPOINT**:
-- Voice planning parses into tasks
+
 - Tasks appear in Track tab
 - Timers start/stop/pause/resume
 - Multiple concurrent timers work
@@ -292,6 +296,7 @@
 ### Calendar Page Structure
 
 - [ ] **Create /cycle route**
+
   - New file: `web/app/cycle/page.tsx`
   - Main calendar view with view mode toggle
   - Sidebar for cycle agents (placeholder for Phase 4)
@@ -304,6 +309,7 @@
 ### Fetch Timer Sessions & Captures
 
 - [ ] **Create calendar API function**
+
   - New file: `web/lib/calendarApi.ts`
   - Function: `getCalendarData(userId, startDate, endDate)`
   - Fetches: timer_sessions, captures, daily_tasks for date range
@@ -327,11 +333,13 @@
 ### Daily View (Timeline)
 
 - [ ] **Create DailyTimeline component**
+
   - New file: `web/components/calendar/DailyTimeline.tsx`
   - 24-hour vertical timeline
   - Props: date, timerSessions, captures
 
 - [ ] **Render activity blocks**
+
   - For each timer_session with end_time:
     - Calculate position: start_time hour/minute
     - Calculate height: duration (end_time - start_time)
@@ -339,6 +347,7 @@
   - **Checkpoint**: Activity blocks appear at correct times with correct heights
 
 - [ ] **Render voice note markers**
+
   - For each capture (voice):
     - Calculate position: created_at hour/minute
     - Display as dot/icon
@@ -347,33 +356,37 @@
   - **Checkpoint**: Voice notes appear at correct times, linked to activities
 
 - [ ] **Render photos/videos inline**
+
   - For each capture (photo/video):
     - Display thumbnail at created_at time
     - Click to expand
   - **Checkpoint**: Media displays inline in timeline
 
 - [ ] **Cycle phase indicator**
+
   - Header shows: "Day X, [Phase]"
   - Background subtle color based on phase
   - **Checkpoint**: Cycle context visible
 
 - [ ] **Click interactions**
-  - Click activity block ’ expand details (duration, voice notes within)
-  - Click voice note ’ read full transcription
-  - Click photo ’ open modal
+  - Click activity block ï¿½ expand details (duration, voice notes within)
+  - Click voice note ï¿½ read full transcription
+  - Click photo ï¿½ open modal
   - **Checkpoint**: All interactions work
 
 ### Weekly View
 
 - [ ] **Create WeeklyView component**
+
   - New file: `web/components/calendar/WeeklyView.tsx`
   - 7 columns (Mon-Sun)
   - Each column is mini daily timeline
 
 - [ ] **Render week grid**
+
   - Fetch data for 7 days
   - For each day: show activity blocks (condensed), voice note count
-  - Click day ’ zoom to daily view
+  - Click day ï¿½ zoom to daily view
   - **Checkpoint**: Week displays with 7 days of data
 
 - [ ] **Scheduled vs actual comparison**
@@ -385,6 +398,7 @@
 ### Monthly View
 
 - [ ] **Create MonthlyView component**
+
   - New file: `web/components/calendar/MonthlyView.tsx`
   - Traditional calendar grid (5-6 weeks)
 
@@ -395,34 +409,38 @@
     - Phase color (background)
     - Activity count
     - Voice note count
-  - Click day ’ zoom to daily view
+  - Click day ï¿½ zoom to daily view
   - **Checkpoint**: Month displays with all days, cycle colors visible
 
 ### Cycle View (Circular)
 
 - [ ] **Create CycleView component**
+
   - New file: `web/components/calendar/CycleView.tsx`
   - SVG circular layout (28 segments)
   - Uses polar coordinates
 
 - [ ] **Render cycle wheel**
+
   - 28 day segments in circle
   - Each segment colored by phase
   - Center shows: current cycle day
   - **Checkpoint**: Circular calendar renders with phase colors
 
 - [ ] **Map activity blocks to cycle days**
+
   - For each timer_session: calculate polar position based on cycle_day
   - Render as arc, sized by duration
   - **Checkpoint**: Activity blocks appear on correct cycle days
 
 - [ ] **Map voice notes to cycle days**
+
   - For each capture: calculate polar position based on cycle_day
   - Render as dot/marker
   - **Checkpoint**: Voice notes appear on correct cycle days
 
 - [ ] **Click interaction**
-  - Click cycle day ’ zoom to daily view for that date
+  - Click cycle day ï¿½ zoom to daily view for that date
   - **Checkpoint**: Clicking day navigates to daily view
 
 ### Calendar Navigation
@@ -444,6 +462,7 @@
 ---
 
 **PHASE 3 CHECKPOINT**:
+
 - `/cycle` route exists with all 4 views
 - Daily view shows timeline with activities, voices, media
 - Weekly view shows 7 days with activities
@@ -461,6 +480,7 @@
 ### Agent Sidebar UI
 
 - [ ] **Create AgentSidebar component**
+
   - New file: `web/components/calendar/AgentSidebar.tsx`
   - Collapsible sidebar on right side of calendar
   - Chat interface: message list + input
@@ -474,11 +494,13 @@
 ### Agent API Route
 
 - [ ] **Create agent chat API**
+
   - New file: `web/app/api/cycle-agents/chat/route.ts`
   - Receives: userId, message, conversation history
   - Fetches user context: cycle day/phase, recent captures, oura data (if available)
 
 - [ ] **Agent system prompts**
+
   - Create 4 agent prompts:
     - Nutrition: cycle-aligned eating, cravings, energy
     - Movement: exercise, activity, embodiment
@@ -494,22 +516,25 @@
     - Nutrition agent responds third, builds on both
     - Orchestrator synthesizes final guidance
   - All responses in single API call
-  - **Checkpoint**: One user message ’ four agent responses
+  - **Checkpoint**: One user message ï¿½ four agent responses
 
 ### Context Awareness
 
 - [ ] **Fetch cycle context**
+
   - Get user's current cycle_day and cycle_phase
   - Include in agent prompt context
   - **Checkpoint**: Agents aware of cycle phase in responses
 
 - [ ] **Fetch recent captures**
+
   - Get last 7 days of voice captures
   - Summarize emotional themes
   - Include in agent prompt context
   - **Checkpoint**: Agents reference recent emotional patterns
 
 - [ ] **Fetch activity patterns**
+
   - Get timer_sessions from current cycle
   - Summarize: which activities in which phases
   - Include in agent prompt context
@@ -531,6 +556,7 @@
 ### Conversation Persistence
 
 - [ ] **Save conversation to database**
+
   - After each exchange, insert into `agent_conversations`
   - agent_type='cycle_group'
   - messages as JSONB array
@@ -545,6 +571,7 @@
 ---
 
 **PHASE 4 CHECKPOINT**:
+
 - Agent sidebar appears in /cycle
 - Can chat with group of agents
 - Agents respond with context (cycle, captures, activities)
@@ -561,10 +588,12 @@
 ### Oura MCP Server Setup
 
 - [ ] **Create Oura MCP server directory**
+
   - New directory: `oura-mcp/`
   - Initialize MCP server boilerplate
 
 - [ ] **Implement OAuth flow**
+
   - Oura OAuth 2.0 setup
   - Redirect URI, client ID, client secret
   - Store access token encrypted in database or env
@@ -589,11 +618,13 @@
 ### Daily Sync Workflow
 
 - [ ] **Create sync API route**
+
   - New file: `web/app/api/oura/sync/route.ts`
   - Fetches previous day's data from Oura MCP
   - Inserts into `oura_daily_data` table
 
 - [ ] **Manual sync button**
+
   - In calendar UI, "Sync Oura" button
   - Calls sync API route
   - Shows loading state
@@ -607,6 +638,7 @@
 ### Display Oura Data
 
 - [ ] **Add Oura panel to Daily View**
+
   - Shows: readiness score, HRV, sleep quality, steps
   - Visual indicators: colors, icons
   - **Checkpoint**: Oura data visible in daily timeline
@@ -626,6 +658,7 @@
 ---
 
 **PHASE 5 CHECKPOINT**:
+
 - Oura OAuth working
 - Can fetch data from Oura API
 - oura_daily_data table populates
@@ -642,6 +675,7 @@
 ### Enhanced DAILY Journal
 
 - [ ] **Improve timeline visualization**
+
   - Better spacing, visual hierarchy
   - Larger photos/videos
   - Smooth scrolling
@@ -649,7 +683,7 @@
 
 - [ ] **Quick actions**
   - Favorite button on captures
-  - "Expand in CREATE" button ’ opens in documents
+  - "Expand in CREATE" button ï¿½ opens in documents
   - **Checkpoint**: Actions work smoothly
 
 ### Scheduled vs Actual Comparison
@@ -671,35 +705,40 @@
 ### Bug Fixes
 
 - [ ] **Test mobile flows end-to-end**
-  - Morning planning ’ tasks appear ’ start timer ’ capture during timer ’ stop timer ’ evening reflection
+
+  - Morning planning ï¿½ tasks appear ï¿½ start timer ï¿½ capture during timer ï¿½ stop timer ï¿½ evening reflection
   - Fix any bugs found
   - **Checkpoint**: Full day flow works without errors
 
 - [ ] **Test web calendar end-to-end**
-  - Navigate between views ’ click day ’ see daily timeline ’ interact with activities
+
+  - Navigate between views ï¿½ click day ï¿½ see daily timeline ï¿½ interact with activities
   - Fix any bugs found
   - **Checkpoint**: Calendar navigation smooth, no crashes
 
 - [ ] **Test timer persistence**
-  - Start timer ’ close app ’ reopen ’ timer still active
+
+  - Start timer ï¿½ close app ï¿½ reopen ï¿½ timer still active
   - Fix any issues with timer state
   - **Checkpoint**: Timers persist correctly
 
 - [ ] **Test voice processing**
-  - Record intention ’ appears in DAILY
-  - Record planning ’ tasks appear in Track
-  - Record capture ’ linked to timer
+  - Record intention ï¿½ appears in DAILY
+  - Record planning ï¿½ tasks appear in Track
+  - Record capture ï¿½ linked to timer
   - Fix any processing delays or failures
   - **Checkpoint**: All voice types process correctly
 
 ### Performance Optimization
 
 - [ ] **Optimize calendar data fetching**
+
   - Paginate or limit date ranges
   - Cache fetched data
   - **Checkpoint**: Calendar loads in <2 seconds
 
 - [ ] **Optimize timer updates**
+
   - Debounce state updates
   - Minimize re-renders
   - **Checkpoint**: Active Timer Bar updates smoothly without lag
@@ -712,6 +751,7 @@
 ### End-to-End Testing
 
 - [ ] **7-day test**
+
   - Use app daily for 7 days
   - Morning: set intention, plan day
   - Throughout day: capture moments, start/stop timers
@@ -729,11 +769,13 @@
 ### Final Touches
 
 - [ ] **Update navigation labels**
+
   - Web: DAILY / CYCLE / CREATE
   - Mobile: Plan / Capture / Track
   - **Checkpoint**: All labels updated
 
 - [ ] **Rename /documents to /create**
+
   - Update route
   - Update all links/navigation
   - **Checkpoint**: /create route works
@@ -746,6 +788,7 @@
 ---
 
 **PHASE 6 CHECKPOINT**:
+
 - All bugs fixed
 - Performance optimized
 - 7-day test passed
@@ -760,7 +803,7 @@
 Verify all 14 criteria:
 
 1.  Can set morning intention via voice (Plan tab)
-2.  Can plan day via voice ’ tasks appear in Track tab
+2.  Can plan day via voice ï¿½ tasks appear in Track tab
 3.  Can start timers from tasks
 4.  Can capture voice/photos/videos throughout day (Capture tab)
 5.  Can reflect in evening (Plan tab)
@@ -798,6 +841,7 @@ These are intentionally deferred:
 ### Key Dependencies
 
 **Mobile**:
+
 - expo-av (voice recording)
 - expo-image-picker (camera/video)
 - expo-file-system (file handling)
@@ -805,6 +849,7 @@ These are intentionally deferred:
 - @supabase/supabase-js
 
 **Web**:
+
 - next.js 14 (app router)
 - @supabase/auth-helpers-nextjs
 - tiptap (rich text editor, already in CREATE)
@@ -812,6 +857,7 @@ These are intentionally deferred:
 - tailwindcss (styling)
 
 **Backend**:
+
 - Supabase (database, auth, storage)
 - OpenAI or Anthropic API (voice transcription + LLM parsing + agents)
 - Oura API (biometric data)

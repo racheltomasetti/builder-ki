@@ -9,15 +9,15 @@ export type RootStackParamList = {
 
 // Bottom tab navigator (main authenticated screens)
 export type MainTabsParamList = {
-  DailyLog: undefined;
+  PlanTrack: undefined;
   Capture: undefined;
-  MediaUpload: undefined;
+  Community: undefined;
 };
 
 // Screen props types for each screen
-export type DailyLogScreenProps = BottomTabScreenProps<MainTabsParamList, 'DailyLog'>;
+export type PlanTrackScreenProps = BottomTabScreenProps<MainTabsParamList, 'PlanTrack'>;
 export type CaptureScreenProps = BottomTabScreenProps<MainTabsParamList, 'Capture'>;
-export type MediaUploadScreenProps = BottomTabScreenProps<MainTabsParamList, 'MediaUpload'>;
+export type CommunityScreenProps = BottomTabScreenProps<MainTabsParamList, 'Community'>;
 export type SettingsScreenProps = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
 // Navigation prop type (for using navigation.navigate())

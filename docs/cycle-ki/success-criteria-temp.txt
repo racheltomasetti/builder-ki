@@ -1,0 +1,16 @@
+1. ☑ Can set morning intention via voice (Plan/Track tab → Plan view)
+2. ☑ Can plan day via voice → tasks appear in Track view
+3. ☑ Toggle switch works smoothly between Plan and Track views
+4. ☑ Can start timers from tasks in Track view
+5. ☑ Can capture voice/photos/videos throughout day (Capture tab)
+6. ☑ Can reflect in evening (reflection trigger in Track view → switches to Plan view)
+7. ☑ Community tab displays placeholder
+8. ☑ Web calendar shows daily/weekly/monthly/cycle views
+9. ☑ Activity blocks display correctly with actual times
+10. ☑ Voice notes visible in calendar views
+11. ☑ Photos/videos display inline in daily timeline
+12. ☑ Cycle agents provide contextual guidance
+13. ☑ Oura data syncs and displays in calendar
+14. ☑ Cycle phase colors throughout UI
+15. ☑ No critical bugs in happy path
+16. ☑ Can use daily for 7 days straight without issues

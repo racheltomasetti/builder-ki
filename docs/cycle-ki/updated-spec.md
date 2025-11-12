@@ -4,6 +4,12 @@
 
 **builder-ki** is a digital space for synthesizing knowledge of your mind AND body. It's an extended mind tool that helps you understand your thinking, explore your curiosities, and recognize patterns in how your biological rhythms influence your mental and physical states.
 
+📊 How to Use These Docs
+
+- roadmap.txt - Check off capabilities as you complete them, your source of truth
+- to-do.md - Detailed implementation steps for the current phase
+- updated-spec.md - Full context on vision, architecture, and user stories
+
 ### Core Philosophy
 
 **MIND & BODY are inseparable.**
@@ -67,13 +73,12 @@ These layers work together:
 ```
 CAPTURE (Mobile)
   �
-  Voice (intention, planning, capture, reflection)
+  Voice (intention, capture, reflection)
   Photos & Videos (daily journal context)
   �
 ORGANIZE (System)
   �
   Transcribe voice
-  Parse planning voice � daily tasks
   Tag with cycle day/phase
   Store with timestamps
   �
@@ -170,9 +175,14 @@ DISTILL (Pattern Recognition)
 
 ### Mobile Redesign: Three New Tabs
 
-**1. Plan Tab**
+**1. Plan/Track Tab** (toggle switch)
 
-**Morning (before 12pm):**
+**Toggle Switch at Top:**
+
+- User can freely switch between Plan view and Track view
+- No time-based restrictions - user controls when they plan and track
+
+**Plan View:**
 
 - **Set Intention** button (existing functionality)
 
@@ -180,15 +190,14 @@ DISTILL (Pattern Recognition)
   - Prompts: "What do I want to focus on today?"
 
 - **Plan Your Day** button (NEW)
+
   - Voice capture specifically for daily planning
   - System parses voice to extract tasks, times, durations
   - Creates structured to-do list & scheduled time blocks
   - Example: "9am workout for 45min, 10:30 to 1pm project work, call mom in afternoon"
   - Parsing logic uses LLM with structured output
 
-**Evening (after 6pm):**
-
-- **Daily Reflection** button (existing functionality, replaces intention)
+- **Daily Reflection** button (appears when triggered from Track view)
   - Voice capture with note_type='reflection'
   - Prompts: "How was today? What did I learn?"
 
@@ -207,11 +216,11 @@ DISTILL (Pattern Recognition)
 
 **Purpose**: Daily journaling - capture ideas, moments, feelings, anything
 
-**3. Track Tab**
+**Track View:**
 
 **To-Do List** (displays tasks from planning):
 
-- Checkbox list of tasks from morning planning
+- Checkbox list of tasks from planning
 - Scheduled tasks show time/duration
 - Unscheduled tasks shown as simple checklist
 - **Tap task � starts timer automatically**
@@ -235,10 +244,19 @@ DISTILL (Pattern Recognition)
 - Upload photos/videos from device library (backfilling historical data)
 - EXIF date extraction
 
-**Reflection Trigger** (appears after 6pm):
+**Reflection Trigger** (button at bottom of Track view):
 
-- "Ready to reflect on the day?" prompt
-- Button navigates back to Plan tab � shows Daily Reflection button
+- "Ready to reflect on your day?" button
+- When clicked � switches to Plan view and reveals Daily Reflection button
+- User can then record their reflection
+
+**3. Community Tab**
+
+**Coming Soon Placeholder:**
+
+- Brief message: "Community features coming soon"
+- Built with community input in future phases
+- Placeholder for connection, sharing insights, and learning together
 
 ### Web Evolution: Three Journals
 
@@ -555,31 +573,32 @@ CREATE TABLE agent_conversations (
 ### Flow 1: Morning Planning Ritual
 
 1. User wakes up (7:30am)
-2. Opens builder-ki app � **Plan tab**
-3. Sees cycle indicator ("Day 8, Follicular Phase <1")
-4. Taps **Set Intention** � voice records intention for the day
-5. Taps **Plan Your Day** � voice records: "Today I want to meditate, workout at 9am for 45 minutes, work on project from 10:30 to 1pm, have lunch, take a walk, and call my mom"
-6. System transcribes and parses:
+2. Opens builder-ki app � **Plan/Track tab**
+3. Toggle is on **Plan view** by default
+4. Sees cycle indicator ("Day 8, Follicular Phase <1")
+5. Taps **Set Intention** � voice records intention for the day
+6. Taps **Plan Your Day** � voice records: "Today I want to meditate, workout at 9am for 45 minutes, work on project from 10:30 to 1pm, have lunch, take a walk, and call my mom"
+7. System transcribes and parses:
    - "meditate" � unscheduled task
    - "workout at 9am for 45 minutes" � scheduled task (9:00-9:45)
    - "work on project from 10:30 to 1pm" � scheduled task (10:30-13:00)
    - "have lunch" � unscheduled task
    - "take a walk" � unscheduled task
    - "call my mom" � unscheduled task
-7. User switches to **Track tab** � sees to-do list populated
-8. Scheduled tasks show times, unscheduled show as checklist
+8. User toggles to **Track view** � sees to-do list populated
+9. Scheduled tasks show times, unscheduled show as checklist
 
 ### Flow 2: Completing Activities with Timers
 
 1. User at 9:15am decides to workout
-2. Opens **Track tab**, taps "workout" task
+2. Opens **Plan/Track tab**, toggles to **Track view**, taps "workout" task
 3. Timer starts automatically (task status � 'in_progress')
 4. Active Timer Bar appears showing "Workout - 05:23" (live elapsed time)
 5. At 9:30am, user feels inspired � switches to **Capture tab**
 6. Voice records: "I'm feeling so strong today. Follicular energy is real!"
 7. Voice capture auto-tagged with timer_session_id for "Workout"
 8. User finishes workout at 9:58am
-9. Opens Track tab, taps Stop Timer
+9. Returns to Plan/Track tab, Track view, taps Stop Timer
 10. System creates timer_session (9:15am-9:58am, 43 minutes)
 11. Task marked completed
 12. Web calendar updates: scheduled block (9:00-9:45) replaced with actual activity block (9:15-9:58)
@@ -591,19 +610,18 @@ CREATE TABLE agent_conversations (
 2. Photo saved with timestamp, cycle day/phase auto-tagged
 3. User at 3pm has realization � **Capture tab** � voice capture: "Just realized why I've been avoiding that project..."
 4. Voice transcribed, stored with cycle context
-5. User at 5pm scrolls social media, sees inspiring quote � screenshots � uploads via **Track tab** media upload
+5. User at 5pm scrolls social media, sees inspiring quote � screenshots � uploads via **Plan/Track tab** � **Track view** � media upload
 6. All captures appear in web dashboard daily log view, inline timeline
 
 ### Flow 4: Evening Reflection
 
 1. End of day (9pm)
-2. User opens **Track tab**
-3. Sees "Ready to reflect on the day?" prompt
-4. Taps button � navigates to **Plan tab**
-5. Plan tab now shows **Daily Reflection** button (replaced Set Intention since it's evening)
-6. User taps � voice records reflection on the day
-7. Reflection saved with note_type='reflection', cycle context
-8. Web dashboard shows full day: intention (morning) � captures � activities � reflection (evening)
+2. User opens **Plan/Track tab** � **Track view**
+3. Sees "Ready to reflect on your day?" button at bottom of Track view
+4. Taps button � toggle switches to **Plan view** and Daily Reflection button appears
+5. User taps **Daily Reflection** � voice records reflection on the day
+6. Reflection saved with note_type='reflection', cycle context
+7. Web dashboard shows full day: intention (morning) � captures � activities � reflection (evening)
 
 ### Flow 5: Web Calendar Pattern Recognition
 
@@ -724,14 +742,16 @@ Currently single pathway. Needs to handle multiple types:
 
 **Goal**: New mobile UI with planning, capture, tracking
 
-- [ ] Redesign tabs: Plan / Capture / Track
-- [ ] Plan tab: intention + planning buttons (time-based switching)
-- [ ] Planning voice parsing (LLM integration)
-- [ ] Track tab: to-do list display
-- [ ] Track tab: timer start/stop from tasks
-- [ ] Track tab: active timer bar
-- [ ] Track tab: reflection trigger (evening)
+- [ ] Redesign tabs: Plan/Track (toggle) / Capture / Community
+- [ ] Plan/Track tab: toggle switch between views
+- [ ] Plan view: intention + planning + reflection buttons
+- [ ] Track view: to-do list display
+- [ ] Track view: timer start/stop from tasks
+- [ ] Track view: active timer bar
+- [ ] Track view: reflection trigger button (switches to Plan view)
 - [ ] Capture tab: voice + camera (move from MediaUpload)
+- [ ] Community tab: placeholder "Coming Soon"
+- [ ] Planning voice parsing (LLM integration)
 - [ ] Database: timer_sessions table
 - [ ] Database: daily_tasks table
 
@@ -807,20 +827,22 @@ Currently single pathway. Needs to handle multiple types:
 
 **MVP is complete when:**
 
-1.  Can set morning intention via voice (Plan tab)
-2.  Can plan day via voice � tasks appear in Track tab
-3.  Can start timers from tasks
-4.  Can capture voice/photos/videos throughout day (Capture tab)
-5.  Can reflect in evening (Plan tab)
-6.  Web calendar shows daily/weekly/monthly/cycle views
-7.  Activity blocks display correctly with actual times
-8.  Voice notes visible in calendar views
-9.  Photos/videos display inline in daily timeline
-10.  Cycle agents provide contextual guidance
-11.  Oura data syncs and displays in calendar
-12.  Cycle phase colors throughout UI
-13.  No critical bugs in happy path
-14.  Can use daily for 7 days straight without issues
+1. [☑] Can set morning intention via voice (Plan/Track tab → Plan view)
+2. [] Can plan day via voice → tasks appear in Track view
+3. [] Toggle switch works smoothly between Plan and Track views
+4. [] Can start timers from tasks in Track view
+5. [☑] Can capture voice/photos/videos throughout day (Capture tab)
+6. []Can reflect in evening (reflection trigger in Track view → switches to Plan view)
+7. [] Community tab displays placeholder
+8. [] Web calendar shows daily/weekly/monthly/cycle views
+9. [] Activity blocks display correctly with actual times
+10. [] Voice notes visible in calendar views
+11. [] Photos/videos display inline in daily timeline
+12. [] Cycle agents provide contextual guidance
+13. [] Oura data syncs and displays in calendar
+14. [] Cycle phase colors throughout UI
+15. [] No critical bugs in happy path
+16. [] Can use daily for 7 days straight without issues
 
 ---
 
@@ -876,19 +898,20 @@ Currently single pathway. Needs to handle multiple types:
 
 **Morning (Day 7, Follicular):**
 
-- Opens Plan tab, sets intention: "Today I want to make progress on my portfolio"
+- Opens Plan/Track tab, Plan view is active
+- Sets intention: "Today I want to make progress on my portfolio"
 - Plans day: "9am workout, 10am coffee and portfolio work for 3 hours, lunch, afternoon walk, evening call with friend"
-- Sees to-do list populate in Track tab
+- Toggles to Track view, sees to-do list populated
 
 **Throughout Day:**
 
-- 9:15am: Starts workout timer from Track tab
-- 9:35am: Mid-workout, captures voice: "Feeling so energized, ideas flowing for portfolio design"
-- 10:30am: Starts "portfolio work" timer
+- 9:15am: In Track view, starts workout timer
+- 9:35am: Mid-workout, switches to Capture tab, captures voice: "Feeling so energized, ideas flowing for portfolio design"
+- 10:30am: Back to Track view, starts "portfolio work" timer
 - 11am: Takes screenshot of inspiring design
 - 12pm: Captures voice reflection on design direction
 - 1:15pm: Stops work timer (worked 2h 45min)
-- Evening: Reflects on productive day in Plan tab
+- Evening: Taps "Ready to reflect on your day?" button in Track view, switches to Plan view, records reflection
 
 **End of Week:**
 
