@@ -5,9 +5,10 @@ import { createClient } from "@/lib/supabase/client";
 import VoiceCard from "@/components/VoiceCard";
 import DailyView from "@/components/DailyView";
 import FilterToolbar from "@/components/FilterToolbar";
-import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
-import Link from "next/link";
+import MediaGrid from "@/components/MediaGrid";
+import MediaModal from "@/components/MediaModal";
 import { countMatches } from "@/lib/highlightText";
+import { Search, Calendar, LayoutGrid, Grid3x3, Grid2x2 } from "lucide-react";
 
 type Insight = {
   id: string;
@@ -32,6 +33,20 @@ type Capture = {
   is_favorited?: boolean;
 };
 
+type MediaItem = {
+  id: string;
+  file_url: string;
+  file_type: "image" | "video";
+  original_date: string | null;
+  log_date: string | null;
+  caption: string | null;
+  tags: string[] | null;
+  metadata: any;
+  created_at: string;
+  cycle_day?: number | null;
+  cycle_phase?: string | null;
+};
+
 type FilterState = {
   noteType: string; // 'all', 'general', 'intention', 'daily', 'reflection'
   cyclePhase: string; // 'all', 'menstrual', 'follicular', 'ovulation', 'luteal', 'no_cycle_data'
@@ -45,13 +60,11 @@ type FilterState = {
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [allCaptures, setAllCaptures] = useState<Capture[]>([]);
+  const [allMedia, setAllMedia] = useState<MediaItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [viewMode, setViewMode] = useState<"feed" | "daily">("feed");
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  });
+  const [viewMode, setViewMode] = useState<"feed" | "daily">("daily");
+  const [feedSubView, setFeedSubView] = useState<"voice" | "media">("voice");
   const [filters, setFilters] = useState<FilterState>({
     noteType: "all",
     cyclePhase: "all",
@@ -59,6 +72,12 @@ export default function DashboardPage() {
     dateRange: "all_time",
     isFavorited: "all",
   });
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [gridSize, setGridSize] = useState<"small" | "medium" | "large">(
+    "medium"
+  );
+  const [mediaSearchQuery, setMediaSearchQuery] = useState("");
+  const [mediaFilterDate, setMediaFilterDate] = useState("");
   const supabase = createClient();
 
   // Debounce search query with 300ms delay
@@ -70,7 +89,7 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Filter captures based on search and filters
+  // Filter captures based on search and filters (for feed view)
   const filteredCaptures = allCaptures.filter((capture) => {
     // Search filter
     if (debouncedSearch.trim()) {
@@ -190,6 +209,118 @@ export default function DashboardPage() {
     return true;
   });
 
+  // Filter media items based on filters (media view has its own search)
+  const filteredMedia = allMedia.filter((media) => {
+    // Search filter - search in caption and tags (use media-specific search)
+    if (mediaSearchQuery.trim()) {
+      const matchesCaption = media.caption
+        ?.toLowerCase()
+        .includes(mediaSearchQuery.toLowerCase());
+      const matchesTags = media.tags?.some((tag) =>
+        tag.toLowerCase().includes(mediaSearchQuery.toLowerCase())
+      );
+      if (!matchesCaption && !matchesTags) {
+        return false;
+      }
+    }
+
+    // Date filter (media-specific)
+    if (mediaFilterDate) {
+      const mediaDate = media.original_date || media.created_at.split("T")[0];
+      if (mediaDate !== mediaFilterDate) {
+        return false;
+      }
+    }
+
+    // Cycle Phase filter
+    if (filters.cyclePhase !== "all") {
+      if (filters.cyclePhase === "no_cycle_data") {
+        if (media.cycle_phase != null) {
+          return false;
+        }
+      } else {
+        if (media.cycle_phase !== filters.cyclePhase) {
+          return false;
+        }
+      }
+    }
+
+    // Cycle Day filter
+    if (filters.cycleDay !== "all") {
+      const targetDay = parseInt(filters.cycleDay);
+      if (media.cycle_day !== targetDay) {
+        return false;
+      }
+    }
+
+    // Date Range filter
+    if (filters.dateRange !== "all_time") {
+      const mediaDate = new Date(media.created_at);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (filters.dateRange === "last_7_days") {
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        if (mediaDate < sevenDaysAgo) {
+          return false;
+        }
+      } else if (filters.dateRange === "last_30_days") {
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        if (mediaDate < thirtyDaysAgo) {
+          return false;
+        }
+      } else if (filters.dateRange === "this_month") {
+        const firstDayOfMonth = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          1
+        );
+        if (mediaDate < firstDayOfMonth) {
+          return false;
+        }
+      } else if (filters.dateRange === "last_month") {
+        const firstDayOfLastMonth = new Date(
+          today.getFullYear(),
+          today.getMonth() - 1,
+          1
+        );
+        const firstDayOfThisMonth = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          1
+        );
+        if (
+          mediaDate < firstDayOfLastMonth ||
+          mediaDate >= firstDayOfThisMonth
+        ) {
+          return false;
+        }
+      } else if (filters.dateRange === "custom") {
+        if (filters.customDateStart) {
+          const startDate = new Date(filters.customDateStart);
+          startDate.setHours(0, 0, 0, 0);
+          if (mediaDate < startDate) {
+            return false;
+          }
+        }
+        if (filters.customDateEnd) {
+          const endDate = new Date(filters.customDateEnd);
+          endDate.setHours(23, 59, 59, 999);
+          if (mediaDate > endDate) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
+  });
+
+  // Voice-only feed (media separated into grid view)
+  const voiceFeed = filteredCaptures;
+
   // Calculate total number of word matches across all captures
   const totalMatches = debouncedSearch.trim()
     ? filteredCaptures.reduce((total, capture) => {
@@ -212,12 +343,12 @@ export default function DashboardPage() {
     : 0;
 
   useEffect(() => {
-    const loadCaptures = async () => {
-      await fetchCaptures();
+    const loadData = async () => {
+      await Promise.all([fetchCaptures(), fetchMedia()]);
       setLoading(false);
     };
 
-    loadCaptures();
+    loadData();
   }, []);
 
   const fetchCaptures = async () => {
@@ -240,26 +371,18 @@ export default function DashboardPage() {
     setAllCaptures(data || []);
   };
 
-  // Navigation functions for daily view
-  const goToPreviousDay = () => {
-    const currentDate = new Date(selectedDate);
-    currentDate.setDate(currentDate.getDate() - 1);
-    setSelectedDate(currentDate.toISOString().split("T")[0]);
-  };
+  const fetchMedia = async () => {
+    const { data, error } = await supabase
+      .from("media_items")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  const goToNextDay = () => {
-    const currentDate = new Date(selectedDate);
-    currentDate.setDate(currentDate.getDate() + 1);
-    setSelectedDate(currentDate.toISOString().split("T")[0]);
-  };
+    if (error) {
+      console.error("Error fetching media:", error);
+      return;
+    }
 
-  const formatDateDisplay = (dateString: string) => {
-    const date = new Date(dateString + "T00:00:00");
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    setAllMedia(data || []);
   };
 
   if (loading) {
@@ -287,7 +410,7 @@ export default function DashboardPage() {
             className={`px-6 py-2 rounded-lg transition-all text-flexoki-tx ${
               viewMode === "feed"
                 ? "bg-flexoki-accent font-bold"
-                : "bg-flexoki-ui-2 text-flexoki-tx-2border border-flexoki-ui-3 font-medium hover:text-xl hover:font-bold hover:text-flexoki-accent"
+                : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 font-medium hover:text-xl hover:font-bold hover:text-flexoki-accent"
             }`}
           >
             stream of consciousness
@@ -297,40 +420,43 @@ export default function DashboardPage() {
             className={`px-6 py-2 rounded-lg transition-all text-flexoki-tx ${
               viewMode === "daily"
                 ? "bg-flexoki-accent font-bold"
-                : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 font-medium hover:text-xl hover:font-bold hover:text-flexoki-accent"
+                : "bg-flexoki-ui-2 text-flexoki-tx border border-flexoki-ui-3 font-medium hover:text-xl hover:font-bold hover:text-flexoki-accent"
             }`}
           >
             daily log
           </button>
         </div>
 
-        {/* Daily View Navigation - Only show in daily mode */}
-        {viewMode === "daily" && (
-          <div className="flex items-center justify-center gap-4 mb-6">
+        {/* Sub-toggle for Stream of Consciousness: Voice vs Media */}
+        {viewMode === "feed" && (
+          <div className="flex justify-center gap-2 mb-6">
             <button
-              onClick={goToPreviousDay}
-              className="p-2 bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 rounded-lg hover:bg-flexoki-ui-3 transition-all"
-              title="Previous day"
+              onClick={() => setFeedSubView("voice")}
+              className={`px-6 py-2 rounded-lg transition-all text-flexoki-tx ${
+                feedSubView === "voice"
+                  ? "bg-flexoki-accent-2 font-bold"
+                  : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 font-medium hover:bg-flexoki-ui-3 hover:text-flexoki-accent-2 hover:font-bold hover:text-xl"
+              }`}
             >
-              <ChevronLeft className="w-5 h-5" />
+              voice
             </button>
-            <span className="text-lg font-medium text-flexoki-tx px-4">
-              {formatDateDisplay(selectedDate)}
-            </span>
             <button
-              onClick={goToNextDay}
-              className="p-2 bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 rounded-lg hover:bg-flexoki-ui-3 transition-all"
-              title="Next day"
+              onClick={() => setFeedSubView("media")}
+              className={`px-6 py-2 rounded-lg transition-all text-flexoki-tx ${
+                feedSubView === "media"
+                  ? "bg-flexoki-accent-2 font-bold"
+                  : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 font-medium hover:bg-flexoki-ui-3 hover:text-flexoki-accent-2 hover:font-bold hover:text-xl"
+              }`}
             >
-              <ChevronRight className="w-5 h-5" />
+              media
             </button>
           </div>
         )}
 
-        {/* Conditional Content Based on View Mode */}
-        {viewMode === "feed" ? (
+        {/* Voice View: Search Input & Filters */}
+        {viewMode === "feed" && feedSubView === "voice" && (
           <>
-            {/* Search Input - Only show in feed mode */}
+            {/* Search Input */}
             <div className="mb-6">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -381,79 +507,219 @@ export default function DashboardPage() {
 
             {/* Filter Toolbar */}
             <FilterToolbar filters={filters} onFiltersChange={setFilters} />
+          </>
+        )}
 
-            {/* Search Results Count */}
-            {debouncedSearch.trim() && (
-              <div className="mb-6 text-center">
-                <p className="text-flexoki-tx-2 text-lg">
-                  Found{" "}
-                  <span className="font-bold text-flexoki-accent">
-                    {totalMatches}
-                  </span>{" "}
-                  {totalMatches === 1 ? "match" : "matches"} across{" "}
-                  <span className="font-bold text-flexoki-accent">
-                    {filteredCaptures.length}
-                  </span>{" "}
-                  {filteredCaptures.length === 1 ? "capture" : "captures"}
-                </p>
+        {/* Media View: Search & Grid Controls */}
+        {viewMode === "feed" && feedSubView === "media" && (
+          <div className="mb-6 space-y-4 sm:space-y-0 sm:flex sm:gap-4 sm:items-center">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-flexoki-tx-3" />
               </div>
+              <input
+                type="text"
+                value={mediaSearchQuery}
+                onChange={(e) => setMediaSearchQuery(e.target.value)}
+                placeholder="Search captions and tags..."
+                className="block w-full pl-10 pr-4 py-3 bg-flexoki-ui border border-flexoki-ui-3 rounded-lg text-flexoki-tx placeholder-flexoki-tx-3 focus:outline-none focus:ring-2 focus:ring-flexoki-accent focus:border-transparent transition-all"
+              />
+            </div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Calendar className="h-5 w-5 text-flexoki-tx-3" />
+              </div>
+              <input
+                type="date"
+                value={mediaFilterDate}
+                onChange={(e) => setMediaFilterDate(e.target.value)}
+                className="block w-full pl-10 pr-4 py-3 bg-flexoki-ui border border-flexoki-ui-3 rounded-lg text-flexoki-tx focus:outline-none focus:ring-2 focus:ring-flexoki-accent focus:border-transparent transition-all"
+              />
+            </div>
+
+            {/* Grid Size Controls */}
+            <div className="flex items-center gap-1 bg-flexoki-ui border border-flexoki-ui-3 rounded-lg p-1">
+              <button
+                onClick={() => setGridSize("small")}
+                className={`p-2 rounded transition-colors ${
+                  gridSize === "small"
+                    ? "bg-flexoki-accent text-flexoki-bg"
+                    : "text-flexoki-tx-2 hover:bg-flexoki-ui-2"
+                }`}
+                title="Small thumbnails"
+              >
+                <LayoutGrid className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setGridSize("medium")}
+                className={`p-2 rounded transition-colors ${
+                  gridSize === "medium"
+                    ? "bg-flexoki-accent text-flexoki-bg"
+                    : "text-flexoki-tx-2 hover:bg-flexoki-ui-2"
+                }`}
+                title="Medium thumbnails"
+              >
+                <Grid3x3 className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setGridSize("large")}
+                className={`p-2 rounded transition-colors ${
+                  gridSize === "large"
+                    ? "bg-flexoki-accent text-flexoki-bg"
+                    : "text-flexoki-tx-2 hover:bg-flexoki-ui-2"
+                }`}
+                title="Large thumbnails"
+              >
+                <Grid2x2 className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Conditional Content Based on View Mode */}
+        {viewMode === "feed" ? (
+          <>
+            {/* Voice Feed View */}
+            {feedSubView === "voice" && (
+              <>
+                {/* Search Results Count */}
+                {debouncedSearch.trim() && (
+                  <div className="mb-6 text-center">
+                    <p className="text-flexoki-tx-2 text-lg">
+                      Found{" "}
+                      <span className="font-bold text-flexoki-accent">
+                        {totalMatches}
+                      </span>{" "}
+                      {totalMatches === 1 ? "match" : "matches"} across{" "}
+                      <span className="font-bold text-flexoki-accent">
+                        {voiceFeed.length}
+                      </span>{" "}
+                      {voiceFeed.length === 1 ? "capture" : "captures"}
+                    </p>
+                  </div>
+                )}
+
+                {/* Voice Feed Content */}
+                {voiceFeed.length === 0 ? (
+                  <div className="bg-flexoki-ui rounded-lg shadow-md p-6">
+                    <div className="text-center py-12">
+                      {debouncedSearch.trim() ? (
+                        <>
+                          <p className="text-flexoki-tx-2 mb-2">
+                            No matches found for "{debouncedSearch}"
+                          </p>
+                          <p className="text-sm text-flexoki-tx-3 mb-4">
+                            Try searching with different keywords or{" "}
+                            <button
+                              onClick={() => setSearchQuery("")}
+                              className="text-flexoki-accent hover:underline"
+                            >
+                              clear your search
+                            </button>
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-flexoki-tx-2 mb-4">
+                            No voice captures yet. Start capturing your thoughts
+                            using the mobile app.
+                          </p>
+                          <div className="bg-flexoki-ui-2 border border-flexoki-ui-3 rounded-lg p-4 mt-6 text-left">
+                            <h3 className="text-sm font-semibold text-flexoki-tx mb-2">
+                              Next Steps:
+                            </h3>
+                            <ul className="text-sm text-flexoki-tx-2 space-y-1 list-disc list-inside">
+                              <li>Open the KI mobile app and sign in</li>
+                              <li>
+                                Tap the blue circle to record a voice note
+                              </li>
+                              <li>
+                                Your captures will appear here once processed
+                              </li>
+                            </ul>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {voiceFeed.map((capture) => (
+                      <VoiceCard
+                        key={capture.id}
+                        capture={capture}
+                        onDelete={fetchCaptures}
+                        searchQuery={debouncedSearch}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
-            {/* Feed Content */}
-            {filteredCaptures.length === 0 ? (
-              <div className="bg-flexoki-ui rounded-lg shadow-md p-6">
-                <div className="text-center py-12">
-                  {debouncedSearch.trim() ? (
-                    <>
+            {/* Media Grid View */}
+            {feedSubView === "media" && (
+              <>
+                {filteredMedia.length === 0 ? (
+                  <div className="bg-flexoki-ui rounded-lg shadow-md p-6">
+                    <div className="text-center py-12">
                       <p className="text-flexoki-tx-2 mb-2">
-                        No matches found for "{debouncedSearch}"
+                        {mediaSearchQuery || mediaFilterDate
+                          ? "No media found matching your filters"
+                          : "No media uploaded yet"}
                       </p>
-                      <p className="text-sm text-flexoki-tx-3 mb-4">
-                        Try searching with different keywords or{" "}
-                        <button
-                          onClick={() => setSearchQuery("")}
-                          className="text-flexoki-accent hover:underline"
-                        >
-                          clear your search
-                        </button>
+                      <p className="text-sm text-flexoki-tx-3">
+                        Use the mobile app to upload photos and videos.
                       </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-flexoki-tx-2 mb-4">
-                        No captures yet. Start capturing your thoughts using the
-                        mobile app.
-                      </p>
-                      <div className="bg-flexoki-ui-2 border border-flexoki-ui-3 rounded-lg p-4 mt-6 text-left">
-                        <h3 className="text-sm font-semibold text-flexoki-tx mb-2">
-                          Next Steps:
-                        </h3>
-                        <ul className="text-sm text-flexoki-tx-2 space-y-1 list-disc list-inside">
-                          <li>Open the KI mobile app and sign in</li>
-                          <li>Tap the blue circle to record a voice note</li>
-                          <li>Your captures will appear here once processed</li>
-                        </ul>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredCaptures.map((capture) => (
-                  <VoiceCard
-                    key={capture.id}
-                    capture={capture}
-                    onDelete={fetchCaptures}
-                    searchQuery={debouncedSearch}
+                    </div>
+                  </div>
+                ) : (
+                  <MediaGrid
+                    mediaItems={filteredMedia}
+                    onDelete={async (id: string) => {
+                      // Handle delete confirmation
+                      if (
+                        !confirm(
+                          "Are you sure you want to delete this media item?"
+                        )
+                      ) {
+                        return;
+                      }
+                      const item = allMedia.find((m) => m.id === id);
+                      if (item) {
+                        const url = new URL(item.file_url);
+                        const filePath = url.pathname
+                          .split("/")
+                          .slice(3)
+                          .join("/");
+                        await supabase.storage
+                          .from("media-items")
+                          .remove([filePath]);
+                      }
+                      await supabase.from("media_items").delete().eq("id", id);
+                      await fetchMedia();
+                    }}
+                    onMediaClick={setSelectedMedia}
+                    size={gridSize}
                   />
-                ))}
-              </div>
+                )}
+              </>
             )}
           </>
         ) : (
-          /* Daily View */
-          <DailyView date={selectedDate} />
+          /* Daily Log View - Always shows unfiltered chronological flow */
+          <DailyView />
+        )}
+
+        {/* Media Modal */}
+        {selectedMedia && (
+          <MediaModal
+            mediaItem={selectedMedia}
+            onClose={() => setSelectedMedia(null)}
+            allMedia={filteredMedia}
+            onNavigate={setSelectedMedia}
+            onUpdate={fetchMedia}
+          />
         )}
       </main>
     </>

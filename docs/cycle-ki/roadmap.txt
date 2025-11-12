@@ -23,51 +23,49 @@
 
 ## CAPTURE: Voice, Photo, Video
 
-- [ ] Can record voice notes on mobile
-- [ ] Can take photos on mobile
-- [ ] Can record videos on mobile
-- [ ] Can upload historical media (photos/videos from device library)
-- [ ] All captures tagged with timestamp
-- [ ] Voice notes transcribed automatically
+- [x] Can record voice notes on mobile
+- [x] Can take photos on mobile
+- [x] Can record videos on mobile
+- [x] Can upload historical media (photos/videos from device library)
+- [x] All captures tagged with timestamp
+- [x] Voice notes transcribed automatically
 
 ---
 
 ## CYCLE TRACKING: Foundation
 
-- [ ] Can log menstrual period (start/end dates)
-- [ ] System calculates cycle day automatically
-- [ ] System determines cycle phase (menstrual, follicular, ovulation, luteal)
-- [ ] All captures auto-tagged with cycle day + phase
-- [ ] Cycle indicator visible in mobile app
+- [x] Can log menstrual period (start/end dates)
+- [x] System calculates cycle day automatically
+- [x] System determines cycle phase (menstrual, follicular, ovulation, luteal)
+- [x] All captures auto-tagged with cycle day + phase
+- [x] Cycle indicator visible in mobile app
 
 ---
 
 ## PLANNING: Daily Intention & Tasks
 
-- [ ] Can record morning intention via voice
-- [ ] Can record daily plan via voice
-- [ ] System parses planning voice into structured tasks
-- [ ] Tasks show scheduled time and duration (when specified)
-- [ ] Tasks appear in mobile interface for tracking
+- [x] Can record morning intention via voice
+- [x] Can plan daily to do with to do task list
+- [x] Tasks appear in mobile interface for tracking
 
 ---
 
 ## TRACKING: Timers & Activities
 
-- [ ] Can start timer from task
-- [ ] Timer runs and displays elapsed time
-- [ ] Can stop timer (creates activity record)
-- [ ] Multiple concurrent timers supported
-- [ ] Captures during active timer linked to that activity
+- [x] Can start timer from task
+- [x] Timer runs and displays elapsed time
+- [x] Can stop timer (creates activity record)
+- [x] Multiple concurrent timers supported
+- [x] Captures during active timer linked to that activity
 - [ ] Activity records include actual start/end times
 
 ---
 
 ## REFLECTION: Evening & Daily
 
-- [ ] Can record evening reflection via voice
-- [ ] Reflection trigger appears in tracking interface
-- [ ] Full day visible: intention � activities � captures � reflection
+- [x] Can record evening reflection via voice
+- [x] Reflection trigger appears in tracking interface
+- [x] Full day visible: intention � activities � captures � reflection
 
 ---
 

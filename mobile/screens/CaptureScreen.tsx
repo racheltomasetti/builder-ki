@@ -31,6 +31,7 @@ import type {
 import CycleIndicator from "../components/CycleIndicator";
 import CycleModal from "../components/CycleModal";
 import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
+import { getActiveTimerIds } from "../lib/timerApi";
 import { ThemedText } from "../components/ThemedText";
 import { KILogo } from "../components/Logo";
 
@@ -421,6 +422,12 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         { onConflict: "user_id,date", ignoreDuplicates: true }
       );
 
+      // Get active timers to link to this capture
+      const activeTimerIds = await getActiveTimerIds(user.id);
+      if (activeTimerIds.length > 0) {
+        console.log("Linking capture to active timers:", activeTimerIds);
+      }
+
       // Create capture record with log_date and note_type='daily'
       console.log("Creating capture record...");
 
@@ -432,6 +439,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         processing_status: "pending",
         note_type: "daily",
         log_date: captureDate,
+        timer_session_ids: activeTimerIds.length > 0 ? activeTimerIds : null,
       };
 
       // If in backfill mode with a valid date, set created_at to that date

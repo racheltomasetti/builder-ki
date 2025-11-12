@@ -332,7 +332,7 @@ export default function VoiceCard({
             className="px-4 py-2 bg-flexoki-accent-2 text-white text-xl rounded-lg hover:text-2xl hover:font-bold disabled:opacity-50 flex items-center gap-2"
             title="Expand this thought into a document"
           >
-            {isExpanding ? "Creating..." : " ~ THOUGHT EXPANSION ~"}
+            {isExpanding ? "Creating..." : " expand thought →"}
           </button>
         </div>
       )}

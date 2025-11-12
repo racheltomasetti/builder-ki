@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import CycleInfo from "@/components/CycleInfo";
+import ActivityBlock from "@/components/ActivityBlock";
+import { ChevronUp } from "lucide-react";
 
 type Capture = {
   id: string;
@@ -13,6 +15,7 @@ type Capture = {
   created_at: string;
   cycle_day?: number | null;
   cycle_phase?: string | null;
+  timer_session_ids?: string[] | null;
 };
 
 type MediaItem = {
@@ -22,81 +25,91 @@ type MediaItem = {
   original_date: string;
   caption: string | null;
   created_at: string;
+  timer_session_ids?: string[] | null;
 };
+
+type TimerSession = {
+  id: string;
+  name: string;
+  start_time: string;
+  end_time: string | null;
+  status: string;
+  created_at: string;
+};
+
+type TimelineItem =
+  | { type: "activity"; session: TimerSession; linkedCaptures: Capture[]; timestamp: string }
+  | { type: "capture"; capture: Capture; timestamp: string }
+  | { type: "media"; media: MediaItem; timestamp: string };
 
 type DayData = {
   date: string;
   intention?: Capture;
-  dailyCaptures: Capture[];
+  timeline: TimelineItem[];
   reflection?: Capture;
-  media: MediaItem[];
+  cycleDay: number | null;
+  cyclePhase: string | null;
+  hasContent: boolean;
 };
 
 interface DailyViewProps {
-  date: string;
-  onDateChange?: (date: string) => void;
+  searchQuery?: string;
+  filters?: {
+    noteType: string;
+    cyclePhase: string;
+    cycleDay: string;
+  };
 }
 
-export default function DailyView({ date, onDateChange }: DailyViewProps) {
-  const [dayData, setDayData] = useState<DayData | null>(null);
+export default function DailyView({ searchQuery = "", filters }: DailyViewProps) {
+  const [days, setDays] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cycleInfo, setCycleInfo] = useState<{
-    cycleDay: number | null;
-    cyclePhase: string | null;
-  }>({ cycleDay: null, cyclePhase: null });
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [daysToLoad, setDaysToLoad] = useState(30); // Start with 30 days
 
   const supabase = createClient();
+  const topRef = useRef<HTMLDivElement>(null);
+
+  // Handle scroll to show/hide "Jump to Today" button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 500);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
-    if (date) {
-      fetchDayData(date);
-      fetchCycleInfo(date);
-    }
-  }, [date]);
+    fetchDays();
+  }, [daysToLoad, searchQuery, filters]);
 
-  const fetchCycleInfo = async (dateString: string) => {
+  const scrollToTop = () => {
+    topRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const loadMoreDays = () => {
+    setLoadingMore(true);
+    setDaysToLoad((prev) => prev + 30);
+  };
+
+  const fetchDayData = async (dateString: string): Promise<DayData | null> => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) {
-        return;
+        return null;
       }
 
-      // Call the database function to calculate cycle info for this date
-      const { data, error } = await supabase.rpc("calculate_cycle_info", {
+      // Fetch cycle info for this date
+      const { data: cycleData } = await supabase.rpc("calculate_cycle_info", {
         p_user_id: user.id,
         p_date: dateString,
       });
-
-      if (error) {
-        console.error("Error fetching cycle info:", error);
-        return;
-      }
-
-      if (data) {
-        setCycleInfo({
-          cycleDay: data.cycle_day,
-          cyclePhase: data.cycle_phase,
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching cycle info:", error);
-    }
-  };
-
-  const fetchDayData = async (dateString: string) => {
-    try {
-      setLoading(true);
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        return;
-      }
 
       // Fetch captures for this day
       const { data: captures, error: capturesError } = await supabase
@@ -118,25 +131,234 @@ export default function DailyView({ date, onDateChange }: DailyViewProps) {
 
       if (mediaError) throw mediaError;
 
+      // Fetch timer sessions for this day
+      const startOfDay = `${dateString}T00:00:00Z`;
+      const endOfDay = `${dateString}T23:59:59Z`;
+
+      const { data: timerSessions, error: timersError } = await supabase
+        .from("timer_sessions")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("start_time", startOfDay)
+        .lte("start_time", endOfDay)
+        .order("start_time", { ascending: true });
+
+      if (timersError) throw timersError;
+
       // Organize captures by type
       const intention = captures?.find((c) => c.note_type === "intention");
       const reflection = captures?.find((c) => c.note_type === "reflection");
       const dailyCaptures =
         captures?.filter(
-          (c) => c.note_type === "daily" || c.note_type === "general"
+          (c) =>
+            (c.note_type === "daily" || c.note_type === "general") &&
+            c.id !== intention?.id &&
+            c.id !== reflection?.id
         ) || [];
 
-      setDayData({
+      // Build timeline with activities, captures, and media
+      const timeline: TimelineItem[] = [];
+
+      // Add activity blocks (timer sessions with linked captures)
+      timerSessions?.forEach((session) => {
+        const linkedCaptures = dailyCaptures.filter(
+          (capture) =>
+            capture.timer_session_ids?.includes(session.id)
+        );
+
+        timeline.push({
+          type: "activity",
+          session,
+          linkedCaptures,
+          timestamp: session.start_time,
+        });
+      });
+
+      // Add standalone captures (not linked to any timer)
+      dailyCaptures.forEach((capture) => {
+        const isLinkedToTimer = capture.timer_session_ids && capture.timer_session_ids.length > 0;
+        if (!isLinkedToTimer) {
+          timeline.push({
+            type: "capture",
+            capture,
+            timestamp: capture.created_at,
+          });
+        }
+      });
+
+      // Add media items
+      media?.forEach((mediaItem) => {
+        timeline.push({
+          type: "media",
+          media: mediaItem,
+          timestamp: mediaItem.created_at,
+        });
+      });
+
+      // Sort timeline chronologically
+      timeline.sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
+
+      const hasContent = !!(intention || timeline.length > 0 || reflection);
+
+      return {
         date: dateString,
         intention,
-        dailyCaptures,
+        timeline,
         reflection,
-        media: media || [],
-      });
+        cycleDay: cycleData?.cycle_day || null,
+        cyclePhase: cycleData?.cycle_phase || null,
+        hasContent,
+      };
     } catch (error) {
       console.error("Error fetching day data:", error);
+      return null;
+    }
+  };
+
+  const fetchDays = async () => {
+    try {
+      if (daysToLoad === 30) {
+        setLoading(true);
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return;
+      }
+
+      // Get current cycle start date (to show only current cycle)
+      const { data: cycleData } = await supabase
+        .from("cycle_logs")
+        .select("start_date")
+        .eq("user_id", user.id)
+        .order("start_date", { ascending: false })
+        .limit(1);
+
+      const currentCycleStart = cycleData?.[0]?.start_date || null;
+
+      // Generate array of dates from today going back (only current cycle)
+      const today = new Date();
+      const dates: string[] = [];
+      let reachedCycleStart = false;
+
+      for (let i = 0; i < daysToLoad; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateString = date.toISOString().split("T")[0];
+
+        // Stop when we reach before the current cycle start
+        if (currentCycleStart && dateString < currentCycleStart) {
+          reachedCycleStart = true;
+          break;
+        }
+
+        dates.push(dateString);
+      }
+
+      // Fetch data for all dates
+      const daysData = await Promise.all(
+        dates.map((date) => fetchDayData(date))
+      );
+
+      // Filter out null results and apply filters
+      let filteredDays = daysData.filter((day): day is DayData => day !== null);
+
+      // Hide days with no content
+      filteredDays = filteredDays.filter((day) => day.hasContent);
+
+      // Apply search filter
+      if (searchQuery.trim()) {
+        filteredDays = filteredDays.filter((day) => {
+          const intentionMatch = day.intention?.transcription
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase());
+          const reflectionMatch = day.reflection?.transcription
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase());
+          const timelineMatch = day.timeline.some((item) => {
+            if (item.type === "capture") {
+              return item.capture.transcription
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase());
+            }
+            if (item.type === "activity") {
+              return (
+                item.session.name
+                  .toLowerCase()
+                  .includes(searchQuery.toLowerCase()) ||
+                item.linkedCaptures.some((c) =>
+                  c.transcription
+                    ?.toLowerCase()
+                    .includes(searchQuery.toLowerCase())
+                )
+              );
+            }
+            if (item.type === "media") {
+              return item.media.caption
+                ?.toLowerCase()
+                .includes(searchQuery.toLowerCase());
+            }
+            return false;
+          });
+
+          return intentionMatch || reflectionMatch || timelineMatch;
+        });
+      }
+
+      // Apply cycle phase filter
+      if (filters?.cyclePhase && filters.cyclePhase !== "all") {
+        filteredDays = filteredDays.filter((day) => {
+          if (filters.cyclePhase === "no_cycle_data") {
+            return day.cyclePhase == null;
+          }
+          return day.cyclePhase === filters.cyclePhase;
+        });
+      }
+
+      // Apply cycle day filter
+      if (filters?.cycleDay && filters.cycleDay !== "all") {
+        const targetDay = parseInt(filters.cycleDay);
+        filteredDays = filteredDays.filter(
+          (day) => day.cycleDay === targetDay
+        );
+      }
+
+      // Apply note type filter
+      if (filters?.noteType && filters.noteType !== "all") {
+        filteredDays = filteredDays.filter((day) => {
+          if (filters.noteType === "intention") {
+            return !!day.intention;
+          }
+          if (filters.noteType === "reflection") {
+            return !!day.reflection;
+          }
+          if (filters.noteType === "daily" || filters.noteType === "general") {
+            return day.timeline.some(
+              (item) =>
+                item.type === "capture" &&
+                (item.capture.note_type === "daily" ||
+                  item.capture.note_type === "general")
+            );
+          }
+          return true;
+        });
+      }
+
+      setDays(filteredDays);
+
+      // Only show "Load more" if we haven't reached the cycle start yet
+      setHasMore(!reachedCycleStart && dates.length === daysToLoad);
+    } catch (error) {
+      console.error("Error fetching days:", error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -158,6 +380,165 @@ export default function DailyView({ date, onDateChange }: DailyViewProps) {
     });
   };
 
+  const renderDayCard = (dayData: DayData) => (
+    <div key={dayData.date} className="bg-flexoki-ui-2 rounded-lg shadow-lg border border-flexoki-ui-3 p-8 mb-6">
+      {/* Date Header */}
+      <div className="mb-6 pb-4 border-b border-flexoki-ui-3">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-bold text-flexoki-tx">
+            {formatDate(dayData.date)}
+          </h2>
+          <CycleInfo
+            cycleDay={dayData.cycleDay}
+            cyclePhase={dayData.cyclePhase}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {/* Intention - Always at top */}
+        {dayData.intention && (
+          <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">☀️</span>
+              <h3 className="text-xl font-semibold text-flexoki-tx">
+                Morning Intention
+              </h3>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-flexoki-tx-3">
+                {formatTime(dayData.intention.created_at)}
+              </p>
+              {dayData.intention.file_url && (
+                <audio controls className="w-full h-10">
+                  <source
+                    src={dayData.intention.file_url}
+                    type="audio/mpeg"
+                  />
+                  Your browser does not support the audio element.
+                </audio>
+              )}
+              {dayData.intention.transcription && (
+                <p className="text-flexoki-tx leading-relaxed mt-3">
+                  {dayData.intention.transcription}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Timeline Section - Activities, Captures, Media */}
+        {dayData.timeline.length > 0 && (
+          <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <h3 className="text-xl font-semibold text-flexoki-tx">
+                📝 Daily Activity ({dayData.timeline.length})
+              </h3>
+            </div>
+
+            <div className="space-y-6">
+              {dayData.timeline.map((item) => {
+                if (item.type === "activity") {
+                  return (
+                    <ActivityBlock
+                      key={item.session.id}
+                      session={item.session}
+                      linkedCaptures={item.linkedCaptures}
+                    />
+                  );
+                } else if (item.type === "capture") {
+                  const capture = item.capture;
+                  return (
+                    <div
+                      key={capture.id}
+                      className="border-l-2 border-flexoki-accent pl-4 py-2"
+                    >
+                      <p className="text-sm text-flexoki-tx-3 mb-2">
+                        {formatTime(capture.created_at)} - Voice note
+                      </p>
+                      {capture.file_url && (
+                        <audio controls className="w-full mb-2 h-10">
+                          <source src={capture.file_url} type="audio/mpeg" />
+                          Your browser does not support the audio element.
+                        </audio>
+                      )}
+                      {capture.transcription && (
+                        <p className="text-flexoki-tx leading-relaxed">
+                          {capture.transcription}
+                        </p>
+                      )}
+                    </div>
+                  );
+                } else if (item.type === "media") {
+                  const media = item.media;
+                  return (
+                    <div key={media.id} className="mb-4">
+                      <p className="text-sm text-flexoki-tx-3 mb-2">
+                        {formatTime(media.created_at)} - {media.file_type === "video" ? "Video" : "Photo"}
+                      </p>
+                      {media.file_type === "video" ? (
+                        <video
+                          controls
+                          className="w-full max-w-md rounded-lg shadow-md"
+                        >
+                          <source src={media.file_url} type="video/mp4" />
+                          Your browser does not support the video element.
+                        </video>
+                      ) : (
+                        <img
+                          src={media.file_url}
+                          alt={media.caption || "Photo"}
+                          className="w-full max-w-md rounded-lg shadow-md"
+                        />
+                      )}
+                      {media.caption && (
+                        <p className="text-sm text-flexoki-tx-2 mt-2 italic">
+                          {media.caption}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Reflection - Always at bottom */}
+        {dayData.reflection && (
+          <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">🌙</span>
+              <h3 className="text-xl font-semibold text-flexoki-tx">
+                Evening Reflection
+              </h3>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-flexoki-tx-3">
+                {formatTime(dayData.reflection.created_at)}
+              </p>
+              {dayData.reflection.file_url && (
+                <audio controls className="w-full h-10">
+                  <source
+                    src={dayData.reflection.file_url}
+                    type="audio/mpeg"
+                  />
+                  Your browser does not support the audio element.
+                </audio>
+              )}
+              {dayData.reflection.transcription && (
+                <p className="text-flexoki-tx leading-relaxed mt-3">
+                  {dayData.reflection.transcription}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -166,167 +547,50 @@ export default function DailyView({ date, onDateChange }: DailyViewProps) {
     );
   }
 
-  if (!dayData) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <p className="text-flexoki-tx-2">No data found for this date.</p>
-      </div>
-    );
-  }
-
-  const hasAnyData =
-    dayData.intention ||
-    dayData.dailyCaptures.length > 0 ||
-    dayData.reflection ||
-    dayData.media.length > 0;
-
   return (
-    <div className="w-full">
-      {/* Date Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="text-3xl font-bold text-flexoki-tx">
-            {formatDate(date)}
-          </h1>
-          <CycleInfo
-            cycleDay={cycleInfo.cycleDay}
-            cyclePhase={cycleInfo.cyclePhase}
-          />
-        </div>
-      </div>
-
-      {!hasAnyData ? (
+    <div ref={topRef} className="w-full">
+      {/* Day Cards Stream */}
+      {days.length === 0 ? (
         <div className="bg-flexoki-ui rounded-lg shadow-md p-8">
           <div className="text-center">
             <p className="text-flexoki-tx-2 mb-4">
-              No entries for this day yet.
+              {searchQuery || filters ? "No matching entries found." : "No entries yet."}
             </p>
             <p className="text-sm text-flexoki-tx-3">
-              Use the mobile app to create daily logs and upload photos for this
-              date.
+              {searchQuery || filters
+                ? "Try adjusting your search or filters."
+                : "Use the mobile app to create daily logs and upload photos."}
             </p>
           </div>
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* Intention */}
-          {dayData.intention && (
-            <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">☀️</span>
-                <h2 className="text-xl font-semibold text-flexoki-tx">
-                  Morning Intention
-                </h2>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-flexoki-tx-3">
-                  {formatTime(dayData.intention.created_at)}
-                </p>
-                {dayData.intention.file_url && (
-                  <audio controls className="w-full">
-                    <source
-                      src={dayData.intention.file_url}
-                      type="audio/mpeg"
-                    />
-                    Your browser does not support the audio element.
-                  </audio>
-                )}
-                {dayData.intention.transcription && (
-                  <p className="text-flexoki-tx leading-relaxed mt-3">
-                    {dayData.intention.transcription}
-                  </p>
-                )}
-              </div>
-            </section>
-          )}
+        <>
+          {days.map((day) => renderDayCard(day))}
 
-          {/* Daily Captures */}
-          {dayData.dailyCaptures.length > 0 && (
-            <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-xl font-semibold text-flexoki-tx">
-                  Daily Captures ({dayData.dailyCaptures.length})
-                </h2>
-              </div>
-              <div className="space-y-4">
-                {dayData.dailyCaptures.map((capture) => (
-                  <div
-                    key={capture.id}
-                    className="border-l-2 border-flexoki-accent pl-4 py-2"
-                  >
-                    <p className="text-sm text-flexoki-tx-3 mb-2">
-                      {formatTime(capture.created_at)}
-                    </p>
-                    {capture.file_url && (
-                      <audio controls className="w-full mb-2">
-                        <source src={capture.file_url} type="audio/mpeg" />
-                        Your browser does not support the audio element.
-                      </audio>
-                    )}
-                    {capture.transcription && (
-                      <p className="text-flexoki-tx leading-relaxed">
-                        {capture.transcription}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={loadMoreDays}
+                disabled={loadingMore}
+                className="px-8 py-3 bg-flexoki-accent text-flexoki-bg font-semibold rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
+              >
+                {loadingMore ? "Loading..." : "Load older days"}
+              </button>
+            </div>
           )}
+        </>
+      )}
 
-          {/* Media */}
-          {dayData.media.length > 0 && (
-            <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-xl font-semibold text-flexoki-tx">
-                  Media ({dayData.media.length})
-                </h2>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {dayData.media.map((item) => (
-                  <div key={item.id} className="relative aspect-square">
-                    <img
-                      src={item.file_url}
-                      alt={item.caption || "Photo"}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Reflection */}
-          {dayData.reflection && (
-            <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">🌙</span>
-                <h2 className="text-xl font-semibold text-flexoki-tx">
-                  Evening Reflection
-                </h2>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-flexoki-tx-3">
-                  {formatTime(dayData.reflection.created_at)}
-                </p>
-                {dayData.reflection.file_url && (
-                  <audio controls className="w-full">
-                    <source
-                      src={dayData.reflection.file_url}
-                      type="audio/mpeg"
-                    />
-                    Your browser does not support the audio element.
-                  </audio>
-                )}
-                {dayData.reflection.transcription && (
-                  <p className="text-flexoki-tx leading-relaxed mt-3">
-                    {dayData.reflection.transcription}
-                  </p>
-                )}
-              </div>
-            </section>
-          )}
-        </div>
+      {/* Jump to Today Floating Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 p-4 bg-flexoki-accent text-flexoki-bg rounded-full shadow-lg hover:opacity-90 transition-all z-50"
+          title="Jump to Today"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </button>
       )}
     </div>
   );

@@ -26,6 +26,12 @@ import { KILogo } from "../components/Logo";
 import CycleIndicator from "../components/CycleIndicator";
 import CycleModal from "../components/CycleModal";
 import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
+import {
+  getActiveTimers,
+  startTimer as apiStartTimer,
+  stopTimer as apiStopTimer,
+  type ActiveTimer,
+} from "../lib/timerApi";
 import { ThemedText } from "../components/ThemedText";
 
 type NoteType = "intention" | "reflection";
@@ -46,14 +52,6 @@ interface DailyTask {
   status: "pending" | "in_progress" | "completed";
   timer_session_id: string | null;
   task_date: string;
-}
-
-interface ActiveTimer {
-  id: string;
-  taskId: string;
-  taskName: string;
-  startTime: Date;
-  elapsedSeconds: number;
 }
 
 export default function PlanTrackScreen({
@@ -352,48 +350,8 @@ export default function PlanTrackScreen({
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Load active timer sessions
-      const { data: activeSessions, error: timerError } = await supabase
-        .from("timer_sessions")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("status", "active")
-        .is("end_time", null);
-
-      if (timerError) throw timerError;
-
-      if (activeSessions && activeSessions.length > 0) {
-        // Load today's tasks to find task names
-        const { data: todayTasks, error: taskError } = await supabase
-          .from("daily_tasks")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("task_date", today);
-
-        if (taskError) throw taskError;
-
-        // Convert to ActiveTimer format
-        const timers: ActiveTimer[] = [];
-        for (const session of activeSessions) {
-          const task = todayTasks?.find(
-            (t: any) => t.timer_session_id === session.id
-          );
-          if (task) {
-            timers.push({
-              id: session.id,
-              taskId: task.id,
-              taskName: task.task_description,
-              startTime: new Date(session.start_time),
-              elapsedSeconds: Math.floor(
-                (new Date().getTime() -
-                  new Date(session.start_time).getTime()) /
-                  1000
-              ),
-            });
-          }
-        }
-        setActiveTimers(timers);
-      }
+      const timers = await getActiveTimers(user.id, today);
+      setActiveTimers(timers);
     } catch (err) {
       console.error("Error loading active timers:", err);
     }
@@ -407,30 +365,14 @@ export default function PlanTrackScreen({
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Create timer session
-      const { data: timerSession, error: timerError } = await supabase
-        .from("timer_sessions")
-        .insert({
-          user_id: user.id,
-          name: task.task_description,
-          start_time: new Date().toISOString(),
-          status: "active",
-        })
-        .select()
-        .single();
+      // Use API to create timer session
+      const timerSession = await apiStartTimer(
+        user.id,
+        task.task_description,
+        task.id
+      );
 
-      if (timerError) throw timerError;
-
-      // Update task status and link to timer
-      const { error: taskError } = await supabase
-        .from("daily_tasks")
-        .update({
-          status: "in_progress",
-          timer_session_id: timerSession.id,
-        })
-        .eq("id", task.id);
-
-      if (taskError) throw taskError;
+      if (!timerSession) throw new Error("Failed to create timer session");
 
       // Update local state
       setTasks(
@@ -463,26 +405,8 @@ export default function PlanTrackScreen({
   // Stop timer
   const stopTimer = async (timer: ActiveTimer) => {
     try {
-      // Update timer session with end time
-      const { error: timerError } = await supabase
-        .from("timer_sessions")
-        .update({
-          end_time: new Date().toISOString(),
-          status: "completed",
-        })
-        .eq("id", timer.id);
-
-      if (timerError) throw timerError;
-
-      // Update task status to completed
-      const { error: taskError } = await supabase
-        .from("daily_tasks")
-        .update({
-          status: "completed",
-        })
-        .eq("id", timer.taskId);
-
-      if (taskError) throw taskError;
+      // Use API to stop timer
+      await apiStopTimer(timer.id, timer.taskId);
 
       // Update local state
       setTasks(

@@ -84,7 +84,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                       : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
                   }`}
                 >
-                  thoughts
+                  DAILY
                 </a>
                 <a
                   href="/dashboard/media"
@@ -94,7 +94,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                       : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
                   }`}
                 >
-                  media
+                  CYCLE
                 </a>
                 <a
                   href="/dashboard/documents"
@@ -104,7 +104,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                       : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
                   }`}
                 >
-                  journal
+                  CREATE
                 </a>
               </div>
             </div>

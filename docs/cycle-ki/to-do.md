@@ -80,12 +80,12 @@
 
 ### Mobile: Capture Tab
 
-- [ ] **Update CaptureScreen.tsx**
+- [x] **Update CaptureScreen.tsx**
 
   - Keep existing voice capture (mandala, cycle indicator)
-  - Add camera button below voice button
+  - Add upload media modal below voice button
 
-- [ ] **Add camera capture (NEW)**
+- [x] **Add camera capture (NEW)**
 
   - Import expo-image-picker
   - "Take Photo" button � launches camera
@@ -95,7 +95,7 @@
   - Auto-tag with cycle day/phase
   - **Checkpoint**: Take photo/video, verify uploads with cycle context
 
-- [ ] **Check for active timers during capture**
+- [x] **Check for active timers during capture**
   - Before uploading capture, query `timer_sessions` where `status='active'`
   - Add active timer IDs to `timer_session_ids` array
   - Test: Start timer, capture voice, verify link
@@ -103,7 +103,7 @@
 
 ### Mobile: Track View (within Plan/Track Tab)
 
-- [ ] **Track View Implementation**
+- [x] **Track View Implementation**
 
   - Part of PlanTrackScreen.tsx
   - Three sections: To-Do List, Active Timers
@@ -113,7 +113,6 @@
 
   - Fetch `daily_tasks` for today (`task_date = today`)
   - Group by status: pending, in_progress, completed
-  - Scheduled tasks show time + duration
   - Unscheduled tasks show as simple checklist
   - **Checkpoint**: Manual insert task in DB, verify displays in app
 
@@ -125,12 +124,12 @@
   - Show Active Timer Bar
   - **Checkpoint**: Tap task, timer starts, task status updates
 
-- [ ] **Active Timer Bar component**
+- [x] **Active Timer Bar component**
 
   - `mobile/components/ActiveTimerBar.tsx`
   - Shows when any timer has status='active'
   - Displays: timer name, elapsed time (live updating every second)
-  - Buttons: Stop, Pause
+  - Buttons: Stop, Pause!
   - Vertical scroll if multiple timers
   - **Checkpoint**: Start timer, bar appears with live time updates
 
@@ -149,15 +148,15 @@
   - Track paused duration (future enhancement)
   - **Checkpoint**: Pause/resume works, elapsed time continues correctly
 
-- [ ] **Reflection trigger button**
-  - Button at bottom of Track view: "Ready to reflect on your day?"
+- [x] **Reflection trigger button**
+  - Button at bottom of Track view: "Ready to reflect on your day?" only visible after 6pm
   - When tapped: toggle switches to Plan view
   - Plan view reveals Daily Reflection button
   - **Checkpoint**: Button appears, switches view correctly, reflection button shows
 
 ### Mobile: Community Tab
 
-- [ ] **Create CommunityScreen.tsx**
+- [x] **Create CommunityScreen.tsx**
 
   - New file: `mobile/screens/CommunityScreen.tsx`
   - Simple placeholder UI
@@ -168,14 +167,14 @@
 
 ### Mobile: Navigation Update
 
-- [ ] **Update MainTabsNavigator.tsx**
+- [x] **Update MainTabsNavigator.tsx**
 
-  - Replace tab names: Plan/Track / Capture / Community
+  - Replace tab names: Plan/Track / Daily Journal / Community
   - Update icons (calendar for Plan/Track, journal for Capture, people/community icon for Community)
-  - Set initial route to Plan/Track or Capture (decide)
+  - Set initial route to Plan/Track
   - **Checkpoint**: Three new tabs visible, navigation works
 
-- [ ] **Remove old screens (post-migration)**
+- [x] **Remove old screens (post-migration)**
   - Archive or remove DailyLogScreen.tsx (functionality moved to Plan/Track)
   - Archive or remove MediaUploadScreen.tsx (functionality moved to Plan/Track Track view)
   - **Checkpoint**: App builds without old screens
@@ -205,31 +204,31 @@
 
 ### Timer API Functions
 
-- [ ] **Create timer API functions**
+- [x] **Create timer API functions**
 
   - New file: `mobile/lib/timerApi.ts`
   - Functions: startTimer(), stopTimer(), pauseTimer(), resumeTimer(), getActiveTimers()
   - All functions interact with `timer_sessions` table
   - **Checkpoint**: Call each function manually, verify database updates
 
-- [ ] **startTimer(userId, name, description?)**
+- [x] **startTimer(userId, name, description?)**
 
   - Insert into timer_sessions: user_id, name, start_time=now(), status='active'
   - Cycle info auto-populated by trigger
   - Return created timer object
   - **Checkpoint**: Start timer, verify cycle_day/cycle_phase populated
 
-- [ ] **stopTimer(timerId)**
+- [x] **stopTimer(timerId)**
 
   - Update timer_sessions: end_time=now(), status='completed'
   - **Checkpoint**: Stop timer, end_time set
 
-- [ ] **pauseTimer(timerId) / resumeTimer(timerId)**
+- [x] **pauseTimer(timerId) / resumeTimer(timerId)**
 
   - Update status='paused' or status='active'
   - **Checkpoint**: Pause/resume updates status
 
-- [ ] **getActiveTimers(userId)**
+- [x] **getActiveTimers(userId)**
   - Query timer_sessions where user_id=userId, status='active'
   - Order by start_time DESC
   - **Checkpoint**: Returns array of active timers
@@ -255,15 +254,15 @@
 ### Multiple Concurrent Timers
 
 - [ ] **Support multiple timers running simultaneously**
-  - Active Timer Bar shows all active timers (horizontal scroll)
+  - Active Timer Bar shows all active timers (vertical scroll)
   - Each timer has independent Stop/Pause buttons
   - Each timer updates elapsed time independently
   - **Checkpoint**: Start 2+ timers, all show and update independently
 
 ### Link Captures to Timers
 
-- [ ] **Update voice/photo/video capture flow**
-  - Before uploading capture, call `getActiveTimers()`
+- [x] **Update voice/photo/video capture flow**
+  - Before uploading capture, call `getActiveTimerIds()`
   - Extract timer IDs: `const timerIds = activeTimers.map(t => t.id)`
   - Include in capture record: `timer_session_ids: timerIds`
   - **Checkpoint**: Capture during active timer, timer_session_ids populated
