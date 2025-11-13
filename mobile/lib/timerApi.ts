@@ -14,6 +14,7 @@ export interface TimerSession {
   status: "active" | "paused" | "completed";
   cycle_day: number | null;
   cycle_phase: string | null;
+  log_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -119,13 +120,18 @@ export async function startTimer(
   taskId?: string
 ): Promise<TimerSession | null> {
   try {
+    // Get current date in device's local timezone (YYYY-MM-DD format)
+    const now = new Date();
+    const logDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
     // Create timer session
     const { data: timerSession, error: timerError } = await supabase
       .from("timer_sessions")
       .insert({
         user_id: userId,
         name: taskName,
-        start_time: new Date().toISOString(),
+        start_time: now.toISOString(),
+        log_date: logDate,
         status: "active",
       })
       .select()
@@ -290,16 +296,13 @@ export async function getTimerSessionsByDate(
   date: string
 ): Promise<TimerSession[]> {
   try {
-    // Create date range for the entire day
-    const startOfDay = `${date}T00:00:00Z`;
-    const endOfDay = `${date}T23:59:59Z`;
-
+    // Query by log_date field instead of timestamp ranges
+    // This ensures proper timezone handling
     const { data, error } = await supabase
       .from("timer_sessions")
       .select("*")
       .eq("user_id", userId)
-      .gte("start_time", startOfDay)
-      .lte("start_time", endOfDay)
+      .eq("log_date", date)
       .order("start_time", { ascending: true });
 
     if (error) throw error;

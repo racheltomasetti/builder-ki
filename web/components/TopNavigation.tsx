@@ -41,20 +41,23 @@ export default function TopNavigation({ user }: TopNavigationProps) {
         return;
       }
 
-      // Right arrow: thoughts → media  → journal
+      // Right arrow: DAILY → MIND  → BODY
       if (event.key === "ArrowRight" && pathname === "/dashboard") {
-        router.push("/dashboard/media");
+        router.push("/dashboard/documents");
       } else if (
         event.key === "ArrowRight" &&
-        pathname === "/dashboard/media"
+        pathname === "/dashboard/documents"
       ) {
-        router.push("/dashboard/documents");
+        router.push("/dashboard/cycle");
       }
 
-      // Left arrow: docs → library → thoughts
-      if (event.key === "ArrowLeft" && pathname === "/dashboard/documents") {
-        router.push("/dashboard/media");
-      } else if (event.key === "ArrowLeft" && pathname === "/dashboard/media") {
+      // Left arrow: BODY → MIND → DAILY
+      if (event.key === "ArrowLeft" && pathname === "/dashboard/cycle") {
+        router.push("/dashboard/documents");
+      } else if (
+        event.key === "ArrowLeft" &&
+        pathname === "/dashboard/documents"
+      ) {
         router.push("/dashboard");
       }
     };
@@ -87,16 +90,6 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                   DAILY
                 </a>
                 <a
-                  href="/dashboard/media"
-                  className={`text-xl italic medium transition-colors ${
-                    isActive("/dashboard/media")
-                      ? "text-flexoki-accent-2 font-bold"
-                      : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
-                  }`}
-                >
-                  CYCLE
-                </a>
-                <a
                   href="/dashboard/documents"
                   className={`text-xl italic medium transition-colors ${
                     isActive("/dashboard/documents")
@@ -104,7 +97,17 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                       : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
                   }`}
                 >
-                  CREATE
+                  MIND
+                </a>
+                <a
+                  href="/dashboard/cycle"
+                  className={`text-xl italic medium transition-colors ${
+                    isActive("/dashboard/cycle")
+                      ? "text-flexoki-accent-2 font-bold"
+                      : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
+                  }`}
+                >
+                  BODY
                 </a>
               </div>
             </div>

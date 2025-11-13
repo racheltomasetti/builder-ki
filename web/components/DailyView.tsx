@@ -132,15 +132,11 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
       if (mediaError) throw mediaError;
 
       // Fetch timer sessions for this day
-      const startOfDay = `${dateString}T00:00:00Z`;
-      const endOfDay = `${dateString}T23:59:59Z`;
-
       const { data: timerSessions, error: timersError } = await supabase
         .from("timer_sessions")
         .select("*")
         .eq("user_id", user.id)
-        .gte("start_time", startOfDay)
-        .lte("start_time", endOfDay)
+        .eq("log_date", dateString)
         .order("start_time", { ascending: true });
 
       if (timersError) throw timersError;

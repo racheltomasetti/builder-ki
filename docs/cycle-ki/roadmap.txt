@@ -71,13 +71,13 @@
 
 ## WEB DAILY: Awareness Journal
 
-- [ ] Web shows all captures in chronological feed
-- [ ] Voice transcriptions visible with playback
-- [ ] Photos/videos display inline
-- [ ] Activity blocks show in timeline
-- [ ] Can filter by note type (intention, daily, reflection)
-- [ ] Can search across transcriptions
-- [ ] Cycle phase context visible for each day
+- [x] Web shows all captures in chronological feed
+- [x] Voice transcriptions visible with playback
+- [x] Photos/videos display inline
+- [x] Activity blocks show in timeline
+- [x] Can filter by note type (intention, daily, reflection)
+- [x] Can search across transcriptions
+- [x] Cycle phase context visible for each day
 
 ---
 

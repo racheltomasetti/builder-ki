@@ -132,7 +132,7 @@ export default function DocumentsList({
   return (
     <main className="max-w-7xl mx-auto px-6 py-8">
       <div className="mb-6">
-        <p className="text-flexoki-tx opacity-85 text-2xl mt-1 italic text-center font-bold">
+        <p className="text-flexoki-tx opacity-85 text-3xl mt-1 italic text-center font-bold">
           ~ into the mind ~
         </p>
         <hr className="mt-4 border-flexoki-ui-3" />
