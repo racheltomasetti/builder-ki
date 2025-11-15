@@ -349,7 +349,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        router.push("/dashboard/documents");
+        router.push("/dashboard/mind");
       }
     };
 
@@ -617,7 +617,7 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
       <div className="px-6 pt-6 flex justify-between items-center">
         {/* Back button - left aligned */}
         <button
-          onClick={() => router.push("/dashboard/documents")}
+          onClick={() => router.push("/dashboard/mind")}
           className="text-flexoki-tx-2 hover:text-flexoki-tx transition-colors flex items-center gap-2"
         >
           <svg

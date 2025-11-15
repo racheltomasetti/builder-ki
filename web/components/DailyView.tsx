@@ -38,7 +38,12 @@ type TimerSession = {
 };
 
 type TimelineItem =
-  | { type: "activity"; session: TimerSession; linkedCaptures: Capture[]; timestamp: string }
+  | {
+      type: "activity";
+      session: TimerSession;
+      linkedCaptures: Capture[];
+      timestamp: string;
+    }
   | { type: "capture"; capture: Capture; timestamp: string }
   | { type: "media"; media: MediaItem; timestamp: string };
 
@@ -61,7 +66,10 @@ interface DailyViewProps {
   };
 }
 
-export default function DailyView({ searchQuery = "", filters }: DailyViewProps) {
+export default function DailyView({
+  searchQuery = "",
+  filters,
+}: DailyViewProps) {
   const [days, setDays] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -157,9 +165,8 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
 
       // Add activity blocks (timer sessions with linked captures)
       timerSessions?.forEach((session) => {
-        const linkedCaptures = dailyCaptures.filter(
-          (capture) =>
-            capture.timer_session_ids?.includes(session.id)
+        const linkedCaptures = dailyCaptures.filter((capture) =>
+          capture.timer_session_ids?.includes(session.id)
         );
 
         timeline.push({
@@ -172,7 +179,8 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
 
       // Add standalone captures (not linked to any timer)
       dailyCaptures.forEach((capture) => {
-        const isLinkedToTimer = capture.timer_session_ids && capture.timer_session_ids.length > 0;
+        const isLinkedToTimer =
+          capture.timer_session_ids && capture.timer_session_ids.length > 0;
         if (!isLinkedToTimer) {
           timeline.push({
             type: "capture",
@@ -320,9 +328,7 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
       // Apply cycle day filter
       if (filters?.cycleDay && filters.cycleDay !== "all") {
         const targetDay = parseInt(filters.cycleDay);
-        filteredDays = filteredDays.filter(
-          (day) => day.cycleDay === targetDay
-        );
+        filteredDays = filteredDays.filter((day) => day.cycleDay === targetDay);
       }
 
       // Apply note type filter
@@ -377,7 +383,10 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
   };
 
   const renderDayCard = (dayData: DayData) => (
-    <div key={dayData.date} className="bg-flexoki-ui-2 rounded-lg shadow-lg border border-flexoki-ui-3 p-8 mb-6">
+    <div
+      key={dayData.date}
+      className="bg-flexoki-ui-2 rounded-lg shadow-lg border border-flexoki-ui-3 p-8 mb-6"
+    >
       {/* Date Header */}
       <div className="mb-6 pb-4 border-b border-flexoki-ui-3">
         <div className="flex items-center justify-between gap-4">
@@ -396,9 +405,8 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
         {dayData.intention && (
           <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">☀️</span>
-              <h3 className="text-xl font-semibold text-flexoki-tx">
-                Morning Intention
+              <h3 className="text-xl italic text-flexoki-accent font-bold">
+                Daily Intention
               </h3>
             </div>
             <div className="space-y-2">
@@ -407,10 +415,7 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
               </p>
               {dayData.intention.file_url && (
                 <audio controls className="w-full h-10">
-                  <source
-                    src={dayData.intention.file_url}
-                    type="audio/mpeg"
-                  />
+                  <source src={dayData.intention.file_url} type="audio/mpeg" />
                   Your browser does not support the audio element.
                 </audio>
               )}
@@ -426,12 +431,6 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
         {/* Timeline Section - Activities, Captures, Media */}
         {dayData.timeline.length > 0 && (
           <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <h3 className="text-xl font-semibold text-flexoki-tx">
-                📝 Daily Activity ({dayData.timeline.length})
-              </h3>
-            </div>
-
             <div className="space-y-6">
               {dayData.timeline.map((item) => {
                 if (item.type === "activity") {
@@ -450,7 +449,7 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
                       className="border-l-2 border-flexoki-accent pl-4 py-2"
                     >
                       <p className="text-sm text-flexoki-tx-3 mb-2">
-                        {formatTime(capture.created_at)} - Voice note
+                        ~ {formatTime(capture.created_at)} ~
                       </p>
                       {capture.file_url && (
                         <audio controls className="w-full mb-2 h-10">
@@ -470,7 +469,7 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
                   return (
                     <div key={media.id} className="mb-4">
                       <p className="text-sm text-flexoki-tx-3 mb-2">
-                        {formatTime(media.created_at)} - {media.file_type === "video" ? "Video" : "Photo"}
+                        ~ {formatTime(media.created_at)} ~
                       </p>
                       {media.file_type === "video" ? (
                         <video
@@ -505,9 +504,8 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
         {dayData.reflection && (
           <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">🌙</span>
-              <h3 className="text-xl font-semibold text-flexoki-tx">
-                Evening Reflection
+              <h3 className="text-xl italic text-flexoki-accent font-bold">
+                Daily Reflection
               </h3>
             </div>
             <div className="space-y-2">
@@ -516,10 +514,7 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
               </p>
               {dayData.reflection.file_url && (
                 <audio controls className="w-full h-10">
-                  <source
-                    src={dayData.reflection.file_url}
-                    type="audio/mpeg"
-                  />
+                  <source src={dayData.reflection.file_url} type="audio/mpeg" />
                   Your browser does not support the audio element.
                 </audio>
               )}
@@ -550,7 +545,9 @@ export default function DailyView({ searchQuery = "", filters }: DailyViewProps)
         <div className="bg-flexoki-ui rounded-lg shadow-md p-8">
           <div className="text-center">
             <p className="text-flexoki-tx-2 mb-4">
-              {searchQuery || filters ? "No matching entries found." : "No entries yet."}
+              {searchQuery || filters
+                ? "No matching entries found."
+                : "No entries yet."}
             </p>
             <p className="text-sm text-flexoki-tx-3">
               {searchQuery || filters

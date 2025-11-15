@@ -182,7 +182,7 @@ export default function DocumentCard({
   };
 
   const handleClick = () => {
-    router.push(`/dashboard/documents/${document.id}`);
+    router.push(`/dashboard/mind/${document.id}`);
   };
 
   const preview = getPreview(document.content);

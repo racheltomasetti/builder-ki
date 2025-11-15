@@ -406,16 +406,6 @@ export default function DashboardPage() {
         {/* View Toggle */}
         <div className="flex justify-center gap-2 mb-6">
           <button
-            onClick={() => setViewMode("feed")}
-            className={`px-6 py-2 rounded-lg transition-all text-flexoki-tx ${
-              viewMode === "feed"
-                ? "bg-flexoki-accent font-bold"
-                : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 font-medium hover:text-xl hover:font-bold hover:text-flexoki-accent"
-            }`}
-          >
-            stream of consciousness
-          </button>
-          <button
             onClick={() => setViewMode("daily")}
             className={`px-6 py-2 rounded-lg transition-all text-flexoki-tx ${
               viewMode === "daily"
@@ -424,6 +414,16 @@ export default function DashboardPage() {
             }`}
           >
             daily log
+          </button>
+          <button
+            onClick={() => setViewMode("feed")}
+            className={`px-6 py-2 rounded-lg transition-all text-flexoki-tx ${
+              viewMode === "feed"
+                ? "bg-flexoki-accent font-bold"
+                : "bg-flexoki-ui-2 text-flexoki-tx-2 border border-flexoki-ui-3 font-medium hover:text-xl hover:font-bold hover:text-flexoki-accent"
+            }`}
+          >
+            stream of consciousness
           </button>
         </div>
 

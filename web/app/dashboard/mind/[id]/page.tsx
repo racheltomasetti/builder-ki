@@ -48,7 +48,7 @@ export default async function DocumentPage({
             permission to view it.
           </p>
           <a
-            href="/dashboard/documents"
+            href="/dashboard/mind"
             className="text-flexoki-accent hover:underline"
           >
             Back to Journals

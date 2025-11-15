@@ -3,7 +3,7 @@
 export default function WeeklyKey() {
   return (
     <div className="bg-flexoki-ui rounded-lg border border-flexoki-ui-3 p-2.5 text-xs">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-center gap-4">
         <h3 className="font-semibold text-flexoki-tx uppercase tracking-wide text-[16px]">
           Legend:
         </h3>

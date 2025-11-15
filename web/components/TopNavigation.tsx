@@ -41,24 +41,18 @@ export default function TopNavigation({ user }: TopNavigationProps) {
         return;
       }
 
-      // Right arrow: DAILY → MIND  → BODY
+      // Right arrow:   MIND  → KI → BODY
       if (event.key === "ArrowRight" && pathname === "/dashboard") {
-        router.push("/dashboard/documents");
-      } else if (
-        event.key === "ArrowRight" &&
-        pathname === "/dashboard/documents"
-      ) {
-        router.push("/dashboard/cycle");
+        router.push("/dashboard/body");
+      } else if (event.key === "ArrowRight" && pathname === "/dashboard/mind") {
+        router.push("/dashboard");
       }
 
-      // Left arrow: BODY → MIND → DAILY
-      if (event.key === "ArrowLeft" && pathname === "/dashboard/cycle") {
-        router.push("/dashboard/documents");
-      } else if (
-        event.key === "ArrowLeft" &&
-        pathname === "/dashboard/documents"
-      ) {
+      // Left arrow: BODY → KI → MIND
+      if (event.key === "ArrowLeft" && pathname === "/dashboard/body") {
         router.push("/dashboard");
+      } else if (event.key === "ArrowLeft" && pathname === "/dashboard") {
+        router.push("/dashboard/mind");
       }
     };
 
@@ -70,48 +64,46 @@ export default function TopNavigation({ user }: TopNavigationProps) {
     <>
       <nav className="bg-flexoki-ui shadow-sm border-b border-flexoki-ui-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-8">
-              <div className="flex items-center">
-                <h1 className="text-3xl font-bold text-flexoki-accent italic">
-                  ki
-                </h1>
-              </div>
-              {/* Navigation Links */}
-              <div className="flex items-center gap-6">
-                <a
-                  href="/dashboard"
-                  className={`text-xl italic transition-colors ${
-                    isActive("/dashboard")
-                      ? "text-flexoki-accent-2 font-bold"
-                      : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
-                  }`}
-                >
-                  DAILY
-                </a>
-                <a
-                  href="/dashboard/documents"
-                  className={`text-xl italic medium transition-colors ${
-                    isActive("/dashboard/documents")
-                      ? "text-flexoki-accent-2 font-bold"
-                      : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
-                  }`}
-                >
-                  MIND
-                </a>
-                <a
-                  href="/dashboard/cycle"
-                  className={`text-xl italic medium transition-colors ${
-                    isActive("/dashboard/cycle")
-                      ? "text-flexoki-accent-2 font-bold"
-                      : "text-flexoki-tx-2 font-medium hover:text-2xl hover:font-bold hover:text-flexoki-accent-2"
-                  }`}
-                >
-                  BODY
-                </a>
-              </div>
+          <div className="relative flex justify-center h-16 items-center">
+            {/* KI - Left Side */}
+            <div className="absolute left-0">
+              <h1 className="text-4xl italic font-bold text-flexoki-tx">ki</h1>
             </div>
-            <div className="flex items-center">
+            {/* Navigation Links - Centered */}
+            <div className="flex items-center gap-6">
+              <a
+                href="/dashboard/mind"
+                className={`text-4xl italic medium transition-colors ${
+                  isActive("/dashboard/mind")
+                    ? "text-flexoki-accent-2 font-bold"
+                    : "text-flexoki-tx-2 font-medium hover:font-bold hover:text-flexoki-accent-2"
+                }`}
+              >
+                MIND
+              </a>
+              <a
+                href="/dashboard"
+                className={`text-4xl italic medium transition-colors ${
+                  isActive("/dashboard")
+                    ? "text-flexoki-accent font-bold"
+                    : "text-flexoki-tx-2 font-medium hover:font-bold hover:text-flexoki-accent"
+                }`}
+              >
+                •
+              </a>
+              <a
+                href="/dashboard/body"
+                className={`text-4xl italic medium transition-colors ${
+                  isActive("/dashboard/body")
+                    ? "text-flexoki-accent-2 font-bold"
+                    : "text-flexoki-tx-2 font-medium hover:font-bold hover:text-flexoki-accent-2"
+                }`}
+              >
+                BODY
+              </a>
+            </div>
+            {/* Settings Button - Absolute positioned to the right */}
+            <div className="absolute right-0 flex items-center">
               <button
                 onClick={() => setIsSettingsOpen(true)}
                 className="p-2 rounded-lg hover:bg-flexoki-ui-2 transition-colors"

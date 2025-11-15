@@ -122,7 +122,7 @@ export default function DocumentsList({
       const newDocument = await response.json();
 
       // Navigate to new document
-      window.location.href = `/dashboard/documents/${newDocument.id}`;
+      window.location.href = `/dashboard/mind/${newDocument.id}`;
     } catch (error) {
       console.error("Error creating document:", error);
       alert("Failed to create new document");

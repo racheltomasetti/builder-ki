@@ -82,7 +82,7 @@ export default function VoiceCard({
       const document = await response.json();
 
       // Navigate to the document editor
-      window.location.href = `/dashboard/documents/${document.id}`;
+      window.location.href = `/dashboard/mind/${document.id}`;
     } catch (error: any) {
       console.error("Error expanding thought:", error);
       alert("Failed to expand thought: " + error.message);

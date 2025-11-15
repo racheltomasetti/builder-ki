@@ -19,7 +19,7 @@ export default function DashboardLayout({
   const supabase = createClient();
 
   // Check if we're in the document editor (hide nav)
-  const isDocumentEditor = pathname?.startsWith("/dashboard/documents/") && pathname !== "/dashboard/documents";
+  const isDocumentEditor = pathname?.startsWith("/dashboard/mind/") && pathname !== "/dashboard/mind";
 
   useEffect(() => {
     const getUser = async () => {
