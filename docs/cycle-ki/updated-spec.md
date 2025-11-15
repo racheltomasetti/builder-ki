@@ -297,7 +297,7 @@ DISTILL (Pattern Recognition)
 
 ---
 
-#### **Journal 2: CYCLE** (route: `/cycle`)
+#### **Journal 2: BODY** (route: `/body`)
 
 **Purpose**: Pattern recognition journal - explore your data across time, visualize biological rhythms, set cycle intentions, discover insights.
 
@@ -327,13 +327,6 @@ DISTILL (Pattern Recognition)
    - Voice notes nested within blocks
    - Scheduled vs actual comparison
    - Daily summary previews
-
-4. **Daily View** (detailed single day)
-   - Timeline (24 hours vertical)
-   - Activity blocks at actual times
-   - Voice captures with timestamps
-   - Photos/videos inline in timeline
-   - Daily summary (AI-generated, optional)
 
 **Visual Elements:**
 
@@ -390,7 +383,7 @@ User: "I'm feeling really low energy and my period is about to start."
 
 ---
 
-#### **Journal 3: CREATE** (route: `/create`, currently `/documents`)
+#### **Journal 3: MIND** (route: `/mind`)
 
 **Purpose**: Thought expansion journal - synthesize ideas, explore curiosities, develop thinking with AI support.
 
@@ -403,10 +396,6 @@ User: "I'm feeling really low energy and my period is about to start."
 - Document list sorted by most recently updated
 
 **No changes needed** - this works beautifully as-is. Just:
-
-- Rename route from `/documents` to `/create`
-- Update navigation label from "Documents" to "CREATE"
-- Refine positioning: "This is where you go deep on ideas"
 
 **Visual Design**:
 
@@ -425,15 +414,15 @@ User: "I'm feeling really low energy and my period is about to start."
 ┌─────────────────────────────────────┐
 │  builder-ki                         │
 │  ─────────────────────────────────  │
-│  [ DAILY ]  [ CYCLE ]  [ CREATE ]   │
+│     [ MIND ]  [ • ]  [ BODY ]   │
 └─────────────────────────────────────┘
 ```
 
 **Three journals, three purposes:**
 
-1. **DAILY**: awareness of the present (what am I thinking/feeling/doing today?)
-2. **CYCLE**: patterns across time (how do my rhythms influence me?)
-3. **CREATE**: depth on ideas (what do I want to understand deeply?)
+1. **•**: awareness of the present (what am I thinking/feeling/doing today?)
+2. **BODY**: patterns across time (how do my rhythms influence me?)
+3. **MIND**: depth on ideas (what do I want to understand deeply?)
 
 ### Oura Integration (Starting from Scratch)
 

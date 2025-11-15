@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import WeeklyView from "@/components/BODY/WeeklyView";
+import MonthlyView from "@/components/BODY/MonthlyView";
 import WeeklyKey from "@/components/BODY/WeeklyKey";
 
 type ViewMode = "cycle" | "monthly" | "weekly";
@@ -13,7 +14,7 @@ type CycleInfo = {
 };
 
 export default function CycleJournalPage() {
-  const [viewMode, setViewMode] = useState<ViewMode>("cycle");
+  const [viewMode, setViewMode] = useState<ViewMode>("weekly");
   const [cycleInfo, setCycleInfo] = useState<CycleInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -33,8 +34,12 @@ export default function CycleJournalPage() {
         return;
       }
 
-      // Get today's date
-      const today = new Date().toISOString().split("T")[0];
+      // Get today's date in local timezone (not UTC)
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(now.getDate()).padStart(2, "0")}`;
 
       // Fetch cycle info for today
       const { data: cycleData } = await supabase.rpc("calculate_cycle_info", {
@@ -98,14 +103,14 @@ export default function CycleJournalPage() {
             {/* View Mode Switcher - Compact */}
             <div className="flex items-center justify-center gap-1 bg-flexoki-ui border border-flexoki-ui-3 rounded-lg p-1 max-w-md mx-auto">
               <button
-                onClick={() => setViewMode("cycle")}
+                onClick={() => setViewMode("weekly")}
                 className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                  viewMode === "cycle"
+                  viewMode === "weekly"
                     ? "bg-flexoki-accent text-flexoki-bg"
                     : "text-flexoki-tx-2 hover:bg-flexoki-ui-2"
                 }`}
               >
-                Cycle
+                Weekly
               </button>
               <button
                 onClick={() => setViewMode("monthly")}
@@ -118,14 +123,14 @@ export default function CycleJournalPage() {
                 Monthly
               </button>
               <button
-                onClick={() => setViewMode("weekly")}
+                onClick={() => setViewMode("cycle")}
                 className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                  viewMode === "weekly"
+                  viewMode === "cycle"
                     ? "bg-flexoki-accent text-flexoki-bg"
                     : "text-flexoki-tx-2 hover:bg-flexoki-ui-2"
                 }`}
               >
-                Weekly
+                Cycle
               </button>
             </div>
           </div>
@@ -158,33 +163,20 @@ export default function CycleJournalPage() {
       {/* Main Content Area */}
       {viewMode === "weekly" ? (
         <WeeklyView />
+      ) : viewMode === "monthly" ? (
+        <MonthlyView />
       ) : (
         <div className="bg-flexoki-ui rounded-lg shadow-md p-12">
           <div className="text-center">
             <div className="mb-6">
-              {viewMode === "cycle" && (
-                <>
-                  <div className="text-6xl mb-4">🌙</div>
-                  <h2 className="text-3xl font-bold text-flexoki-tx mb-2">
-                    28-Day Cycle View
-                  </h2>
-                  <p className="text-flexoki-tx-2">
-                    Circular visualization of your full cycle with data mapped
-                    to cycle days
-                  </p>
-                </>
-              )}
-              {viewMode === "monthly" && (
-                <>
-                  <div className="text-6xl mb-4">📅</div>
-                  <h2 className="text-3xl font-bold text-flexoki-tx mb-2">
-                    Monthly Calendar View
-                  </h2>
-                  <p className="text-flexoki-tx-2">
-                    Traditional calendar grid showing cycle days and activities
-                  </p>
-                </>
-              )}
+              <div className="text-6xl mb-4">🌙</div>
+              <h2 className="text-3xl font-bold text-flexoki-tx mb-2">
+                28-Day Cycle View
+              </h2>
+              <p className="text-flexoki-tx-2">
+                Circular visualization of your full cycle with data mapped to
+                cycle days
+              </p>
             </div>
             <div className="bg-flexoki-ui-2 rounded-lg p-8 max-w-md mx-auto">
               <p className="text-flexoki-tx-3 italic">

@@ -90,7 +90,11 @@ export default function WeeklyView() {
       for (let i = 0; i < 7; i++) {
         const d = new Date(weekStartDate);
         d.setDate(d.getDate() + i);
-        dates.push(d.toISOString().split("T")[0]);
+        // Format date in local timezone, not UTC
+        const dateString = `${d.getFullYear()}-${String(
+          d.getMonth() + 1
+        ).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        dates.push(dateString);
       }
 
       // Fetch all data for the week
@@ -148,31 +152,16 @@ export default function WeeklyView() {
     }
   };
 
-  const getCyclePhaseColor = (phase: string | null) => {
-    switch (phase) {
-      case "menstrual":
-        return "bg-blue-50 bg-opacity-50";
-      case "follicular":
-        return "bg-green-50 bg-opacity-50";
-      case "ovulation":
-        return "bg-yellow-50 bg-opacity-50";
-      case "luteal":
-        return "bg-orange-50 bg-opacity-50";
-      default:
-        return "bg-flexoki-ui";
-    }
-  };
-
   const getCyclePhaseBorderColor = (phase: string | null) => {
     switch (phase) {
       case "menstrual":
-        return "border-blue-300";
+        return "border-blue-600 border-opacity-50";
       case "follicular":
-        return "border-green-300";
+        return "border-green-600 border-opacity-50";
       case "ovulation":
-        return "border-yellow-300";
+        return "border-yellow-600 border-opacity-50";
       case "luteal":
-        return "border-orange-300";
+        return "border-orange-600 border-opacity-50";
       default:
         return "border-flexoki-ui-3";
     }
@@ -285,27 +274,29 @@ export default function WeeklyView() {
         <div className="min-w-[1200px]">
           {/* Day Headers */}
           <div className="grid grid-cols-8 border-b border-flexoki-ui-3">
-            <div className="p-2 text-center text-xs font-semibold text-flexoki-tx-3">
+            <div className="p-2 text-center text-xs font-semibold text-flexoki-tx-3 bg-flexoki-ui-2">
               TIME
             </div>
             {weekData.map((day) => (
               <div
                 key={day.date}
-                className={`p-2 text-center border-l border-flexoki-ui-3 ${getCyclePhaseColor(
-                  day.cycleInfo?.cycle_phase || null
-                )}`}
+                className="p-1 text-center border-l border-flexoki-ui-3 bg-flexoki-ui-2"
               >
-                <div className="text-xs font-semibold text-flexoki-tx">
-                  {day.dayName}
-                </div>
-                <div className="text-xl font-bold text-flexoki-tx">
-                  {day.dayNumber}
-                </div>
-                {day.cycleInfo?.cycle_day && (
-                  <div className="text-[10px] text-flexoki-tx-3 mt-0.5">
-                    Day {day.cycleInfo.cycle_day}
+                <div className={`h-full border-2 rounded-lg px-2 py-2 flex flex-col justify-center ${getCyclePhaseBorderColor(
+                  day.cycleInfo?.cycle_phase || null
+                )} bg-flexoki-ui-2`}>
+                  <div className="text-xs font-semibold text-flexoki-tx">
+                    {day.dayName}
                   </div>
-                )}
+                  <div className="text-xl font-bold text-flexoki-tx">
+                    {day.dayNumber}
+                  </div>
+                  {day.cycleInfo?.cycle_day && (
+                    <div className="text-[10px] text-flexoki-tx-3 mt-0.5">
+                      Day {day.cycleInfo.cycle_day}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -328,9 +319,7 @@ export default function WeeklyView() {
             {weekData.map((day) => (
               <div
                 key={day.date}
-                className={`border-l border-flexoki-ui-3 relative ${getCyclePhaseColor(
-                  day.cycleInfo?.cycle_phase || null
-                )}`}
+                className="border-l border-flexoki-ui-3 relative bg-flexoki-ui-2"
               >
                 {/* Hour grid lines */}
                 {timeSlots.map((slot) => (
@@ -354,9 +343,9 @@ export default function WeeklyView() {
                     return (
                       <div
                         key={session.id}
-                        className={`absolute left-1 right-1 rounded-md p-1.5 pointer-events-auto border ${getCyclePhaseBorderColor(
+                        className={`absolute left-1 right-1 rounded-md p-1.5 pointer-events-auto border-2 ${getCyclePhaseBorderColor(
                           day.cycleInfo?.cycle_phase || null
-                        )} bg-flexoki-ui-2 shadow-sm overflow-hidden`}
+                        )} bg-flexoki-ui shadow-sm overflow-hidden`}
                         style={style}
                       >
                         <div className="text-[10px] font-semibold text-flexoki-tx truncate">

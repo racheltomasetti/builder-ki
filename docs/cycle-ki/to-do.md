@@ -269,10 +269,9 @@
 
 ### Timer Persistence
 
-- [ ] **Handle app close/reopen**
+- [x] **Handle app close/reopen**
   - Active timers persist in database (status='active')
   - On app reopen, fetch active timers via getActiveTimers()
-  - Resume displaying Active Timer Bar if timers exist
   - Elapsed time calculates from start_time
   - **Checkpoint**: Start timer, close app, reopen, timer still active
 
@@ -281,7 +280,7 @@
 **PHASE 2 CHECKPOINT**:
 
 - Tasks appear in Track tab
-- Timers start/stop/pause/resume
+- Timers start/stop
 - Multiple concurrent timers work
 - Captures link to active timers
 - Timers persist across app restarts
@@ -294,14 +293,14 @@
 
 ### Calendar Page Structure
 
-- [ ] **Create /cycle route**
+- [x] **Create /body route**
 
-  - New file: `web/app/cycle/page.tsx`
+  - New file: `web/app/body/page.tsx`
   - Main calendar view with view mode toggle
   - Sidebar for cycle agents (placeholder for Phase 4)
 
-- [ ] **View mode toggle component**
-  - Buttons: Cycle / Monthly / Weekly / Daily
+- [x] **View mode toggle component**
+  - Buttons: Weekly / Monnthly / Cycle
   - State: current view mode
   - **Checkpoint**: Toggle between views, UI updates
 
@@ -329,76 +328,25 @@
   - Group data by date
   - **Checkpoint**: Data grouped correctly by date
 
-### Daily View (Timeline)
-
-- [ ] **Create DailyTimeline component**
-
-  - New file: `web/components/calendar/DailyTimeline.tsx`
-  - 24-hour vertical timeline
-  - Props: date, timerSessions, captures
-
-- [ ] **Render activity blocks**
-
-  - For each timer_session with end_time:
-    - Calculate position: start_time hour/minute
-    - Calculate height: duration (end_time - start_time)
-    - Display as colored block with timer name
-  - **Checkpoint**: Activity blocks appear at correct times with correct heights
-
-- [ ] **Render voice note markers**
-
-  - For each capture (voice):
-    - Calculate position: created_at hour/minute
-    - Display as dot/icon
-    - If timer_session_ids exists, nest inside activity block
-    - If no timer, display standalone
-  - **Checkpoint**: Voice notes appear at correct times, linked to activities
-
-- [ ] **Render photos/videos inline**
-
-  - For each capture (photo/video):
-    - Display thumbnail at created_at time
-    - Click to expand
-  - **Checkpoint**: Media displays inline in timeline
-
-- [ ] **Cycle phase indicator**
-
-  - Header shows: "Day X, [Phase]"
-  - Background subtle color based on phase
-  - **Checkpoint**: Cycle context visible
-
-- [ ] **Click interactions**
-  - Click activity block � expand details (duration, voice notes within)
-  - Click voice note � read full transcription
-  - Click photo � open modal
-  - **Checkpoint**: All interactions work
-
 ### Weekly View
 
-- [ ] **Create WeeklyView component**
+- [x] **Create WeeklyView component**
 
-  - New file: `web/components/calendar/WeeklyView.tsx`
+  - New file: `web/components/BODY/WeeklyView.tsx`
   - 7 columns (Mon-Sun)
   - Each column is mini daily timeline
 
-- [ ] **Render week grid**
+- [x] **Render week grid**
 
   - Fetch data for 7 days
-  - For each day: show activity blocks (condensed), voice note count
-  - Click day � zoom to daily view
+  - For each day: show activity blocks (condensed), voice note indicators
   - **Checkpoint**: Week displays with 7 days of data
-
-- [ ] **Scheduled vs actual comparison**
-  - If task has scheduled_time but timer started at different time:
-    - Show scheduled block (light/dashed)
-    - Show actual block (solid)
-  - **Checkpoint**: Can see planned vs actual activities
 
 ### Monthly View
 
 - [ ] **Create MonthlyView component**
 
-  - New file: `web/components/calendar/MonthlyView.tsx`
+  - New file: `web/components/BODY/MonthlyView.tsx`
   - Traditional calendar grid (5-6 weeks)
 
 - [ ] **Render month grid**
@@ -415,7 +363,7 @@
 
 - [ ] **Create CycleView component**
 
-  - New file: `web/components/calendar/CycleView.tsx`
+  - New file: `web/components/BODY/CycleView.tsx`
   - SVG circular layout (28 segments)
   - Uses polar coordinates
 
@@ -452,7 +400,7 @@
 
 ### Web: Update DAILY journal
 
-- [ ] **Add activity blocks to dashboard feed**
+- [x] **Add activity blocks to dashboard feed**
   - In existing `/dashboard` page
   - For each day in feed, fetch timer_sessions
   - Display activity blocks inline with captures
@@ -462,8 +410,7 @@
 
 **PHASE 3 CHECKPOINT**:
 
-- `/cycle` route exists with all 4 views
-- Daily view shows timeline with activities, voices, media
+- `/body` route exists with all 3 views
 - Weekly view shows 7 days with activities
 - Monthly view shows calendar grid with cycle colors
 - Cycle view shows circular calendar with data mapped to cycle days

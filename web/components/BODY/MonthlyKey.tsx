@@ -1,6 +1,6 @@
 "use client";
 
-export default function WeeklyKey() {
+export default function MonthlyKey() {
   return (
     <div className="bg-flexoki-ui rounded-lg border border-flexoki-ui-3 p-2.5 text-xs">
       <div className="flex items-center justify-center gap-4">
@@ -29,17 +29,21 @@ export default function WeeklyKey() {
         {/* Divider */}
         <div className="h-4 w-px bg-flexoki-ui-3"></div>
 
-        {/* Voice Notes */}
+        {/* Note Types (Dots) */}
         <div className="flex items-center gap-1">
-          <div className="w-3 h-2 rounded-sm bg-yellow-100 border border-yellow-500 opacity-70"></div>
+          <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
           <span className="text-[16px] text-flexoki-tx-2">Intention</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-2 rounded-sm bg-purple-100 border border-purple-400 opacity-70"></div>
+          <div className="w-2 h-2 rounded-full bg-purple-400"></div>
           <span className="text-[16px] text-flexoki-tx-2">Reflection</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-2 rounded-sm bg-red-100 border border-red-400 opacity-70"></div>
+          <div className="w-2 h-2 rounded-full bg-flexoki-accent-2"></div>
+          <span className="text-[16px] text-flexoki-tx-2">Flow</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2 h-2 rounded-full bg-flexoki-accent"></div>
           <span className="text-[16px] text-flexoki-tx-2">Voice Capture</span>
         </div>
       </div>
