@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import CycleDataPointModal from "./CycleDataPointModal";
 import CycleKey from "./CycleKey";
+import NowModal from "./NowModal";
 
 type CyclePeriod = {
   id: string;
@@ -56,6 +57,7 @@ export default function CycleView() {
   const [isAllTimeView, setIsAllTimeView] = useState(false);
   const [earliestCycleWithCapturesIndex, setEarliestCycleWithCapturesIndex] =
     useState<number | null>(null);
+  const [isNowModalOpen, setIsNowModalOpen] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -143,14 +145,14 @@ export default function CycleView() {
           const timeOfDay = extractTimeOfDay(capture.created_at);
 
           let type: "intention" | "reflection" | "general" = "general";
-          let color = "#D47474"; // red accent (general)
+          let color = "#af3029"; // red accent (general)
 
           if (capture.note_type === "intention") {
             type = "intention";
             color = "#D4A574"; // yellow/gold
           } else if (capture.note_type === "reflection") {
             type = "reflection";
-            color = "#A274D4"; // purple
+            color = "#A274D4"; // lighter purple
           }
 
           return {
@@ -176,7 +178,7 @@ export default function CycleView() {
             type: "media",
             cycleDay,
             timeOfDay,
-            color: "#74D4A5", // teal accent-2
+            color: "#3aa99f", // teal accent-2
             data: item,
           };
         }) || [];
@@ -354,7 +356,7 @@ export default function CycleView() {
             const radialPosition = calculateRadialPosition(logDate);
 
             let type: "intention" | "reflection" | "general" = "general";
-            let color = "#D47474"; // red accent (general)
+            let color = "#af3029"; // red accent (general)
 
             if (capture.note_type === "intention") {
               type = "intention";
@@ -404,7 +406,7 @@ export default function CycleView() {
               type: "media",
               cycleDay,
               timeOfDay: radialPosition, // Repurpose timeOfDay field for radial position
-              color: "#74D4A5", // teal accent-2
+              color: "#3aa99f", // teal accent-2
               data: item,
             };
           })
@@ -747,8 +749,50 @@ export default function CycleView() {
 
   return (
     <div className="bg-flexoki-ui rounded-xl shadow-lg border border-flexoki-ui-3 overflow-hidden">
+      {/* Header with Navigation */}
+
+      <div className="flex items-center justify-between px-6 py-3 bg-flexoki-ui border-b border-flexoki-ui-3">
+        <button
+          onClick={() => navigateCycle("prev")}
+          disabled={currentCycleIndex >= cycles.length - 1 || isAllTimeView}
+          className="p-1 rounded-lg hover:bg-flexoki-ui transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Previous Cycle"
+        >
+          <ChevronLeft className="w-5 h-5 text-flexoki-tx" />
+        </button>
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-flexoki-tx">
+            {isAllTimeView
+              ? "All Time View"
+              : currentCycle
+              ? formatCycleDateRange(currentCycle)
+              : "No Cycle"}
+          </h2>
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center justify-center gap-3 text-sm text-flexoki-tx-2">
+              {!loadingData && (
+                <span className="flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-flexoki-tx-2"></span>
+                  <span>
+                    {dataPoints.length}{" "}
+                    {dataPoints.length === 1 ? "capture" : "captures"}
+                  </span>
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => navigateCycle("next")}
+          disabled={currentCycleIndex <= 0 || isAllTimeView}
+          className="p-1 rounded-lg hover:bg-flexoki-ui transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          title="Next Cycle"
+        >
+          <ChevronRight className="w-5 h-5 text-flexoki-tx" />
+        </button>
+      </div>
       {/* Legend - Top */}
-      <div className="px-6 py-3 bg-flexoki-ui-2 border-b border-flexoki-ui-3">
+      <div className="px-6 py-3 bg-flexoki-ui border-b border-flexoki-ui-3">
         <CycleKey
           showPhaseOverlay={showPhaseOverlay}
           onTogglePhaseOverlay={setShowPhaseOverlay}
@@ -764,65 +808,8 @@ export default function CycleView() {
         />
       </div>
 
-      {/* Header with Navigation */}
-      <div className="flex items-center justify-between px-6 py-3 bg-flexoki-ui-2 border-b border-flexoki-ui-3">
-        <button
-          onClick={() => navigateCycle("prev")}
-          disabled={currentCycleIndex >= cycles.length - 1 || isAllTimeView}
-          className="p-1 rounded-lg hover:bg-flexoki-ui transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Previous Cycle"
-        >
-          <ChevronLeft className="w-5 h-5 text-flexoki-tx" />
-        </button>
-        <div className="text-center">
-          {/* horizontal line */}
-          <div className="w-full h-1 bg-flexoki-ui-3"></div>
-          <h2 className="text-lg font-semibold text-flexoki-tx">
-            {isAllTimeView
-              ? "All Time View"
-              : currentCycle
-              ? formatCycleDateRange(currentCycle)
-              : "No Cycle"}
-          </h2>
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center justify-center gap-3 text-sm text-flexoki-tx-3">
-              {!loadingData && (
-                <span className="flex items-center gap-1">
-                  <span className="w-1 h-1 rounded-full bg-flexoki-tx-3"></span>
-                  <span>
-                    {dataPoints.length}{" "}
-                    {dataPoints.length === 1 ? "capture" : "captures"}
-                  </span>
-                </span>
-              )}
-            </div>
-            {/* horizontal line */}
-            <div className="w-full h-1 bg-flexoki-ui-3"></div>
-            {/* Today's date - only show if viewing current cycle */}
-            {!isAllTimeView && currentCycle && isCurrentCycle(currentCycle) && (
-              <p className="text-sm text-flexoki-accent italic font-semibold">
-                Today is{" "}
-                {new Date().toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
-            )}
-          </div>
-        </div>
-        <button
-          onClick={() => navigateCycle("next")}
-          disabled={currentCycleIndex <= 0 || isAllTimeView}
-          className="p-1 rounded-lg hover:bg-flexoki-ui transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Next Cycle"
-        >
-          <ChevronRight className="w-5 h-5 text-flexoki-tx" />
-        </button>
-      </div>
-
       {/* SVG Cycle Wheel */}
-      <div className="p-8 flex items-center justify-center relative">
+      <div className="p-8 flex items-center justify-center relative shadow-lg">
         {loadingData && (
           <div className="absolute inset-0 flex items-center justify-center bg-flexoki-ui bg-opacity-80 z-10 rounded-lg">
             <div className="text-center">
@@ -1030,59 +1017,31 @@ export default function CycleView() {
                   strokeWidth="2"
                 />
 
-                {/* Center circle with current day info - only show in single cycle view */}
+                {/* Center icon for current cycle view */}
                 {!isAllTimeView && currentDay && currentDay <= cycleLength && (
-                  <>
-                    {/* Clickable background circle */}
-                    <circle
-                      cx={centerX}
-                      cy={centerY}
-                      r={innerRadius - 10}
-                      fill="#E6E4DE"
-                      className="cursor-pointer transition-all hover:opacity-80"
-                      opacity="0.6"
-                      onClick={() => {
-                        // TODO: Open phase info modal
-                        console.log(
-                          "Center circle clicked - open phase info modal"
-                        );
-                      }}
-                    />
+                  <image
+                    href="/icon.png"
+                    x={centerX - 40}
+                    y={centerY - 40}
+                    width="80"
+                    height="80"
+                    className="animate-spin-1m cursor-pointer"
+                    style={{ transformOrigin: "center" }}
+                    onClick={() => setIsNowModalOpen(true)}
+                  />
+                )}
 
-                    {/* Current day text */}
-                    <text
-                      x={centerX}
-                      y={centerY - 15}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      className="fill-flexoki-accent text-3xl font-bold cursor-pointer"
-                      onClick={() => {
-                        // TODO: Open phase info modal
-                        console.log(
-                          "Center text clicked - open phase info modal"
-                        );
-                      }}
-                    >
-                      Day {currentDay}
-                    </text>
-
-                    {/* Current phase text */}
-                    <text
-                      x={centerX}
-                      y={centerY + 25}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      className="fill-flexoki-tx text-lg capitalize italic cursor-pointer"
-                      onClick={() => {
-                        // TODO: Open phase info modal
-                        console.log(
-                          "Center text clicked - open phase info modal"
-                        );
-                      }}
-                    >
-                      {getCyclePhaseForDay(currentDay)}
-                    </text>
-                  </>
+                {/* Center icon for All Time view */}
+                {isAllTimeView && (
+                  <image
+                    href="/icon.png"
+                    x={centerX - 40}
+                    y={centerY - 40}
+                    width="80"
+                    height="80"
+                    className="animate-spin-1m"
+                    style={{ transformOrigin: "center" }}
+                  />
                 )}
 
                 {/* Data points */}
@@ -1114,8 +1073,8 @@ export default function CycleView() {
                       cy={position.y}
                       r="6"
                       fill={point.color}
-                      stroke="white"
-                      strokeWidth="1.5"
+                      stroke={point.color}
+                      strokeWidth="2"
                       className="cursor-pointer transition-all hover:scale-125 hover:opacity-100"
                       opacity="0.85"
                       style={{
@@ -1246,7 +1205,7 @@ export default function CycleView() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="flex items-center justify-between px-6 py-3 bg-flexoki-ui-2 border-t border-flexoki-ui-3">
+      <div className="flex items-center justify-between px-6 py-3 bg-flexoki-ui border-t border-flexoki-ui-3">
         <button
           onClick={() => navigateCycle("prev")}
           disabled={currentCycleIndex >= cycles.length - 1 || isAllTimeView}
@@ -1285,6 +1244,16 @@ export default function CycleView() {
         allDataPoints={dataPoints}
         onClose={() => setSelectedDataPoint(null)}
         onNavigate={handleDataPointNavigation}
+      />
+
+      {/* Now Modal */}
+      <NowModal
+        isOpen={isNowModalOpen}
+        onClose={() => setIsNowModalOpen(false)}
+        currentCycle={currentCycle}
+        currentDay={currentDay || 1}
+        cyclePhase={currentDay ? getCyclePhaseForDay(currentDay) : "follicular"}
+        cycleLength={cycleLength}
       />
     </div>
   );

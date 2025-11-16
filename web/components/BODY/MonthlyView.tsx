@@ -200,13 +200,13 @@ export default function MonthlyView() {
   const getCyclePhaseBorderColor = (phase: string | null) => {
     switch (phase) {
       case "menstrual":
-        return "border-blue-600 border-opacity-50";
+        return "border-blue-600 border-opacity-50 bg-blue-500 bg-opacity-30";
       case "follicular":
-        return "border-green-600 border-opacity-50";
+        return "border-green-600 border-opacity-50 bg-green-500 bg-opacity-30";
       case "ovulation":
-        return "border-yellow-600 border-opacity-50";
+        return "border-yellow-600 border-opacity-50 bg-yellow-500 bg-opacity-30";
       case "luteal":
-        return "border-orange-600 border-opacity-50";
+        return "border-orange-600 border-opacity-50 bg-orange-500 bg-opacity-30";
       default:
         return "border-flexoki-ui-3";
     }
@@ -335,15 +335,7 @@ export default function MonthlyView() {
   }
 
   return (
-    <div className="bg-flexoki-ui rounded-xl shadow-lg border border-flexoki-ui-3 overflow-hidden">
-      {/* Monthly Key above monthly calendar */}
-      <div className="px-6 py-3 bg-flexoki-ui-2 border-b border-flexoki-ui-3">
-        <MonthlyKey
-          showPhaseOverlay={showPhaseOverlay}
-          onTogglePhaseOverlay={setShowPhaseOverlay}
-        />
-      </div>
-
+    <div className="bg-flexoki-ui-2 rounded-xl shadow-lg border border-flexoki-ui-3 overflow-hidden">
       {/* Month Navigation - Top */}
       <div className="flex items-center justify-between px-6 py-3 bg-flexoki-ui-2 border-b border-flexoki-ui-3">
         <button
@@ -363,6 +355,13 @@ export default function MonthlyView() {
         >
           <ChevronRight className="w-5 h-5 text-flexoki-tx" />
         </button>
+      </div>
+      {/* Monthly Key above monthly calendar */}
+      <div className="px-6 py-3 bg-flexoki-ui-2 border-b border-flexoki-ui-3">
+        <MonthlyKey
+          showPhaseOverlay={showPhaseOverlay}
+          onTogglePhaseOverlay={setShowPhaseOverlay}
+        />
       </div>
 
       {/* Calendar Grid */}
@@ -396,23 +395,17 @@ export default function MonthlyView() {
                 key={index}
                 onClick={() => handleDayClick(dayData.date)}
                 className={`
-                  min-h-[100px] p-2 rounded-lg border-2
+                  min-h-[100px] p-2 rounded-lg border-2 shadow-md
                   ${
                     isCurrentMonth(dateObj)
-                      ? `${!isToday(dateObj) ? "bg-flexoki-ui-2" : ""} ${
-                          showPhaseOverlay
-                            ? getCyclePhaseBorderColor(
-                                cycleInfo?.cycle_phase || null
-                              )
-                            : "border-flexoki-ui-3"
-                        }`
+                      ? "bg-flexoki-ui border-flexoki-ui-3"
                       : "bg-flexoki-ui opacity-50 border-flexoki-ui-3"
                   }
-                  hover:opacity-100 transition-all cursor-pointer
+                  hover:opacity-100 hover:bg-flexoki-ui-3 transition-all cursor-pointer
                 `}
                 style={
                   isToday(dateObj) && isCurrentMonth(dateObj)
-                    ? { backgroundColor: "rgba(58, 169, 159, 0.5)" }
+                    ? { borderColor: "rgba(58, 169, 159, 1)", borderWidth: "3px" }
                     : undefined
                 }
               >
@@ -421,17 +414,25 @@ export default function MonthlyView() {
                   <span
                     className={`font-bold ${
                       isToday(dateObj)
-                        ? "text-lg text-flexoki-tx"
+                        ? "text-2xl text-flexoki-tx"
                         : isCurrentMonth(dateObj)
-                        ? "text-lg text-flexoki-tx"
-                        : "text-lg text-flexoki-tx-3"
+                        ? "text-2xl text-flexoki-tx"
+                        : "text-2xl text-flexoki-tx-3"
                     }`}
                   >
                     {dateObj.getDate()}
                   </span>
                   {/* Cycle Day */}
                   {cycleInfo?.cycle_day && isCurrentMonth(dateObj) && (
-                    <span className="text-[10px] text-flexoki-tx-3 bg-flexoki-ui rounded px-1">
+                    <span
+                      className={`text-[11px] rounded px-1 border-2 ${
+                        showPhaseOverlay
+                          ? `${getCyclePhaseBorderColor(
+                              cycleInfo?.cycle_phase || null
+                            )} text-flexoki-tx`
+                          : "border-transparent bg-transparent text-flexoki-tx-2"
+                      }`}
+                    >
                       Day {cycleInfo.cycle_day}
                     </span>
                   )}
@@ -442,27 +443,18 @@ export default function MonthlyView() {
                   {/* Intention Count */}
                   {intentions.length > 0 && (
                     <div className="flex items-center gap-1 text-xs text-flexoki-tx-2">
-                      <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                      <div className="w-2 h-2 rounded-full bg-yellow-400 bg-opacity-80"></div>
                       <span>
-                        {intentions.length === 1 ? "intention" : "intentions"}
-                      </span>
-                    </div>
-                  )}
-                  {/* Reflection Count */}
-                  {reflections.length > 0 && (
-                    <div className="flex items-center gap-1 text-xs text-flexoki-tx-2">
-                      <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-                      <span>
-                        {reflections.length === 1
-                          ? "reflection"
-                          : "reflections"}
+                        {intentions.length === 1
+                          ? "intention set"
+                          : "intentions"}
                       </span>
                     </div>
                   )}
                   {/* Timer Sessions Count */}
                   {timerSessions.length > 0 && (
                     <div className="flex items-center gap-1 text-xs text-flexoki-tx-2">
-                      <div className="w-2 h-2 rounded-full bg-flexoki-accent-2"></div>
+                      <div className="w-2 h-2 rounded-full bg-flexoki-accent-2 bg-opacity-60"></div>
                       <span>
                         {timerSessions.length}{" "}
                         {timerSessions.length === 1 ? "flow" : "flows"}
@@ -472,10 +464,21 @@ export default function MonthlyView() {
                   {/* Voice Captures Count */}
                   {voiceCaptures.length > 0 && (
                     <div className="flex items-center gap-1 text-xs text-flexoki-tx-2">
-                      <div className="w-2 h-2 rounded-full bg-flexoki-accent "></div>
+                      <div className="w-2 h-2 rounded-full bg-flexoki-accent bg-opacity-60"></div>
                       <span>
                         {voiceCaptures.length}{" "}
                         {voiceCaptures.length === 1 ? "note" : "notes"}
+                      </span>
+                    </div>
+                  )}
+                  {/* Reflection Count */}
+                  {reflections.length > 0 && (
+                    <div className="flex items-center gap-1 text-xs text-flexoki-tx-2">
+                      <div className="w-2 h-2 rounded-full bg-purple-600 bg-opacity-60"></div>
+                      <span>
+                        {reflections.length === 1
+                          ? "reflection"
+                          : "reflections"}
                       </span>
                     </div>
                   )}

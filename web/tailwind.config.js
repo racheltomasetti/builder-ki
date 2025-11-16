@@ -72,10 +72,15 @@ module.exports = {
   			bob: {
   				'0%, 100%': { transform: 'translateY(0)' },
   				'50%': { transform: 'translateY(-4px)' },
+  			},
+  			spin: {
+  				'0%': { transform: 'rotate(0deg)' },
+  				'100%': { transform: 'rotate(360deg)' },
   			}
   		},
   		animation: {
   			bob: 'bob 4s ease-in-out infinite',
+  			'spin-slow': 'spin 8s linear infinite',
   		}
   	}
   },

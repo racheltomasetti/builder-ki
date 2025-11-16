@@ -158,13 +158,13 @@ export default function WeeklyView() {
   const getCyclePhaseBorderColor = (phase: string | null) => {
     switch (phase) {
       case "menstrual":
-        return "border-blue-600 border-opacity-50";
+        return "border-blue-600 border-opacity-50 bg-blue-500 bg-opacity-30";
       case "follicular":
-        return "border-green-600 border-opacity-50";
+        return "border-green-600 border-opacity-50 bg-green-500 bg-opacity-30";
       case "ovulation":
-        return "border-yellow-600 border-opacity-50";
+        return "border-yellow-600 border-opacity-50 bg-yellow-500 bg-opacity-30";
       case "luteal":
-        return "border-orange-600 border-opacity-50";
+        return "border-orange-600 border-opacity-50 bg-orange-500 bg-opacity-30";
       default:
         return "border-flexoki-ui-3";
     }
@@ -254,15 +254,7 @@ export default function WeeklyView() {
   }
 
   return (
-    <div className="bg-flexoki-ui rounded-xl shadow-lg border border-flexoki-ui-3 overflow-hidden">
-      {/* Weekly Key above weekly calendar */}
-      <div className="px-6 py-3 bg-flexoki-ui-2 border-b border-flexoki-ui-3">
-        <WeeklyKey
-          showPhaseOverlay={showPhaseOverlay}
-          onTogglePhaseOverlay={setShowPhaseOverlay}
-        />
-      </div>
-
+    <div className="bg-flexoki-ui-2 rounded-xl shadow-lg border border-flexoki-ui-3 overflow-hidden">
       {/* Week Navigation */}
       <div className="flex items-center justify-between px-6 py-3 bg-flexoki-ui-2 border-b border-flexoki-ui-3">
         <button
@@ -283,39 +275,53 @@ export default function WeeklyView() {
           <ChevronRight className="w-5 h-5 text-flexoki-tx" />
         </button>
       </div>
+      {/* Weekly Key above weekly calendar */}
+      <div className="px-6 py-3 bg-flexoki-ui-2 border-b border-flexoki-ui-3">
+        <WeeklyKey
+          showPhaseOverlay={showPhaseOverlay}
+          onTogglePhaseOverlay={setShowPhaseOverlay}
+        />
+      </div>
+
       {/* Weekly Grid */}
       <div className="overflow-x-auto">
         <div className="min-w-[1200px]">
           {/* Day Headers */}
           <div className="grid grid-cols-8 border-b border-flexoki-ui-3">
-            <div className="p-2 text-center text-xs font-semibold text-flexoki-tx-3 bg-flexoki-ui-2">
+            <div className="p-2 text-center text-md font-semibold text-flexoki-tx-2 bg-flexoki-ui-2">
               TIME
             </div>
             {weekData.map((day) => (
               <div
                 key={day.date}
-                className="p-1 text-center border-l border-flexoki-ui-3 bg-flexoki-ui-2"
+                className="p-1 text-center border-l border-flexoki-ui-3 bg-flexoki-ui"
               >
                 <div
-                  className={`h-full border-2 rounded-lg px-2 py-2 flex flex-col justify-center items-center relative ${
-                    showPhaseOverlay
-                      ? getCyclePhaseBorderColor(
-                          day.cycleInfo?.cycle_phase || null
-                        )
-                      : "border-flexoki-ui-3"
-                  } ${!isToday(day.date) ? "bg-flexoki-ui-2" : ""}`}
+                  className={`h-full rounded-lg px-2 py-2 flex flex-col justify-center items-center relative ${
+                    isToday(day.date) ? "" : "bg-flexoki-ui"
+                  }`}
                   style={
                     isToday(day.date)
-                      ? { backgroundColor: "rgba(58, 169, 159, 0.5)" }
+                      ? {
+                          border: "3px solid rgba(58, 169, 159, 0.5)",
+                        }
                       : undefined
                   }
                 >
                   {day.cycleInfo?.cycle_day && (
-                    <span className="absolute top-1 right-1 text-[10px] text-flexoki-tx-3 bg-flexoki-ui rounded px-1">
+                    <span
+                      className={`absolute top-1 right-1 text-[11px] rounded px-1 border-2 ${
+                        showPhaseOverlay
+                          ? `${getCyclePhaseBorderColor(
+                              day.cycleInfo?.cycle_phase || null
+                            )} text-flexoki-tx`
+                          : "border-flexoki-ui bg-flexoki-ui text-flexoki-tx-2"
+                      }`}
+                    >
                       Day {day.cycleInfo.cycle_day}
                     </span>
                   )}
-                  <div className="text-base font-semibold text-flexoki-tx">
+                  <div className="text-xl font-semibold text-flexoki-tx">
                     {day.dayName}
                   </div>
                   <div className="text-xl font-bold text-flexoki-tx">
@@ -344,7 +350,7 @@ export default function WeeklyView() {
             {weekData.map((day) => (
               <div
                 key={day.date}
-                className="border-l border-flexoki-ui-3 relative bg-flexoki-ui-2"
+                className="border-l border-flexoki-ui-3 relative bg-flexoki-ui"
               >
                 {/* Hour grid lines */}
                 {timeSlots.map((slot) => (
@@ -374,17 +380,17 @@ export default function WeeklyView() {
                                 day.cycleInfo?.cycle_phase || null
                               )
                             : "border-flexoki-ui-3"
-                        } bg-flexoki-ui shadow-sm overflow-hidden`}
+                        } bg-flexoki-accent-2 shadow-sm overflow-hidden`}
                         style={style}
                       >
                         <div className="text-[10px] font-semibold text-flexoki-tx truncate">
                           {session.name}
                         </div>
-                        <div className="text-[9px] text-flexoki-tx-3">
+                        <div className="text-[9px] text-flexoki-tx">
                           {formatTime(session.start_time)}
                         </div>
                         {session.end_time && (
-                          <div className="text-[9px] text-flexoki-tx-3">
+                          <div className="text-[9px] text-flexoki-tx">
                             {calculateDuration(
                               session.start_time,
                               session.end_time
@@ -426,20 +432,20 @@ export default function WeeklyView() {
                       const top = hour * 40; // Use condensed hour height
 
                       // Color based on note type
-                      let bgColor = "bg-red-100";
+                      let bgColor = "bg-red-600";
                       let borderColor = "border-red-400";
                       if (capture.note_type === "intention") {
-                        bgColor = "bg-yellow-100";
+                        bgColor = "bg-yellow-600";
                         borderColor = "border-yellow-500";
                       } else if (capture.note_type === "reflection") {
-                        bgColor = "bg-purple-100";
+                        bgColor = "bg-purple-600";
                         borderColor = "border-purple-400";
                       }
 
                       return (
                         <div
                           key={capture.id}
-                          className={`absolute left-1 right-1 rounded-md p-1.5 pointer-events-auto ${bgColor} border ${borderColor} opacity-70 cursor-pointer hover:opacity-100 transition-opacity`}
+                          className={`absolute left-1 right-1 rounded-md p-1.5 pointer-events-auto ${bgColor} border ${borderColor} bg-opacity-50 cursor-pointer hover:opacity-100 transition-opacity`}
                           style={{
                             top: `${top}px`,
                             height: "24px",
@@ -451,7 +457,7 @@ export default function WeeklyView() {
                             })
                           }
                         >
-                          <div className="text-[9px] text-flexoki-tx-3 text-right">
+                          <div className="text-[9px] text-flexoki-tx text-right">
                             {formatTime(capture.created_at)}
                           </div>
                         </div>
@@ -463,9 +469,9 @@ export default function WeeklyView() {
           </div>
 
           {/* Media Grid at Bottom */}
-          <div className="grid grid-cols-8 border-t-2 border-flexoki-ui-3 bg-flexoki-ui-2">
-            <div className="p-1.5 text-[10px] font-semibold text-flexoki-tx-3">
-              {" "}
+          <div className="grid grid-cols-8 border-t-2 border-flexoki-ui-3 bg-flexoki-ui">
+            <div className="p-1.5 text-[14px] bg-flexoki-ui-2 font-semibold text-flexoki-tx-2">
+              {"MEDIA"}
             </div>
             {weekData.map((day) => (
               <div
