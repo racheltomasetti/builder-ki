@@ -170,6 +170,14 @@ export default function WeeklyView() {
     }
   };
 
+  const isToday = (dateString: string) => {
+    const today = new Date();
+    const todayString = `${today.getFullYear()}-${String(
+      today.getMonth() + 1
+    ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    return dateString === todayString;
+  };
+
   const formatWeekRange = () => {
     const start = new Date(weekStartDate);
     const end = new Date(weekStartDate);
@@ -288,22 +296,31 @@ export default function WeeklyView() {
                 key={day.date}
                 className="p-1 text-center border-l border-flexoki-ui-3 bg-flexoki-ui-2"
               >
-                <div className={`h-full border-2 rounded-lg px-2 py-2 flex flex-col justify-center ${
-                  showPhaseOverlay
-                    ? getCyclePhaseBorderColor(day.cycleInfo?.cycle_phase || null)
-                    : "border-flexoki-ui-3"
-                } bg-flexoki-ui-2`}>
-                  <div className="text-xs font-semibold text-flexoki-tx">
+                <div
+                  className={`h-full border-2 rounded-lg px-2 py-2 flex flex-col justify-center items-center relative ${
+                    showPhaseOverlay
+                      ? getCyclePhaseBorderColor(
+                          day.cycleInfo?.cycle_phase || null
+                        )
+                      : "border-flexoki-ui-3"
+                  } ${!isToday(day.date) ? "bg-flexoki-ui-2" : ""}`}
+                  style={
+                    isToday(day.date)
+                      ? { backgroundColor: "rgba(58, 169, 159, 0.5)" }
+                      : undefined
+                  }
+                >
+                  {day.cycleInfo?.cycle_day && (
+                    <span className="absolute top-1 right-1 text-[10px] text-flexoki-tx-3 bg-flexoki-ui rounded px-1">
+                      Day {day.cycleInfo.cycle_day}
+                    </span>
+                  )}
+                  <div className="text-base font-semibold text-flexoki-tx">
                     {day.dayName}
                   </div>
                   <div className="text-xl font-bold text-flexoki-tx">
                     {day.dayNumber}
                   </div>
-                  {day.cycleInfo?.cycle_day && (
-                    <div className="text-[10px] text-flexoki-tx-3 mt-0.5">
-                      Day {day.cycleInfo.cycle_day}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
@@ -353,7 +370,9 @@ export default function WeeklyView() {
                         key={session.id}
                         className={`absolute left-1 right-1 rounded-md p-1.5 pointer-events-auto border-2 ${
                           showPhaseOverlay
-                            ? getCyclePhaseBorderColor(day.cycleInfo?.cycle_phase || null)
+                            ? getCyclePhaseBorderColor(
+                                day.cycleInfo?.cycle_phase || null
+                              )
                             : "border-flexoki-ui-3"
                         } bg-flexoki-ui shadow-sm overflow-hidden`}
                         style={style}

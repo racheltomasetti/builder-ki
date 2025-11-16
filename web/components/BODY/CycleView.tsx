@@ -54,7 +54,8 @@ export default function CycleView() {
     null
   );
   const [isAllTimeView, setIsAllTimeView] = useState(false);
-  const [earliestCycleWithCapturesIndex, setEarliestCycleWithCapturesIndex] = useState<number | null>(null);
+  const [earliestCycleWithCapturesIndex, setEarliestCycleWithCapturesIndex] =
+    useState<number | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -112,7 +113,8 @@ export default function CycleView() {
       if (!currentCycle) return;
 
       const cycleStartDate = currentCycle.start_date;
-      const cycleEndDate = currentCycle.end_date || new Date().toISOString().split("T")[0];
+      const cycleEndDate =
+        currentCycle.end_date || new Date().toISOString().split("T")[0];
 
       // Fetch all captures for this cycle
       const { data: captures } = await supabase
@@ -137,10 +139,7 @@ export default function CycleView() {
       // Process captures into data points
       const capturePoints: DataPoint[] =
         captures?.map((capture) => {
-          const cycleDay = calculateCycleDay(
-            cycleStartDate,
-            capture.log_date
-          );
+          const cycleDay = calculateCycleDay(cycleStartDate, capture.log_date);
           const timeOfDay = extractTimeOfDay(capture.created_at);
 
           let type: "intention" | "reflection" | "general" = "general";
@@ -167,7 +166,8 @@ export default function CycleView() {
       // Process media items into data points
       const mediaPoints: DataPoint[] =
         media?.map((item) => {
-          const dateToUse = item.original_date || item.log_date || item.created_at;
+          const dateToUse =
+            item.original_date || item.log_date || item.created_at;
           const cycleDay = calculateCycleDay(cycleStartDate, dateToUse);
           const timeOfDay = extractTimeOfDay(item.created_at);
 
@@ -235,7 +235,8 @@ export default function CycleView() {
       });
 
       media?.forEach((item) => {
-        const dateToUse = item.original_date || item.log_date || item.created_at;
+        const dateToUse =
+          item.original_date || item.log_date || item.created_at;
         if (dateToUse) {
           const dateStr = dateToUse.split("T")[0];
           allDates.push(new Date(dateStr + "T00:00:00"));
@@ -247,14 +248,21 @@ export default function CycleView() {
         return;
       }
 
-      const earliestDate = new Date(Math.min(...allDates.map(d => d.getTime())));
-      const latestDate = new Date(Math.max(...allDates.map(d => d.getTime())));
+      const earliestDate = new Date(
+        Math.min(...allDates.map((d) => d.getTime()))
+      );
+      const latestDate = new Date(
+        Math.max(...allDates.map((d) => d.getTime()))
+      );
       const earliestTimestamp = earliestDate.getTime();
       const latestTimestamp = latestDate.getTime();
       const timeRange = latestTimestamp - earliestTimestamp;
 
       // Helper function to find which cycle a date belongs to and calculate cycle day
-      const findCycleDayForDate = (dateStr: string, itemId?: string): number | null => {
+      const findCycleDayForDate = (
+        dateStr: string,
+        itemId?: string
+      ): number | null => {
         const itemDate = new Date(dateStr + "T00:00:00");
 
         // Search cycles in order (they're already sorted by start_date descending - newest first)
@@ -273,7 +281,9 @@ export default function CycleView() {
 
               // Only log for the problematic item
               if (itemId === "2eef8f47-7bf7-4218-863d-260cd0680de3") {
-                console.log(`[DEBUG] Item ${itemId} (${dateStr}) matched to Cycle #${i}: ${cycle.start_date} to ${cycle.end_date}, Day ${cycleDay}`);
+                console.log(
+                  `[DEBUG] Item ${itemId} (${dateStr}) matched to Cycle #${i}: ${cycle.start_date} to ${cycle.end_date}, Day ${cycleDay}`
+                );
               }
 
               return cycleDay;
@@ -293,7 +303,9 @@ export default function CycleView() {
                 // If the date is before the previous cycle ended, skip this ongoing cycle
                 if (itemDate < nextCycleEnd) {
                   if (itemId === "2eef8f47-7bf7-4218-863d-260cd0680de3") {
-                    console.log(`[DEBUG] Item ${itemId} (${dateStr}) skipping ongoing cycle #${i} because date < next cycle end (${nextCycleEnd.toISOString()})`);
+                    console.log(
+                      `[DEBUG] Item ${itemId} (${dateStr}) skipping ongoing cycle #${i} because date < next cycle end (${nextCycleEnd.toISOString()})`
+                    );
                   }
                   continue; // Keep searching in older cycles
                 }
@@ -304,7 +316,9 @@ export default function CycleView() {
               const cycleDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
               if (itemId === "2eef8f47-7bf7-4218-863d-260cd0680de3") {
-                console.log(`[DEBUG] Item ${itemId} (${dateStr}) matched to ONGOING Cycle #${i}: ${cycle.start_date}, Day ${cycleDay}`);
+                console.log(
+                  `[DEBUG] Item ${itemId} (${dateStr}) matched to ONGOING Cycle #${i}: ${cycle.start_date}, Day ${cycleDay}`
+                );
               }
 
               return cycleDay;
@@ -328,7 +342,7 @@ export default function CycleView() {
 
       // Process captures into data points
       const capturePoints: DataPoint[] =
-        captures
+        (captures
           ?.filter((capture) => capture.log_date)
           .map((capture) => {
             const logDate = capture.log_date.split("T")[0];
@@ -359,14 +373,15 @@ export default function CycleView() {
               data: capture,
             };
           })
-          .filter((point) => point !== null) as DataPoint[] || [];
+          .filter((point) => point !== null) as DataPoint[]) || [];
 
       // Process media items into data points
       const mediaPoints: DataPoint[] =
-        media
+        (media
           ?.map((item) => {
             // Determine which date to use (prioritize original_date, then log_date, then created_at)
-            const dateToUse = item.original_date || item.log_date || item.created_at;
+            const dateToUse =
+              item.original_date || item.log_date || item.created_at;
 
             // Skip if no valid date
             if (!dateToUse) {
@@ -393,15 +408,21 @@ export default function CycleView() {
               data: item,
             };
           })
-          .filter((point) => point !== null) as DataPoint[] || [];
+          .filter((point) => point !== null) as DataPoint[]) || [];
 
       // Helper function to get the date used for sorting
       const getDateForSorting = (data: Capture | MediaItem): string => {
-        if ('log_date' in data && data.type === 'capture') {
+        // Check if it's a Capture by looking for note_type (unique to Capture)
+        if ("note_type" in data) {
           return data.log_date;
         } else {
+          // It's a MediaItem
           const mediaItem = data as MediaItem;
-          return mediaItem.original_date || mediaItem.log_date || mediaItem.created_at;
+          return (
+            mediaItem.original_date ||
+            mediaItem.log_date ||
+            mediaItem.created_at
+          );
         }
       };
 
@@ -544,7 +565,8 @@ export default function CycleView() {
       for (let i = cycles.length - 1; i >= 0; i--) {
         const cycle = cycles[i];
         const cycleStartDate = cycle.start_date;
-        const cycleEndDate = cycle.end_date || new Date().toISOString().split("T")[0];
+        const cycleEndDate =
+          cycle.end_date || new Date().toISOString().split("T")[0];
 
         // Check if this cycle has any captures
         const { data: captures, error: capturesError } = await supabase
@@ -642,9 +664,8 @@ export default function CycleView() {
 
     // Offset within the slice based on track
     // Track 1 (voice) at 1/3 of slice width, Track 2 (media) at 2/3 of slice width
-    const trackOffset = trackPosition === "voice"
-      ? anglePerDay * (1 / 3)
-      : anglePerDay * (2 / 3);
+    const trackOffset =
+      trackPosition === "voice" ? anglePerDay * (1 / 3) : anglePerDay * (2 / 3);
 
     const angle = baseAngle + trackOffset;
 
@@ -656,7 +677,7 @@ export default function CycleView() {
       // In All Time view: timeOfDay is actually radialPosition (0-1)
       // 0 = earliest/outer, 1 = latest/inner
       // Invert it so 0 maps to outerRadius and 1 maps to innerRadius
-      radius = outerRadius - (timeOfDay * radiusRange);
+      radius = outerRadius - timeOfDay * radiusRange;
     } else {
       // In single cycle view: timeOfDay is 0-24 (decimal hours)
       // 0 (midnight) = innerRadius, 24 (midnight next day) = outerRadius
@@ -699,7 +720,7 @@ export default function CycleView() {
   if (isAllTimeView) {
     // For All Time view, use the longest cycle length in the system
     if (cycles.length > 0) {
-      const cycleLengths = cycles.map(cycle => {
+      const cycleLengths = cycles.map((cycle) => {
         if (cycle.end_date) {
           const start = new Date(cycle.start_date + "T00:00:00");
           const end = new Date(cycle.end_date + "T00:00:00");
@@ -719,9 +740,10 @@ export default function CycleView() {
     cycleLength = 28; // Default fallback
   }
 
-  const currentDay = !isAllTimeView && currentCycle && isCurrentCycle(currentCycle)
-    ? getCurrentCycleDay(currentCycle)
-    : null;
+  const currentDay =
+    !isAllTimeView && currentCycle && isCurrentCycle(currentCycle)
+      ? getCurrentCycleDay(currentCycle)
+      : null;
 
   return (
     <div className="bg-flexoki-ui rounded-xl shadow-lg border border-flexoki-ui-3 overflow-hidden">
@@ -734,7 +756,10 @@ export default function CycleView() {
           onJumpToEarliestCycle={handleJumpToEarliestCycleWithCaptures}
           onToggleAllTimeView={handleToggleAllTimeView}
           isAtCurrentCycle={currentCycleIndex === 0}
-          isAtEarliestCycle={earliestCycleWithCapturesIndex !== null && currentCycleIndex === earliestCycleWithCapturesIndex}
+          isAtEarliestCycle={
+            earliestCycleWithCapturesIndex !== null &&
+            currentCycleIndex === earliestCycleWithCapturesIndex
+          }
           isAllTimeView={isAllTimeView}
         />
       </div>
@@ -750,23 +775,39 @@ export default function CycleView() {
           <ChevronLeft className="w-5 h-5 text-flexoki-tx" />
         </button>
         <div className="text-center">
+          {/* horizontal line */}
+          <div className="w-full h-1 bg-flexoki-ui-3"></div>
           <h2 className="text-lg font-semibold text-flexoki-tx">
-            {isAllTimeView ? "All Time View" : formatCycleDateRange(currentCycle)}
+            {isAllTimeView
+              ? "All Time View"
+              : currentCycle
+              ? formatCycleDateRange(currentCycle)
+              : "No Cycle"}
           </h2>
-          <div className="flex items-center justify-center gap-3 text-sm text-flexoki-tx-3">
-            {!isAllTimeView && currentDay && (
-              <span>
-                Day {currentDay} of ~{cycleLength}
-              </span>
-            )}
-            {!loadingData && (
-              <span className="flex items-center gap-1">
-                <span className="w-1 h-1 rounded-full bg-flexoki-tx-3"></span>
-                <span>
-                  {dataPoints.length}{" "}
-                  {dataPoints.length === 1 ? "capture" : "captures"}
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center justify-center gap-3 text-sm text-flexoki-tx-3">
+              {!loadingData && (
+                <span className="flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-flexoki-tx-3"></span>
+                  <span>
+                    {dataPoints.length}{" "}
+                    {dataPoints.length === 1 ? "capture" : "captures"}
+                  </span>
                 </span>
-              </span>
+              )}
+            </div>
+            {/* horizontal line */}
+            <div className="w-full h-1 bg-flexoki-ui-3"></div>
+            {/* Today's date - only show if viewing current cycle */}
+            {!isAllTimeView && currentCycle && isCurrentCycle(currentCycle) && (
+              <p className="text-sm text-flexoki-accent italic font-semibold">
+                Today is{" "}
+                {new Date().toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
             )}
           </div>
         </div>
@@ -815,7 +856,8 @@ export default function CycleView() {
                 />
 
                 {/* Phase overlay segments (when enabled and not in All Time view) */}
-                {showPhaseOverlay && !isAllTimeView &&
+                {showPhaseOverlay &&
+                  !isAllTimeView &&
                   Array.from({ length: cycleLength }, (_, i) => {
                     const day = i + 1;
                     const phase = getCyclePhaseForDay(day);
@@ -918,16 +960,13 @@ export default function CycleView() {
                       const startAngle = dayIndex * anglePerDay - Math.PI / 2;
                       const endAngle =
                         (dayIndex + 1) * anglePerDay - Math.PI / 2;
+                      const midAngle = (startAngle + endAngle) / 2;
 
                       // Calculate path for current day segment
-                      const x1 =
-                        centerX + innerRadius * Math.cos(startAngle);
-                      const y1 =
-                        centerY + innerRadius * Math.sin(startAngle);
-                      const x2 =
-                        centerX + outerRadius * Math.cos(startAngle);
-                      const y2 =
-                        centerY + outerRadius * Math.sin(startAngle);
+                      const x1 = centerX + innerRadius * Math.cos(startAngle);
+                      const y1 = centerY + innerRadius * Math.sin(startAngle);
+                      const x2 = centerX + outerRadius * Math.cos(startAngle);
+                      const y2 = centerY + outerRadius * Math.sin(startAngle);
                       const x3 = centerX + outerRadius * Math.cos(endAngle);
                       const y3 = centerY + outerRadius * Math.sin(endAngle);
                       const x4 = centerX + innerRadius * Math.cos(endAngle);
@@ -991,6 +1030,61 @@ export default function CycleView() {
                   strokeWidth="2"
                 />
 
+                {/* Center circle with current day info - only show in single cycle view */}
+                {!isAllTimeView && currentDay && currentDay <= cycleLength && (
+                  <>
+                    {/* Clickable background circle */}
+                    <circle
+                      cx={centerX}
+                      cy={centerY}
+                      r={innerRadius - 10}
+                      fill="#E6E4DE"
+                      className="cursor-pointer transition-all hover:opacity-80"
+                      opacity="0.6"
+                      onClick={() => {
+                        // TODO: Open phase info modal
+                        console.log(
+                          "Center circle clicked - open phase info modal"
+                        );
+                      }}
+                    />
+
+                    {/* Current day text */}
+                    <text
+                      x={centerX}
+                      y={centerY - 15}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="fill-flexoki-accent text-3xl font-bold cursor-pointer"
+                      onClick={() => {
+                        // TODO: Open phase info modal
+                        console.log(
+                          "Center text clicked - open phase info modal"
+                        );
+                      }}
+                    >
+                      Day {currentDay}
+                    </text>
+
+                    {/* Current phase text */}
+                    <text
+                      x={centerX}
+                      y={centerY + 25}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="fill-flexoki-tx text-lg capitalize italic cursor-pointer"
+                      onClick={() => {
+                        // TODO: Open phase info modal
+                        console.log(
+                          "Center text clicked - open phase info modal"
+                        );
+                      }}
+                    >
+                      {getCyclePhaseForDay(currentDay)}
+                    </text>
+                  </>
+                )}
+
                 {/* Data points */}
                 {dataPoints.map((point) => {
                   // Skip points outside the cycle range
@@ -1034,13 +1128,17 @@ export default function CycleView() {
 
                         // Use the same date priority as fetchAllTimeData
                         let logDate: string | null;
-                        if ('log_date' in pointData && pointData.type === 'capture') {
+                        // Check if it's a Capture by looking for note_type (unique to Capture)
+                        if ("note_type" in pointData) {
                           // For captures, use log_date
                           logDate = pointData.log_date;
                         } else {
                           // For media, use original_date > log_date > created_at (same as fetchAllTimeData)
                           const mediaItem = pointData as MediaItem;
-                          logDate = mediaItem.original_date || mediaItem.log_date || mediaItem.created_at;
+                          logDate =
+                            mediaItem.original_date ||
+                            mediaItem.log_date ||
+                            mediaItem.created_at;
                         }
 
                         console.log("=== CLICKED DATA POINT ===");
@@ -1051,10 +1149,16 @@ export default function CycleView() {
                         if (point.type === "media") {
                           const mediaItem = pointData as MediaItem;
                           console.log("Media Date Fields:");
-                          console.log("  - original_date:", mediaItem.original_date);
+                          console.log(
+                            "  - original_date:",
+                            mediaItem.original_date
+                          );
                           console.log("  - log_date:", mediaItem.log_date);
                           console.log("  - created_at:", mediaItem.created_at);
-                          console.log("  - Used Date (priority: original > log > created):", logDate);
+                          console.log(
+                            "  - Used Date (priority: original > log > created):",
+                            logDate
+                          );
                         } else {
                           console.log("Capture log_date:", logDate);
                         }
@@ -1063,28 +1167,49 @@ export default function CycleView() {
 
                         if (logDate) {
                           // Find which cycle this should belong to
-                          const itemDate = new Date(logDate.split("T")[0] + "T00:00:00");
+                          const itemDate = new Date(
+                            logDate.split("T")[0] + "T00:00:00"
+                          );
                           console.log("Looking for matching cycle...");
 
                           cycles.forEach((cycle, idx) => {
-                            const cycleStart = new Date(cycle.start_date + "T00:00:00");
+                            const cycleStart = new Date(
+                              cycle.start_date + "T00:00:00"
+                            );
                             const cycleEnd = cycle.end_date
                               ? new Date(cycle.end_date + "T00:00:00")
                               : null;
 
                             if (cycleEnd) {
-                              if (itemDate >= cycleStart && itemDate < cycleEnd) {
-                                const diffTime = itemDate.getTime() - cycleStart.getTime();
-                                const calculatedDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                                console.log(`✓ MATCHES Cycle #${idx}: ${cycle.start_date} to ${cycle.end_date}`);
-                                console.log(`  Calculated Day: ${calculatedDay}`);
+                              if (
+                                itemDate >= cycleStart &&
+                                itemDate < cycleEnd
+                              ) {
+                                const diffTime =
+                                  itemDate.getTime() - cycleStart.getTime();
+                                const calculatedDay =
+                                  Math.floor(diffTime / (1000 * 60 * 60 * 24)) +
+                                  1;
+                                console.log(
+                                  `✓ MATCHES Cycle #${idx}: ${cycle.start_date} to ${cycle.end_date}`
+                                );
+                                console.log(
+                                  `  Calculated Day: ${calculatedDay}`
+                                );
                               }
                             } else {
                               if (itemDate >= cycleStart) {
-                                const diffTime = itemDate.getTime() - cycleStart.getTime();
-                                const calculatedDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                                console.log(`✓ MATCHES Current Cycle #${idx}: ${cycle.start_date} to ongoing`);
-                                console.log(`  Calculated Day: ${calculatedDay}`);
+                                const diffTime =
+                                  itemDate.getTime() - cycleStart.getTime();
+                                const calculatedDay =
+                                  Math.floor(diffTime / (1000 * 60 * 60 * 24)) +
+                                  1;
+                                console.log(
+                                  `✓ MATCHES Current Cycle #${idx}: ${cycle.start_date} to ongoing`
+                                );
+                                console.log(
+                                  `  Calculated Day: ${calculatedDay}`
+                                );
                               }
                             }
                           });
@@ -1109,7 +1234,9 @@ export default function CycleView() {
                     dominantBaseline="middle"
                     className="fill-flexoki-tx-3 text-lg"
                   >
-                    {isAllTimeView ? "No captures available" : "No captures for this cycle"}
+                    {isAllTimeView
+                      ? "No captures available"
+                      : "No captures for this cycle"}
                   </text>
                 )}
               </>
@@ -1130,7 +1257,11 @@ export default function CycleView() {
         </button>
         <div className="text-center">
           <h2 className="text-lg font-semibold text-flexoki-tx">
-            {isAllTimeView ? "All Time View" : (currentCycle ? formatCycleDateRange(currentCycle) : "No Cycle")}
+            {isAllTimeView
+              ? "All Time View"
+              : currentCycle
+              ? formatCycleDateRange(currentCycle)
+              : "No Cycle"}
           </h2>
         </div>
         <button

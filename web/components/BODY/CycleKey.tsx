@@ -82,7 +82,11 @@ export default function CycleKey({
             {/* Phase Toggle */}
             <button
               onClick={() => onTogglePhaseOverlay(!showPhaseOverlay)}
-              className="px-3 py-1.5 rounded-md bg-flexoki-ui-2 hover:bg-flexoki-ui-3 transition-colors text-[14px] text-flexoki-tx-2"
+              className={`px-3 py-1.5 rounded-md transition-colors text-[14px] ${
+                showPhaseOverlay
+                  ? "bg-flexoki-accent-2 hover:bg-opacity-90 text-white"
+                  : "bg-flexoki-ui-2 hover:bg-flexoki-ui-3 text-flexoki-tx-2 border-2 border-flexoki-accent-2"
+              }`}
             >
               {showPhaseOverlay ? "Hide Cycle Phases" : "Show Cycle Phases"}
             </button>

@@ -119,7 +119,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                 className="p-2 rounded-lg hover:bg-flexoki-ui-2 transition-colors"
                 title="Settings"
               >
-                <p className="text-md italic">edit profile</p>
+                <p className="text-md italic">Edit Profile</p>
               </button>
             </div>
           </div>

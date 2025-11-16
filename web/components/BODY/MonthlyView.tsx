@@ -399,22 +399,29 @@ export default function MonthlyView() {
                   min-h-[100px] p-2 rounded-lg border-2
                   ${
                     isCurrentMonth(dateObj)
-                      ? `bg-flexoki-ui-2 ${
+                      ? `${!isToday(dateObj) ? "bg-flexoki-ui-2" : ""} ${
                           showPhaseOverlay
-                            ? getCyclePhaseBorderColor(cycleInfo?.cycle_phase || null)
+                            ? getCyclePhaseBorderColor(
+                                cycleInfo?.cycle_phase || null
+                              )
                             : "border-flexoki-ui-3"
                         }`
                       : "bg-flexoki-ui opacity-50 border-flexoki-ui-3"
                   }
                   hover:opacity-100 transition-all cursor-pointer
                 `}
+                style={
+                  isToday(dateObj) && isCurrentMonth(dateObj)
+                    ? { backgroundColor: "rgba(58, 169, 159, 0.5)" }
+                    : undefined
+                }
               >
                 {/* Date Number */}
                 <div className="flex items-start justify-between">
                   <span
                     className={`font-bold ${
                       isToday(dateObj)
-                        ? "text-2xl text-flexoki-accent"
+                        ? "text-lg text-flexoki-tx"
                         : isCurrentMonth(dateObj)
                         ? "text-lg text-flexoki-tx"
                         : "text-lg text-flexoki-tx-3"

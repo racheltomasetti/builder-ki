@@ -160,11 +160,13 @@ export default function CycleDataPointModal({
       onClick={onClose}
     >
       <div
-        className="bg-flexoki-ui rounded-xl shadow-2xl border border-flexoki-ui-3 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className={`bg-flexoki-ui rounded-xl shadow-2xl border border-flexoki-ui-3 max-w-2xl w-full max-h-[90vh] ${
+          !isCapture ? "flex flex-col overflow-hidden" : "overflow-y-auto"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-flexoki-ui-3">
+        <div className="flex items-start justify-between p-6 border-b border-flexoki-ui-3 flex-shrink-0">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <div
@@ -195,7 +197,8 @@ export default function CycleDataPointModal({
                     <div className="flex items-center gap-1 text-xs">
                       <Clock className="w-3.5 h-3.5" />
                       <span>
-                        <strong>Original:</strong> {formatTimestamp(media.original_date)}
+                        <strong>Original:</strong>{" "}
+                        {formatTimestamp(media.original_date)}
                       </span>
                     </div>
                   )}
@@ -203,7 +206,8 @@ export default function CycleDataPointModal({
                     <div className="flex items-center gap-1 text-xs">
                       <Clock className="w-3.5 h-3.5" />
                       <span>
-                        <strong>Logged:</strong> {formatTimestamp(media.log_date)}
+                        <strong>Logged:</strong>{" "}
+                        {formatTimestamp(media.log_date)}
                       </span>
                     </div>
                   )}
@@ -211,7 +215,8 @@ export default function CycleDataPointModal({
                     <div className="flex items-center gap-1 text-xs">
                       <Clock className="w-3.5 h-3.5" />
                       <span>
-                        <strong>Created:</strong> {formatTimestamp(media.created_at)}
+                        <strong>Created:</strong>{" "}
+                        {formatTimestamp(media.created_at)}
                       </span>
                     </div>
                   )}
@@ -222,9 +227,7 @@ export default function CycleDataPointModal({
               {capture && (
                 <div className="flex items-center gap-1 text-xs">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>
-                    {formatTimestamp(capture.created_at)}
-                  </span>
+                  <span>{formatTimestamp(capture.created_at)}</span>
                 </div>
               )}
             </div>
@@ -239,7 +242,11 @@ export default function CycleDataPointModal({
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div
+          className={`p-6 ${
+            !isCapture ? "flex-1 overflow-y-auto min-h-0" : ""
+          }`}
+        >
           {/* Voice Capture */}
           {isCapture && capture && (
             <div className="space-y-4">
@@ -280,20 +287,22 @@ export default function CycleDataPointModal({
 
           {/* Media Item */}
           {!isCapture && media && (
-            <div className="space-y-4">
+            <div className="space-y-4 h-full flex flex-col">
               {/* Media Display */}
-              <div className="bg-flexoki-ui-2 rounded-lg overflow-hidden">
+              <div className="bg-flexoki-ui-2 rounded-lg overflow-hidden flex items-center justify-center flex-1 min-h-0">
                 {media.file_type === "image" ? (
                   <img
                     src={media.file_url}
                     alt={media.caption || "Media"}
-                    className="w-full h-auto"
+                    className="object-contain"
+                    style={{ maxHeight: "50vh", maxWidth: "100%" }}
                   />
                 ) : (
                   <video
                     src={media.file_url}
                     controls
-                    className="w-full h-auto"
+                    className="object-contain"
+                    style={{ maxHeight: "50vh", maxWidth: "100%" }}
                   />
                 )}
               </div>
@@ -316,7 +325,7 @@ export default function CycleDataPointModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-flexoki-ui-3">
+        <div className="flex items-center justify-between p-6 border-t border-flexoki-ui-3 flex-shrink-0">
           {/* Navigation Controls */}
           <div className="flex items-center gap-2">
             <button
