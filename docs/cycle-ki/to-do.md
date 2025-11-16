@@ -361,46 +361,37 @@
 
 ### Cycle View (Circular)
 
-- [ ] **Create CycleView component**
+- [x] **Create CycleView component**
 
   - New file: `web/components/BODY/CycleView.tsx`
   - SVG circular layout (28 segments)
   - Uses polar coordinates
 
-- [ ] **Render cycle wheel**
+- [x] **Render cycle wheel**
 
   - 28 day segments in circle
   - Each segment colored by phase
-  - Center shows: current cycle day
   - **Checkpoint**: Circular calendar renders with phase colors
 
-- [ ] **Map activity blocks to cycle days**
-
-  - For each timer_session: calculate polar position based on cycle_day
-  - Render as arc, sized by duration
-  - **Checkpoint**: Activity blocks appear on correct cycle days
-
-- [ ] **Map voice notes to cycle days**
+- [x] **Map voice captures to cycle days**
 
   - For each capture: calculate polar position based on cycle_day
   - Render as dot/marker
-  - **Checkpoint**: Voice notes appear on correct cycle days
+  - **Checkpoint**: Voice notes appear on correct days
 
-- [ ] **Click interaction**
+- [x] **Click interaction**
 
-  - Click cycle day � zoom to daily view for that date
-  - **Checkpoint**: Clicking day navigates to daily view
+  - Click cycle day � zoom to view specific capture
+  - **Checkpoint**: Clicking day shows to capture modal
 
-- [ ] **All time visualization**
+- [x] **All time visualization**
   - user can view all of their captures across all of their cycles
 
 ### Calendar Navigation
 
-- [ ] **Add date navigation**
+- [x] **Add date navigation**
   - Previous/Next buttons
-  - Date picker
-  - "Today" button
-  - **Checkpoint**: Can navigate between dates/weeks/months
+  - **Checkpoint**: Can navigate between weeks/months/cycle
 
 ### Web: Update DAILY journal
 

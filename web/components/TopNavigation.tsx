@@ -68,7 +68,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
 
   return (
     <>
-      <nav className="bg-flexoki-ui shadow-sm border-b border-flexoki-ui-3">
+      <nav className="sticky top-0 z-40 bg-flexoki-ui shadow-sm border-b border-flexoki-ui-3">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex justify-center h-16 items-center">
             {/* KI - Left Side */}
@@ -119,7 +119,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                 className="p-2 rounded-lg hover:bg-flexoki-ui-2 transition-colors"
                 title="Settings"
               >
-                <UserPenIcon className="h-7 w-7" />
+                <p className="text-md italic">edit profile</p>
               </button>
             </div>
           </div>

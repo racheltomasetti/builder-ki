@@ -52,6 +52,7 @@ export default function WeeklyView() {
   );
   const [weekData, setWeekData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPhaseOverlay, setShowPhaseOverlay] = useState(true);
   const [selectedCapture, setSelectedCapture] = useState<{
     capture: Capture;
     cycleInfo: CycleInfo | null;
@@ -248,7 +249,10 @@ export default function WeeklyView() {
     <div className="bg-flexoki-ui rounded-xl shadow-lg border border-flexoki-ui-3 overflow-hidden">
       {/* Weekly Key above weekly calendar */}
       <div className="px-6 py-3 bg-flexoki-ui-2 border-b border-flexoki-ui-3">
-        <WeeklyKey />
+        <WeeklyKey
+          showPhaseOverlay={showPhaseOverlay}
+          onTogglePhaseOverlay={setShowPhaseOverlay}
+        />
       </div>
 
       {/* Week Navigation */}
@@ -284,9 +288,11 @@ export default function WeeklyView() {
                 key={day.date}
                 className="p-1 text-center border-l border-flexoki-ui-3 bg-flexoki-ui-2"
               >
-                <div className={`h-full border-2 rounded-lg px-2 py-2 flex flex-col justify-center ${getCyclePhaseBorderColor(
-                  day.cycleInfo?.cycle_phase || null
-                )} bg-flexoki-ui-2`}>
+                <div className={`h-full border-2 rounded-lg px-2 py-2 flex flex-col justify-center ${
+                  showPhaseOverlay
+                    ? getCyclePhaseBorderColor(day.cycleInfo?.cycle_phase || null)
+                    : "border-flexoki-ui-3"
+                } bg-flexoki-ui-2`}>
                   <div className="text-xs font-semibold text-flexoki-tx">
                     {day.dayName}
                   </div>
@@ -345,9 +351,11 @@ export default function WeeklyView() {
                     return (
                       <div
                         key={session.id}
-                        className={`absolute left-1 right-1 rounded-md p-1.5 pointer-events-auto border-2 ${getCyclePhaseBorderColor(
-                          day.cycleInfo?.cycle_phase || null
-                        )} bg-flexoki-ui shadow-sm overflow-hidden`}
+                        className={`absolute left-1 right-1 rounded-md p-1.5 pointer-events-auto border-2 ${
+                          showPhaseOverlay
+                            ? getCyclePhaseBorderColor(day.cycleInfo?.cycle_phase || null)
+                            : "border-flexoki-ui-3"
+                        } bg-flexoki-ui shadow-sm overflow-hidden`}
                         style={style}
                       >
                         <div className="text-[10px] font-semibold text-flexoki-tx truncate">

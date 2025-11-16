@@ -85,30 +85,27 @@
 
 - [x] Weekly view: 7-day grid showing activities and captures
 - [x] Monthly view: calendar grid with cycle phase colors
-- [ ] Cycle view: circular 28-day wheel showing full cycle
+- [x] Cycle view: circular 28-day wheel showing full cycle
 - [x] Can click day � zoom to detailed daily view
-- [ ] Can navigate between dates/weeks/months
+- [x] Can navigate between dates/weeks/months/cycles
 
 ---
 
 ## PATTERN RECOGNITION: Cycle Lens
 
-- [ ] Activity blocks sized by actual duration
-- [ ] Voice notes positioned at capture time
-- [ ] Scheduled vs actual time comparison visible
-- [ ] Can see which activities happen in which cycle phases
-- [ ] Can see when most captures occur across cycle
-- [ ] Cycle phase colors consistent throughout system
+- [x] Voice notes positioned at capture time
+- [x] Can see when most captures occur across cycle
+- [x] Cycle phase colors consistent throughout system
 
 ---
 
 ## AI THINKING PARTNER: Deep Exploration
 
-- [ ] Can create rich text documents from captures
-- [ ] Document editor supports long-form writing
-- [ ] AI thinking partner chat per document
-- [ ] Conversation history persists
-- [ ] Can expand fleeting thoughts into developed ideas
+- [x] Can create rich text documents from captures
+- [x] Document editor supports long-form writing
+- [x] AI thinking partner chat per document
+- [x] Conversation history persists
+- [x] Can expand fleeting thoughts into developed ideas
 
 ---
 

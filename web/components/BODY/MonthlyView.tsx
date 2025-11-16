@@ -72,6 +72,7 @@ export default function MonthlyView() {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [monthData, setMonthData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPhaseOverlay, setShowPhaseOverlay] = useState(true);
   const [selectedDayData, setSelectedDayData] = useState<ModalDayData | null>(
     null
   );
@@ -337,7 +338,10 @@ export default function MonthlyView() {
     <div className="bg-flexoki-ui rounded-xl shadow-lg border border-flexoki-ui-3 overflow-hidden">
       {/* Monthly Key above monthly calendar */}
       <div className="px-6 py-3 bg-flexoki-ui-2 border-b border-flexoki-ui-3">
-        <MonthlyKey />
+        <MonthlyKey
+          showPhaseOverlay={showPhaseOverlay}
+          onTogglePhaseOverlay={setShowPhaseOverlay}
+        />
       </div>
 
       {/* Month Navigation - Top */}
@@ -395,9 +399,11 @@ export default function MonthlyView() {
                   min-h-[100px] p-2 rounded-lg border-2
                   ${
                     isCurrentMonth(dateObj)
-                      ? `bg-flexoki-ui-2 ${getCyclePhaseBorderColor(
-                          cycleInfo?.cycle_phase || null
-                        )}`
+                      ? `bg-flexoki-ui-2 ${
+                          showPhaseOverlay
+                            ? getCyclePhaseBorderColor(cycleInfo?.cycle_phase || null)
+                            : "border-flexoki-ui-3"
+                        }`
                       : "bg-flexoki-ui opacity-50 border-flexoki-ui-3"
                   }
                   hover:opacity-100 transition-all cursor-pointer

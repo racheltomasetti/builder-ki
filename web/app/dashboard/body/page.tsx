@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import WeeklyView from "@/components/BODY/WeeklyView";
 import MonthlyView from "@/components/BODY/MonthlyView";
+import CycleView from "@/components/BODY/CycleView";
 import WeeklyKey from "@/components/BODY/WeeklyKey";
 
 type ViewMode = "cycle" | "monthly" | "weekly";
@@ -166,27 +167,7 @@ export default function CycleJournalPage() {
       ) : viewMode === "monthly" ? (
         <MonthlyView />
       ) : (
-        <div className="bg-flexoki-ui rounded-lg shadow-md p-12">
-          <div className="text-center">
-            <div className="mb-6">
-              <div className="text-6xl mb-4">🌙</div>
-              <h2 className="text-3xl font-bold text-flexoki-tx mb-2">
-                28-Day Cycle View
-              </h2>
-              <p className="text-flexoki-tx-2">
-                Circular visualization of your full cycle with data mapped to
-                cycle days
-              </p>
-            </div>
-            <div className="bg-flexoki-ui-2 rounded-lg p-8 max-w-md mx-auto">
-              <p className="text-flexoki-tx-3 italic">
-                View coming soon... This is where you'll visualize your cycle
-                data in context with your daily activities, voice captures, and
-                patterns.
-              </p>
-            </div>
-          </div>
-        </div>
+        <CycleView />
       )}
     </main>
   );
