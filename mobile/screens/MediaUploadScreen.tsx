@@ -293,51 +293,13 @@ export default function MediaUploadScreen({
       let originalDate: string | null = null;
       let metadata: any = {};
 
-      // Try to get richer data from MediaLibrary if we have assetId
-      if (assetId) {
-        try {
-          console.log("Fetching MediaLibrary asset info for:", assetId);
-          const assetInfo = await MediaLibrary.getAssetInfoAsync(assetId);
-
-          if (assetInfo) {
-            console.log("Got asset info from MediaLibrary:", {
-              creationTime: assetInfo.creationTime,
-              modificationTime: assetInfo.modificationTime,
-              hasLocation: !!assetInfo.location,
-            });
-
-            // Use creation time from MediaLibrary
-            if (assetInfo.creationTime) {
-              originalDate = new Date(assetInfo.creationTime)
-                .toISOString()
-                .split("T")[0];
-              console.log("Using MediaLibrary creation date:", originalDate);
-            }
-
-            // Extract location
-            if (assetInfo.location) {
-              metadata.location = {
-                latitude: assetInfo.location.latitude,
-                longitude: assetInfo.location.longitude,
-              };
-            }
-
-            // Extract dimensions
-            if (assetInfo.width && assetInfo.height) {
-              metadata.dimensions = {
-                width: assetInfo.width,
-                height: assetInfo.height,
-              };
-            }
-          }
-        } catch (mediaLibErr) {
-          console.log("Could not fetch from MediaLibrary:", mediaLibErr);
-        }
-      }
-
-      // If still no date, try EXIF data from ImagePicker
-      if (!originalDate && exifData) {
+      // Try EXIF data first - most reliable source for original photo date
+      if (exifData) {
         console.log("Trying EXIF data from picker:", Object.keys(exifData));
+        console.log("=== DEBUG START ===");
+        console.log("DateTimeOriginal value:", exifData.DateTimeOriginal);
+        console.log("DateTimeOriginal type:", typeof exifData.DateTimeOriginal);
+        console.log("DateTimeOriginal is Date?:", exifData.DateTimeOriginal instanceof Date);
 
         // Try different date fields
         const dateString =
@@ -348,18 +310,18 @@ export default function MediaUploadScreen({
           exifData["{Exif}"]?.DateTimeDigitized ||
           exifData["{TIFF}"]?.DateTime;
 
+        console.log("Selected dateString:", dateString);
+        console.log("Selected dateString type:", typeof dateString);
+        console.log("Selected dateString is Date?:", dateString instanceof Date);
+
         if (dateString) {
           try {
             // EXIF dates are in format "YYYY:MM:DD HH:MM:SS"
-            const normalized = dateString.replace(
-              /^(\d{4}):(\d{2}):(\d{2})/,
-              "$1-$2-$3"
-            );
-            const date = new Date(normalized);
-            if (!isNaN(date.getTime())) {
-              originalDate = date.toISOString().split("T")[0];
-              console.log("Parsed EXIF date:", originalDate);
-            }
+            // Extract only the date part (YYYY:MM:DD), not the time
+            const datePart = dateString.split(' ')[0]; // "2025:11:15"
+            originalDate = datePart.replace(/:/g, '-'); // "2025-11-15"
+            console.log("DEBUG - Date part extracted:", datePart);
+            console.log("DEBUG - Final parsed date:", originalDate);
           } catch (parseErr) {
             console.error("Error parsing EXIF date:", parseErr);
           }
@@ -392,13 +354,41 @@ export default function MediaUploadScreen({
         metadata.exif = exifData;
       }
 
+      // Try MediaLibrary for additional metadata (location, dimensions) if assetId available
+      // But don't use it for date - EXIF is more reliable
+      if (assetId && (!metadata.location || !metadata.dimensions)) {
+        try {
+          console.log("Fetching MediaLibrary asset info for metadata:", assetId);
+          const assetInfo = await MediaLibrary.getAssetInfoAsync(assetId);
+
+          if (assetInfo) {
+            // Extract location if not already from EXIF
+            if (!metadata.location && assetInfo.location) {
+              metadata.location = {
+                latitude: assetInfo.location.latitude,
+                longitude: assetInfo.location.longitude,
+              };
+            }
+
+            // Extract dimensions if not already from EXIF
+            if (!metadata.dimensions && assetInfo.width && assetInfo.height) {
+              metadata.dimensions = {
+                width: assetInfo.width,
+                height: assetInfo.height,
+              };
+            }
+          }
+        } catch (mediaLibErr) {
+          console.log("Could not fetch from MediaLibrary:", mediaLibErr);
+        }
+      }
+
       // Fallback: Use file modification date if no date found
       if (!originalDate) {
         const fileInfo = await FileSystem.getInfoAsync(uri);
         if (fileInfo.exists && fileInfo.modificationTime) {
-          originalDate = new Date(fileInfo.modificationTime * 1000)
-            .toISOString()
-            .split("T")[0];
+          const date = new Date(fileInfo.modificationTime * 1000);
+          originalDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
           console.log(
             "Using file modification date as fallback:",
             originalDate
@@ -412,12 +402,11 @@ export default function MediaUploadScreen({
       // Return fallback date on error
       try {
         const fileInfo = await FileSystem.getInfoAsync(uri);
-        const fallbackDate =
-          fileInfo.exists && fileInfo.modificationTime
-            ? new Date(fileInfo.modificationTime * 1000)
-                .toISOString()
-                .split("T")[0]
-            : null;
+        let fallbackDate = null;
+        if (fileInfo.exists && fileInfo.modificationTime) {
+          const date = new Date(fileInfo.modificationTime * 1000);
+          fallbackDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
         return { originalDate: fallbackDate, metadata: {} };
       } catch {
         return { originalDate: null, metadata: {} };
@@ -484,9 +473,8 @@ export default function MediaUploadScreen({
       // Fallback: Use file modification date
       let originalDate: string | null = null;
       if (fileInfo.exists && fileInfo.modificationTime) {
-        originalDate = new Date(fileInfo.modificationTime * 1000)
-          .toISOString()
-          .split("T")[0];
+        const date = new Date(fileInfo.modificationTime * 1000);
+        originalDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       }
 
       return { originalDate, metadata };

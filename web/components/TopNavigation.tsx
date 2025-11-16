@@ -6,6 +6,12 @@ import { useTheme } from "@/lib/theme";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import SettingsModal from "./SettingsModal";
+import {
+  Settings2,
+  SettingsIcon,
+  SlidersHorizontalIcon,
+  UserPenIcon,
+} from "lucide-react";
 
 type TopNavigationProps = {
   user: User | null;
@@ -89,7 +95,11 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                     : "text-flexoki-tx-2 font-medium hover:font-bold hover:text-flexoki-accent"
                 }`}
               >
-                •
+                <img
+                  src="/icon.png"
+                  alt="ki"
+                  className="w-10 h-10 animate-bob"
+                />
               </a>
               <a
                 href="/dashboard/body"
@@ -109,11 +119,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
                 className="p-2 rounded-lg hover:bg-flexoki-ui-2 transition-colors"
                 title="Settings"
               >
-                <img
-                  src="/icon.png"
-                  alt="Settings"
-                  className="w-10 h-10 animate-bob"
-                />
+                <UserPenIcon className="h-7 w-7" />
               </button>
             </div>
           </div>

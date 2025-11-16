@@ -4,7 +4,10 @@ import { useTheme } from "@/lib/theme";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
-import { useFilterPreferences, type FilterCategory } from "@/lib/filterPreferences";
+import {
+  useFilterPreferences,
+  type FilterCategory,
+} from "@/lib/filterPreferences";
 
 type SettingsModalProps = {
   isOpen: boolean;
@@ -39,10 +42,7 @@ export default function SettingsModal({
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 z-40"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -96,7 +96,9 @@ export default function SettingsModal({
                           d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
                         />
                       </svg>
-                      <span className="text-flexoki-tx text-sm truncate">{user?.email || "Loading..."}</span>
+                      <span className="text-flexoki-tx text-sm truncate">
+                        {user?.email || "Loading..."}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -143,7 +145,9 @@ export default function SettingsModal({
                         )}
                         <span className="text-flexoki-tx text-sm">Theme</span>
                       </div>
-                      <span className="text-flexoki-tx-2 capitalize text-sm">{theme}</span>
+                      <span className="text-flexoki-tx-2 capitalize text-sm">
+                        {theme}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -200,17 +204,23 @@ export default function SettingsModal({
                             d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
                           />
                         </svg>
-                        <span className="text-flexoki-tx text-sm">Show Filter Toolbar</span>
+                        <span className="text-flexoki-tx text-sm">
+                          Show Filter Toolbar
+                        </span>
                       </div>
                       <button
                         onClick={toggleToolbar}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          preferences.showToolbar ? "bg-flexoki-accent" : "bg-flexoki-ui-3"
+                          preferences.showToolbar
+                            ? "bg-flexoki-accent"
+                            : "bg-flexoki-ui-3"
                         }`}
                       >
                         <span
                           className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            preferences.showToolbar ? "translate-x-6" : "translate-x-1"
+                            preferences.showToolbar
+                              ? "translate-x-6"
+                              : "translate-x-1"
                           }`}
                         />
                       </button>
@@ -223,24 +233,26 @@ export default function SettingsModal({
                       <p className="text-xs text-flexoki-tx-2 mb-2">
                         Select which filters to display:
                       </p>
-                      {(Object.keys(FILTER_CATEGORY_LABELS) as FilterCategory[]).map(
-                        (category) => (
-                          <label
-                            key={category}
-                            className="flex items-center justify-between cursor-pointer group"
-                          >
-                            <span className="text-flexoki-tx text-sm group-hover:text-flexoki-accent transition-colors">
-                              {FILTER_CATEGORY_LABELS[category]}
-                            </span>
-                            <input
-                              type="checkbox"
-                              checked={preferences.enabledCategories.includes(category)}
-                              onChange={() => toggleCategory(category)}
-                              className="w-4 h-4 rounded border-flexoki-ui-3 text-flexoki-accent focus:ring-2 focus:ring-flexoki-accent focus:ring-offset-0"
-                            />
-                          </label>
-                        )
-                      )}
+                      {(
+                        Object.keys(FILTER_CATEGORY_LABELS) as FilterCategory[]
+                      ).map((category) => (
+                        <label
+                          key={category}
+                          className="flex items-center justify-between cursor-pointer group"
+                        >
+                          <span className="text-flexoki-tx text-sm group-hover:text-flexoki-accent transition-colors">
+                            {FILTER_CATEGORY_LABELS[category]}
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={preferences.enabledCategories.includes(
+                              category
+                            )}
+                            onChange={() => toggleCategory(category)}
+                            className="w-4 h-4 rounded border-flexoki-ui-3 text-flexoki-accent focus:ring-2 focus:ring-flexoki-accent focus:ring-offset-0"
+                          />
+                        </label>
+                      ))}
                     </div>
                   )}
                 </div>

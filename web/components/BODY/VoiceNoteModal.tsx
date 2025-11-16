@@ -35,21 +35,21 @@ export default function VoiceNoteModal({
           bg: "bg-yellow-100",
           border: "border-yellow-500",
           text: "text-yellow-700",
-          label: "Morning Intention",
+          label: "Intention",
         };
       case "reflection":
         return {
           bg: "bg-purple-100",
           border: "border-purple-400",
           text: "text-purple-700",
-          label: "Evening Reflection",
+          label: "Reflection",
         };
       default:
         return {
           bg: "bg-red-100",
           border: "border-red-400",
           text: "text-red-700",
-          label: "Voice Note",
+          label: "Voice Capture",
         };
     }
   };
@@ -100,7 +100,8 @@ export default function VoiceNoteModal({
               </div>
               {linkedActivityName && (
                 <div className="text-sm text-flexoki-tx-2">
-                  during <span className="font-semibold">{linkedActivityName}</span>
+                  during{" "}
+                  <span className="font-semibold">{linkedActivityName}</span>
                 </div>
               )}
             </div>
@@ -122,7 +123,8 @@ export default function VoiceNoteModal({
               </div>
               {cycleInfo?.cycle_day && cycleInfo?.cycle_phase && (
                 <div className="text-flexoki-tx-2">
-                  Day {cycleInfo.cycle_day} · {formatPhase(cycleInfo.cycle_phase)} Phase
+                  Day {cycleInfo.cycle_day} ·{" "}
+                  {formatPhase(cycleInfo.cycle_phase)} Phase
                 </div>
               )}
             </div>

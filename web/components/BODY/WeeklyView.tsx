@@ -63,11 +63,11 @@ export default function WeeklyView() {
     fetchWeekData();
   }, [weekStartDate]);
 
-  // Get Monday of the current week
+  // Get Sunday of the current week
   function getWeekStart(date: Date): Date {
     const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+    const day = d.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const diff = d.getDate() - day; // Subtract days to get to Sunday
     return new Date(d.setDate(diff));
   }
 
@@ -99,7 +99,9 @@ export default function WeeklyView() {
 
       // Fetch all data for the week
       const weekDataPromises = dates.map(async (date) => {
-        const dayOfWeek = new Date(date).getDay();
+        // Force local timezone interpretation by appending time
+        const localDate = new Date(date + "T00:00:00");
+        const dayOfWeek = localDate.getDay();
         const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
         // Fetch cycle info
@@ -135,7 +137,7 @@ export default function WeeklyView() {
         return {
           date,
           dayName: dayNames[dayOfWeek],
-          dayNumber: new Date(date).getDate(),
+          dayNumber: localDate.getDate(),
           cycleInfo: cycleData || null,
           timerSessions: sessions || [],
           captures: captures || [],

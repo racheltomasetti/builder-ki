@@ -344,19 +344,19 @@
 
 ### Monthly View
 
-- [ ] **Create MonthlyView component**
+- [x] **Create MonthlyView component**
 
   - New file: `web/components/BODY/MonthlyView.tsx`
-  - Traditional calendar grid (5-6 weeks)
+  - Traditional calendar grid (6 weeks)
 
-- [ ] **Render month grid**
+- [x] **Render month grid**
   - Each day cell shows:
     - Date number
     - Cycle day number (if applicable)
-    - Phase color (background)
-    - Activity count
-    - Voice note count
-  - Click day � zoom to daily view
+    - Phase color (border)
+    - Flow count
+    - Voice capture count
+  - Click day to zoom to daily view
   - **Checkpoint**: Month displays with all days, cycle colors visible
 
 ### Cycle View (Circular)
@@ -387,8 +387,12 @@
   - **Checkpoint**: Voice notes appear on correct cycle days
 
 - [ ] **Click interaction**
+
   - Click cycle day � zoom to daily view for that date
   - **Checkpoint**: Clicking day navigates to daily view
+
+- [ ] **All time visualization**
+  - user can view all of their captures across all of their cycles
 
 ### Calendar Navigation
 

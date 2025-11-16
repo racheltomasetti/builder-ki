@@ -84,9 +84,9 @@
 ## WEB CYCLE: Calendar Visualization
 
 - [x] Weekly view: 7-day grid showing activities and captures
-- [ ] Monthly view: calendar grid with cycle phase colors
+- [x] Monthly view: calendar grid with cycle phase colors
 - [ ] Cycle view: circular 28-day wheel showing full cycle
-- [ ] Can click day � zoom to detailed daily view
+- [x] Can click day � zoom to detailed daily view
 - [ ] Can navigate between dates/weeks/months
 
 ---
