@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import CycleInfo from "@/components/CycleInfo";
 import { highlightText } from "@/lib/highlightText";
 import { Star } from "lucide-react";
+import { Expand } from "lucide-react";
 
 type Insight = {
   id: string;
@@ -332,7 +333,14 @@ export default function VoiceCard({
             className="px-4 py-2 bg-flexoki-accent-2 text-white text-xl rounded-lg hover:text-2xl hover:font-bold disabled:opacity-50 flex items-center gap-2"
             title="Expand this thought into a document"
           >
-            {isExpanding ? "Creating..." : " expand thought →"}
+            {isExpanding ? (
+              "Creating..."
+            ) : (
+              <>
+                Thought Expansio
+                <Expand className="w-5 h-5" />
+              </>
+            )}
           </button>
         </div>
       )}
