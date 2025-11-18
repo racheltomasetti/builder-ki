@@ -379,18 +379,18 @@ export default function WeeklyView() {
                             ? getCyclePhaseBorderColor(
                                 day.cycleInfo?.cycle_phase || null
                               )
-                            : "border-flexoki-ui-3"
-                        } bg-flexoki-accent-2 shadow-sm overflow-hidden`}
+                            : "border-flexoki-ui-3 bg-flexoki-ui-2 bg-opacity-30"
+                        } shadow-sm overflow-hidden`}
                         style={style}
                       >
-                        <div className="text-[10px] font-semibold text-flexoki-tx truncate">
+                        <div className="text-[10px] font-semibold text-flexoki-tx opacity-100 truncate">
                           {session.name}
                         </div>
-                        <div className="text-[9px] text-flexoki-tx">
+                        <div className="text-[9px] text-flexoki-tx opacity-100">
                           {formatTime(session.start_time)}
                         </div>
                         {session.end_time && (
-                          <div className="text-[9px] text-flexoki-tx">
+                          <div className="text-[9px] text-flexoki-tx opacity-100">
                             {calculateDuration(
                               session.start_time,
                               session.end_time
@@ -402,7 +402,7 @@ export default function WeeklyView() {
                         {linkedCaptures.map((capture) => (
                           <div
                             key={capture.id}
-                            className="mt-0.5 text-xs text-flexoki-tx-2 flex items-center gap-1 opacity-70 cursor-pointer hover:opacity-100 transition-opacity"
+                            className="mt-0.5 cursor-pointer hover:opacity-100 transition-opacity opacity-70"
                             onClick={() =>
                               setSelectedCapture({
                                 capture,
@@ -411,8 +411,7 @@ export default function WeeklyView() {
                               })
                             }
                           >
-                            <div className="w-full h-px bg-flexoki-accent"></div>
-                            <span className="text-[8px]">🎤</span>
+                            <div className="w-full h-[3px] bg-flexoki-accent rounded-full"></div>
                           </div>
                         ))}
                       </div>
@@ -432,23 +431,19 @@ export default function WeeklyView() {
                       const top = hour * 40; // Use condensed hour height
 
                       // Color based on note type
-                      let bgColor = "bg-red-600";
-                      let borderColor = "border-red-400";
+                      let lineColor = "bg-flexoki-accent";
                       if (capture.note_type === "intention") {
-                        bgColor = "bg-yellow-600";
-                        borderColor = "border-yellow-500";
+                        lineColor = "bg-yellow-500";
                       } else if (capture.note_type === "reflection") {
-                        bgColor = "bg-purple-600";
-                        borderColor = "border-purple-400";
+                        lineColor = "bg-purple-500";
                       }
 
                       return (
                         <div
                           key={capture.id}
-                          className={`absolute left-1 right-1 rounded-md p-1.5 pointer-events-auto ${bgColor} border ${borderColor} bg-opacity-50 cursor-pointer hover:opacity-100 transition-opacity`}
+                          className="absolute left-1 right-1 pointer-events-auto cursor-pointer hover:opacity-100 transition-opacity opacity-70"
                           style={{
                             top: `${top}px`,
-                            height: "24px",
                           }}
                           onClick={() =>
                             setSelectedCapture({
@@ -457,9 +452,9 @@ export default function WeeklyView() {
                             })
                           }
                         >
-                          <div className="text-[9px] text-flexoki-tx text-right">
-                            {formatTime(capture.created_at)}
-                          </div>
+                          <div
+                            className={`w-full h-[3px] ${lineColor} rounded-full`}
+                          ></div>
                         </div>
                       );
                     })}

@@ -16,6 +16,7 @@ import { createClient } from "@/lib/supabase/client";
 import ThinkingPartner from "./ThinkingPartner";
 import MediaLibrary from "./MediaLibrary";
 import { VoiceCaptureNode } from "./VoiceCaptureNode";
+import { Eye, EyeOff } from "lucide-react";
 
 type Insight = {
   id: string;
@@ -613,9 +614,8 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
         )}
       </div>
 
-      {/* Back button and Share button - below header and voice note */}
-      <div className="px-6 pt-6 flex justify-between items-center">
-        {/* Back button - left aligned */}
+      {/* Back button - below header and voice note */}
+      <div className="px-6 pt-6">
         <button
           onClick={() => router.push("/dashboard/mind")}
           className="text-flexoki-tx-2 hover:text-flexoki-tx transition-colors flex items-center gap-2"
@@ -634,32 +634,6 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
               d="M15 19l-7-7 7-7"
             />
           </svg>
-        </button>
-
-        {/* Share button - right aligned */}
-        <button
-          onClick={handleTogglePublic}
-          disabled={isTogglingPublic}
-          className={`px-4 py-2 text-3xl rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 ${
-            isPublic
-              ? "bg-flexoki-accent-2 text-white hover:text-3xl hover:italic hover:font-bold"
-              : "bg-flexoki-accent font-bold text-flexoki-tx hover:text-3xl hover:italic hover:font-bold hover:bg-flexoki-accent-2"
-          }`}
-          title={
-            isPublic
-              ? "document is public - click to make private"
-              : "document is private - click to share"
-          }
-        >
-          {isPublic ? (
-            <>
-              <span>{isTogglingPublic ? "Updating..." : "SHARED"}</span>
-            </>
-          ) : (
-            <>
-              <span>{isTogglingPublic ? "Updating..." : "SHARE"}</span>
-            </>
-          )}
         </button>
       </div>
 
@@ -980,6 +954,37 @@ export default function DocumentEditor({ document }: DocumentEditorProps) {
                 />
               </svg>
               Agent
+            </button>
+
+            {/* Separator */}
+            <div className="mt-3 w-px h-6 bg-flexoki-ui-3 mx-1"></div>
+
+            {/* Public/Private Toggle */}
+            <button
+              onClick={handleTogglePublic}
+              disabled={isTogglingPublic}
+              className={`mt-3 px-3 py-1 rounded-full text-md font-medium transition-all flex items-center gap-1 ${
+                isPublic
+                  ? "bg-green-200 text-green-700 hover:bg-green-200"
+                  : "bg-flexoki-ui text-gray-600 hover:bg-gray-200"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              title={
+                isPublic
+                  ? "Visible on public timeline"
+                  : "Private (not visible on public timeline)"
+              }
+            >
+              {isPublic ? (
+                <>
+                  <Eye className="w-3 h-3" />
+                  Public
+                </>
+              ) : (
+                <>
+                  <EyeOff className="w-3 h-3" />
+                  Private
+                </>
+              )}
             </button>
           </div>
         )}

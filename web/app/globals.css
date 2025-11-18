@@ -222,7 +222,8 @@ body {
 
 /* Resizable Image Styles */
 .prose-flexoki img {
-  @apply rounded-lg max-w-full h-auto my-4;
+  @apply rounded-lg max-w-full h-auto;
+  margin: 1rem 0;
 }
 
 /* Colored text support - inline color styles from Tiptap Color extension work automatically */

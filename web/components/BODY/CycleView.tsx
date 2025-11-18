@@ -23,6 +23,7 @@ type Capture = {
   created_at: string;
   log_date: string;
   cycle_day: number | null;
+  is_public: boolean;
 };
 
 type MediaItem = {
@@ -33,6 +34,7 @@ type MediaItem = {
   original_date: string;
   log_date: string | null;
   created_at: string;
+  is_public: boolean;
 };
 
 type DataPoint = {

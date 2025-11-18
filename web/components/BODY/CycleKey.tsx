@@ -85,7 +85,7 @@ export default function CycleKey({
               className={`px-3 py-1.5 rounded-md transition-colors text-[16px] ${
                 showPhaseOverlay
                   ? "bg-flexoki-ui-3 bg-opacity-50 hover:italic hover:font-bold text-flexoki-tx"
-                  : "bg-flexoki-accent-2 hover:font-bold hover:italic text-flexoki-tx "
+                  : "bg-flexoki-ui-3 hover:font-bold hover:italic text-flexoki-tx "
               }`}
             >
               {showPhaseOverlay ? "Hide Cycle Phases" : "Show Cycle Phases"}
