@@ -382,12 +382,17 @@ export default function MonthlyView() {
         <div className="grid grid-cols-7 gap-2">
           {monthData.map((dayData, index) => {
             const { dateObj, cycleInfo, timerSessions, captures } = dayData;
-            const voiceCaptures = captures.filter((c) => c.type === "voice");
             const intentions = captures.filter(
               (c) => c.note_type === "intention"
             );
             const reflections = captures.filter(
               (c) => c.note_type === "reflection"
+            );
+            const voiceCaptures = captures.filter(
+              (c) =>
+                c.type === "voice" &&
+                c.note_type !== "intention" &&
+                c.note_type !== "reflection"
             );
 
             return (
@@ -405,7 +410,10 @@ export default function MonthlyView() {
                 `}
                 style={
                   isToday(dateObj) && isCurrentMonth(dateObj)
-                    ? { borderColor: "rgba(58, 169, 159, 1)", borderWidth: "3px" }
+                    ? {
+                        borderColor: "rgba(58, 169, 159, 1)",
+                        borderWidth: "3px",
+                      }
                     : undefined
                 }
               >
@@ -467,7 +475,7 @@ export default function MonthlyView() {
                       <div className="w-2 h-2 rounded-full bg-flexoki-accent bg-opacity-60"></div>
                       <span>
                         {voiceCaptures.length}{" "}
-                        {voiceCaptures.length === 1 ? "note" : "notes"}
+                        {voiceCaptures.length === 1 ? "capture" : "captures"}
                       </span>
                     </div>
                   )}

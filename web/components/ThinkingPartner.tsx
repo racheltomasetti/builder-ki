@@ -315,83 +315,8 @@ export default function ThinkingPartner({
                   <span className="text-flexoki-tx-3">loading...</span>
                 </div>
               ) : messages.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-center px-6">
-                  <div className="p-6 rounded-xl border-2 border-flexoki-accent-2 bg-flexoki-accent-2/5 max-w-2xl bg-flexoki-ui shadow-lg">
-                    {/* bobbing icon of ki - centered */}
-                    <div className="flex justify-center mb-4">
-                      <img src="/icon.png" className="w-16 h-16 animate-bob" />
-                    </div>
-                    <p className="text-lg mb-4 italic text-flexoki-tx font-bold">
-                      <span className="text-flexoki-accent">
-                        extension of the mind
-                      </span>{" "}
-                      |{" "}
-                      <span className="text-flexoki-accent-2">
-                        mirror for thinking
-                      </span>
-                    </p>
-
-                    <div className="text-md text-left mb-4 text-flexoki-tx-2">
-                      {/* Two column layout for lists */}
-                      <div className="grid grid-cols-2 gap-6 mb-6">
-                        <div>
-                          <p className="mb-3">
-                            <span className="font-semibold text-flexoki-tx">
-                              what ki has access to:
-                            </span>
-                          </p>
-                          <ul className="list-disc list-inside space-y-1 ml-2">
-                            <li>document content</li>
-                            <li>voice note transcriptions & insights</li>
-                            <li>recent thought captures for context</li>
-                            <li>our conversation history</li>
-                          </ul>
-                        </div>
-
-                        <div>
-                          <p className="mb-3">
-                            <span className="font-semibold text-flexoki-tx">
-                              how ki works by default:
-                            </span>
-                          </p>
-                          <ul className="list-disc list-inside space-y-1 ml-2">
-                            <li>reflect and clarify your thinking</li>
-                            <li>ask questions to help you explore deeper</li>
-                            <li>
-                              connect ideas across your captures over time
-                            </li>
-                            <li>suggest structure when asked</li>
-                            <li>
-                              help you develop your own thinking (not do it for
-                              you)
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-
-                      <div className="p-4 rounded-lg border border-flexoki-accent bg-flexoki-accent/5">
-                        <p className="mb-2">
-                          <span className="font-semibold text-flexoki-tx">
-                            customize me:
-                          </span>
-                        </p>
-                        <p>
-                          click the{" "}
-                          <span className="inline-flex items-center">
-                            <Settings2 className="h-3 w-3 mx-1" />
-                          </span>{" "}
-                          icon above to customize how i interact with you.
-                          change my personality, focus, or approach to fit your
-                          specific use case - globally or per-document.
-                        </p>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-flexoki-tx-3 italic mt-4">
-                      try: "what patterns do you see in my recent thinking?" or
-                      "help me explore this idea further"
-                    </p>
-                  </div>
+                <div className="flex items-center justify-center h-full">
+                  <img src="/icon.png" className="w-24 h-24 animate-bob" />
                 </div>
               ) : (
                 <>

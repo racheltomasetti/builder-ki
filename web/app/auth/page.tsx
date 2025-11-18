@@ -83,10 +83,10 @@ export default function AuthPage() {
         <div className="max-w-md w-full space-y-8 p-8 bg-white/60 backdrop-blur-sm rounded-lg shadow-xl">
           <div>
             <h2 className="text-center text-3xl font-bold text-gray-900">
-              {isSignUp ? "Create your account" : "Sign in to your KI"}
+              {isSignUp ? "Create your account" : "Welcome back to Ki!"}
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              AI-powered thought clarification system
+            <p className="mt-2 text-center text-lg italic text-gray-600">
+              AI toolkit for Self: explore, create & connect
             </p>
           </div>
 

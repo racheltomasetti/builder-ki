@@ -280,7 +280,10 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         durationIntervalRef.current = null;
       }
 
-      setUploading(true);
+      // Get the URI before stopping
+      const uri = recording.getURI();
+
+      // Stop the recording and reset audio mode
       await recording.stopAndUnloadAsync();
 
       // Reset audio mode after recording
@@ -290,15 +293,28 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         staysActiveInBackground: false,
       });
 
-      const uri = recording.getURI();
-
-      if (uri) {
-        console.log("Uploading voice recording...");
-        await uploadVoiceCapture(uri);
-      }
-
+      // Clear recording state immediately for responsive UI
       setRecording(null);
       setRecordingDuration(0);
+
+      // Show uploading state
+      setUploading(true);
+
+      // Upload in background (doesn't block UI)
+      if (uri) {
+        console.log("Uploading voice recording...");
+        uploadVoiceCapture(uri)
+          .then(() => {
+            setUploading(false);
+          })
+          .catch((err) => {
+            console.error("Upload error:", err);
+            setUploading(false);
+            Alert.alert("Upload Error", err.message);
+          });
+      } else {
+        setUploading(false);
+      }
     } catch (err: any) {
       console.error("Stop recording error:", err);
       Alert.alert("Error", "Failed to stop recording: " + err.message);
@@ -317,7 +333,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         playsInSilentModeIOS: true,
         staysActiveInBackground: false,
       });
-    } finally {
+
       setUploading(false);
     }
   };

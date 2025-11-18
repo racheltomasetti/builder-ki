@@ -73,7 +73,7 @@ export default function TopNavigation({ user }: TopNavigationProps) {
           <div className="relative flex justify-center h-16 items-center">
             {/* KI - Left Side */}
             <div className="absolute left-0">
-              <h1 className="text-4xl italic font-bold text-flexoki-tx">ki</h1>
+              <h1 className="text-3xl italic font-bold text-flexoki-tx">Ki</h1>
             </div>
             {/* Navigation Links - Centered */}
             <div className="flex items-center gap-6">

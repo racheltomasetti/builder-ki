@@ -142,7 +142,7 @@ export default function DocumentsList({
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-flexoki-tx mb-2">
-            {focusMode ? "FOCUS" : "my documents"}
+            {focusMode ? "FOCUS" : "My Journals"}
           </h1>
           <p className="text-flexoki-tx-2">
             {focusMode

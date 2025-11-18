@@ -3,8 +3,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
 
 export const metadata: Metadata = {
-  title: "ki",
-  description: "toolkit of Self designed to augment the journey of becoming",
+  title: "Ki",
+  description: "AI toolkit for Self: explore, create & connect",
 };
 
 export default function RootLayout({
