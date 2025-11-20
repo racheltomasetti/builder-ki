@@ -1,5 +1,8 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type {
+  BottomTabNavigationProp,
+  BottomTabScreenProps,
+} from '@react-navigation/bottom-tabs';
 
 // Stack navigator (root level with Auth and Main Tabs)
 export type RootStackParamList = {
@@ -10,7 +13,12 @@ export type RootStackParamList = {
 // Bottom tab navigator (main authenticated screens)
 export type MainTabsParamList = {
   PlanTrack: undefined;
-  Capture: undefined;
+  Capture: {
+    focusMode?: boolean;
+    timerId?: string;
+    taskId?: string;
+    taskName?: string;
+  } | undefined;
   Community: undefined;
 };
 
@@ -19,6 +27,9 @@ export type PlanTrackScreenProps = BottomTabScreenProps<MainTabsParamList, 'Plan
 export type CaptureScreenProps = BottomTabScreenProps<MainTabsParamList, 'Capture'>;
 export type CommunityScreenProps = BottomTabScreenProps<MainTabsParamList, 'Community'>;
 export type SettingsScreenProps = NativeStackScreenProps<RootStackParamList, 'Settings'>;
+export type MediaUploadScreenProps = {
+  navigation: BottomTabNavigationProp<MainTabsParamList>;
+};
 
 // Navigation prop type (for using navigation.navigate())
 declare global {

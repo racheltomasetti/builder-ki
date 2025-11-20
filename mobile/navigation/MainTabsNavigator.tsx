@@ -20,17 +20,6 @@ import type {
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
-// Format current date as "Day of the week, Month Day, Year"
-const getFormattedDate = (): string => {
-  const today = new Date();
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  };
-  return today.toLocaleDateString("en-US", options);
-};
-
 export default function MainTabsNavigator() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -53,7 +42,7 @@ export default function MainTabsNavigator() {
           paddingTop: 4,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 16,
           fontWeight: "600",
           marginBottom: 4,
           fontFamily: "Perpetua",
@@ -81,7 +70,7 @@ export default function MainTabsNavigator() {
         name="PlanTrack"
         component={PlanTrackScreen}
         options={{
-          tabBarLabel: "Plan",
+          tabBarLabel: "Flow",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
@@ -89,12 +78,12 @@ export default function MainTabsNavigator() {
           headerTitle: () => (
             <Text
               style={{
-                fontSize: 18,
+                fontSize: 24,
                 color: colors.tx,
                 fontFamily: "Perpetua",
               }}
             >
-              {getFormattedDate()}
+              ~ FLOW ~
             </Text>
           ),
           headerTitleStyle: {
@@ -112,19 +101,19 @@ export default function MainTabsNavigator() {
         name="Capture"
         component={CaptureScreen}
         options={{
-          tabBarLabel: "Daily Journal",
+          tabBarLabel: "Journal",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="journal-outline" size={size} color={color} />
           ), // header title is current date
           headerTitle: () => (
             <Text
               style={{
-                fontSize: 18,
+                fontSize: 24,
                 color: colors.tx,
                 fontFamily: "Perpetua",
               }}
             >
-              {getFormattedDate()}
+              • CAPTURE •
             </Text>
           ),
           headerTitleStyle: {
@@ -155,9 +144,9 @@ export default function MainTabsNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
-          headerTitle: "Connect",
+          headerTitle: "~ • CONNECT • ~",
           headerTitleStyle: {
-            fontSize: 25,
+            fontSize: 24,
             color: colors.tx,
             fontFamily: "Perpetua",
           },

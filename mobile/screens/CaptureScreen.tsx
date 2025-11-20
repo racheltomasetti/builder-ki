@@ -31,7 +31,7 @@ import type {
 import CycleIndicator from "../components/CycleIndicator";
 import CycleModal from "../components/CycleModal";
 import { getCurrentCycleInfo, type CycleInfo } from "../lib/cycleApi";
-import { getActiveTimerIds } from "../lib/timerApi";
+import { getActiveTimerIds, stopTimer as apiStopTimer } from "../lib/timerApi";
 import { ThemedText } from "../components/ThemedText";
 import { KILogo } from "../components/Logo";
 
@@ -46,13 +46,22 @@ interface MediaItem {
   created_at: string;
 }
 
-export default function CaptureScreen({ navigation }: CaptureScreenProps) {
+export default function CaptureScreen({
+  navigation,
+  route,
+}: CaptureScreenProps) {
   const isFocused = useIsFocused();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = useThemeColors(isDark);
   const rootNavigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  // Focus Mode params
+  const focusMode = route.params?.focusMode || false;
+  const timerId = route.params?.timerId;
+  const taskId = route.params?.taskId;
+  const initialTaskName = route.params?.taskName;
 
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -62,6 +71,10 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
   const [cycleInfo, setCycleInfo] = useState<CycleInfo | null>(null);
   const [backfillDate, setBackfillDate] = useState("");
   const [recentMedia, setRecentMedia] = useState<MediaItem[]>([]);
+
+  // Focus Mode timer state
+  const [timerElapsed, setTimerElapsed] = useState(0);
+  const [taskName, setTaskName] = useState(initialTaskName || "");
 
   // Load saved mandala settings
   const { settings, loadSettings, resetToDefaults } = useMandalaSettings();
@@ -85,6 +98,10 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
 
   // Timer ref for recording duration
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Timer ref for Focus Mode timer
+  const focusModeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerStartTimeRef = useRef<Date | null>(null);
 
   // Get user on mount and setup audio mode
   useEffect(() => {
@@ -122,8 +139,36 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
       if (recording) {
         recording.stopAndUnloadAsync().catch(() => {});
       }
+      if (focusModeTimerRef.current) {
+        clearInterval(focusModeTimerRef.current);
+      }
     };
   }, []);
+
+  // Focus Mode timer - track elapsed time
+  useEffect(() => {
+    if (focusMode && timerId) {
+      // Initialize timer start time
+      timerStartTimeRef.current = new Date();
+      setTimerElapsed(0);
+
+      // Update elapsed time every second
+      focusModeTimerRef.current = setInterval(() => {
+        if (timerStartTimeRef.current) {
+          const elapsed = Math.floor(
+            (new Date().getTime() - timerStartTimeRef.current.getTime()) / 1000
+          );
+          setTimerElapsed(elapsed);
+        }
+      }, 1000);
+
+      return () => {
+        if (focusModeTimerRef.current) {
+          clearInterval(focusModeTimerRef.current);
+        }
+      };
+    }
+  }, [focusMode, timerId]);
 
   // Load cycle info from database
   const loadCycleInfo = async (userId: string) => {
@@ -142,11 +187,12 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
     }
   };
 
-  // Hide/show navigation bars when recording + add cycle indicator to header
+  // Hide/show navigation bars when recording or in Focus Mode + add cycle indicator to header
   useEffect(() => {
+    const hideNav = recording || focusMode;
     navigation.setOptions({
-      headerShown: !recording,
-      headerLeft: !recording
+      headerShown: !hideNav,
+      headerLeft: !hideNav
         ? () => (
             <View style={{ marginLeft: 12 }}>
               <CycleIndicator
@@ -157,7 +203,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
             </View>
           )
         : undefined,
-      headerRight: !recording
+      headerRight: !hideNav
         ? () => (
             <TouchableOpacity
               onPress={() => rootNavigation.navigate("Settings")}
@@ -168,7 +214,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
             </TouchableOpacity>
           )
         : undefined,
-      tabBarStyle: recording
+      tabBarStyle: hideNav
         ? { display: "none" }
         : {
             backgroundColor: colors.bg,
@@ -179,7 +225,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
             paddingTop: 4,
           },
     });
-  }, [recording, navigation, rootNavigation, colors, cycleInfo]);
+  }, [recording, focusMode, navigation, rootNavigation, colors, cycleInfo]);
 
   // Bobbing animation for idle state
   useEffect(() => {
@@ -213,6 +259,30 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
       // Sign out after animation completes
       await supabase.auth.signOut();
     });
+  };
+
+  // Stop Focus Mode and return to PlanTrack screen
+  const stopFocusMode = async () => {
+    if (!timerId) return;
+
+    try {
+      // Stop the timer via API (pass taskId to update task status)
+      await apiStopTimer(timerId, taskId);
+
+      // Clear focus mode timer
+      if (focusModeTimerRef.current) {
+        clearInterval(focusModeTimerRef.current);
+        focusModeTimerRef.current = null;
+      }
+
+      Alert.alert("Flow Complete", "Great work! Your timer has been stopped.");
+
+      // Navigate back to PlanTrack screen
+      navigation.navigate("PlanTrack");
+    } catch (err: any) {
+      console.error("Error stopping focus mode:", err);
+      Alert.alert("Error", "Failed to stop timer: " + err.message);
+    }
   };
 
   // Format duration as MM:SS
@@ -687,8 +757,8 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
           try {
             // EXIF dates are in format "YYYY:MM:DD HH:MM:SS"
             // Extract only the date part (YYYY:MM:DD), not the time
-            const datePart = dateString.split(' ')[0]; // "2025:11:15"
-            originalDate = datePart.replace(/:/g, '-'); // "2025-11-15"
+            const datePart = dateString.split(" ")[0]; // "2025:11:15"
+            originalDate = datePart.replace(/:/g, "-"); // "2025-11-15"
             console.log("Parsed EXIF date:", originalDate);
           } catch (parseErr) {
             console.error("Error parsing EXIF date:", parseErr);
@@ -726,7 +796,10 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
       // But don't use it for date - EXIF is more reliable
       if (assetId && (!metadata.location || !metadata.dimensions)) {
         try {
-          console.log("Fetching MediaLibrary asset info for metadata:", assetId);
+          console.log(
+            "Fetching MediaLibrary asset info for metadata:",
+            assetId
+          );
           const assetInfo = await MediaLibrary.getAssetInfoAsync(assetId);
 
           if (assetInfo) {
@@ -756,7 +829,9 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         const fileInfo = await FileSystem.getInfoAsync(uri);
         if (fileInfo.exists && fileInfo.modificationTime) {
           const date = new Date(fileInfo.modificationTime * 1000);
-          originalDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          originalDate = `${date.getFullYear()}-${String(
+            date.getMonth() + 1
+          ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
           console.log(
             "Using file modification date as fallback:",
             originalDate
@@ -773,7 +848,9 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
         let fallbackDate = null;
         if (fileInfo.exists && fileInfo.modificationTime) {
           const date = new Date(fileInfo.modificationTime * 1000);
-          fallbackDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          fallbackDate = `${date.getFullYear()}-${String(
+            date.getMonth() + 1
+          ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
         }
         return { originalDate: fallbackDate, metadata: {} };
       } catch {
@@ -834,7 +911,9 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
       let originalDate: string | null = null;
       if (fileInfo.exists && fileInfo.modificationTime) {
         const date = new Date(fileInfo.modificationTime * 1000);
-        originalDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        originalDate = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
       }
 
       return { originalDate, metadata };
@@ -1129,7 +1208,7 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
                     <ThemedText
                       style={[styles.uploadHeaderText, { color: colors.tx }]}
                     >
-                      Capture Voice
+                      Voice Note
                     </ThemedText>
                   </View>
 
@@ -1231,8 +1310,9 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
                   </View>
                 </View>
 
-                {/* Recently Uploaded Media */}
-                {recentMedia.length > 0 && (
+                {/* Recently Uploaded Media - only show when NOT in focus mode */}
+                {!focusMode && recentMedia.length > 0 ? (
+                  // Recently Uploaded Media
                   <View style={styles.recentSection}>
                     <ThemedText
                       style={[styles.recentTitle, { color: colors.tx }]}
@@ -1327,6 +1407,57 @@ export default function CaptureScreen({ navigation }: CaptureScreenProps) {
                       ))}
                     </View>
                   </View>
+                ) : null}
+
+                {/* Focus Mode Timer Bar - shown at bottom when in focus mode */}
+                {focusMode && timerId && (
+                  <View style={styles.recentSection}>
+                    <View
+                      style={[
+                        styles.focusModeBarBottom,
+                        { backgroundColor: colors.accent2 },
+                      ]}
+                    >
+                      <View style={styles.focusModeContent}>
+                        <View style={styles.focusModeInfo}>
+                          <Ionicons name="timer" size={28} color={colors.bg} />
+                          <View style={styles.focusModeTextContainer}>
+                            <ThemedText
+                              style={[
+                                styles.focusModeTask,
+                                { color: colors.bg },
+                              ]}
+                            >
+                              {taskName}
+                            </ThemedText>
+                            <ThemedText
+                              style={[
+                                styles.focusModeTime,
+                                { color: colors.bg },
+                              ]}
+                            >
+                              {formatDuration(timerElapsed)}
+                            </ThemedText>
+                          </View>
+                        </View>
+                        <TouchableOpacity
+                          onPress={stopFocusMode}
+                          style={[
+                            styles.stopFlowButton,
+                            { backgroundColor: colors.accent },
+                          ]}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons name="stop" size={20} color={colors.bg} />
+                          <ThemedText
+                            style={[styles.stopFlowText, { color: colors.bg }]}
+                          >
+                            End Flow
+                          </ThemedText>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
                 )}
               </View>
             )}
@@ -1379,7 +1510,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 20,
+    justifyContent: "center",
+    paddingVertical: 20,
   },
   uploadingContainer: {
     flex: 1,
@@ -1578,5 +1710,55 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
+  },
+  focusModeBarBottom: {
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  focusModeContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+  },
+  focusModeInfo: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  focusModeTextContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  focusModeTask: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  focusModeTime: {
+    fontSize: 20,
+    fontWeight: "700",
+    fontVariant: ["tabular-nums"],
+  },
+  stopFlowButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  stopFlowText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
 });

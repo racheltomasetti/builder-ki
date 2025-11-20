@@ -9,9 +9,10 @@ import {
   useColorScheme,
   ScrollView,
   TextInput,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { supabase } from "../lib/supabase";
 import { Audio } from "expo-av";
@@ -35,7 +36,6 @@ import {
 import { ThemedText } from "../components/ThemedText";
 
 type NoteType = "intention" | "reflection";
-type ViewMode = "plan" | "track";
 
 interface TodayStatus {
   hasIntention: boolean;
@@ -57,13 +57,13 @@ interface DailyTask {
 export default function PlanTrackScreen({
   navigation: tabNavigation,
 }: PlanTrackScreenProps) {
+  const isFocused = useIsFocused();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = useThemeColors(isDark);
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const [viewMode, setViewMode] = useState<ViewMode>("plan");
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [currentNoteType, setCurrentNoteType] = useState<NoteType | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -76,21 +76,13 @@ export default function PlanTrackScreen({
   const [loading, setLoading] = useState(true);
   const [cycleModalVisible, setCycleModalVisible] = useState(false);
   const [cycleInfo, setCycleInfo] = useState<CycleInfo | null>(null);
-  const [reflectionTriggered, setReflectionTriggered] = useState(false);
-  const [isAfter6PM, setIsAfter6PM] = useState(false);
   const [tasks, setTasks] = useState<DailyTask[]>([]);
   const [newTaskText, setNewTaskText] = useState("");
   const [activeTimers, setActiveTimers] = useState<ActiveTimer[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Check if current time is past 6 PM (18:00)
-  const checkIsAfter6PM = () => {
-    const now = new Date();
-    const currentHour = now.getHours();
-    return currentHour >= 18; // 6 PM or later
-  };
 
   // Get today's date in YYYY-MM-DD format (local timezone)
   const getTodayDate = () => {
@@ -139,25 +131,61 @@ export default function PlanTrackScreen({
       staysActiveInBackground: false,
     });
 
-    // Check if after 6pm initially
-    setIsAfter6PM(checkIsAfter6PM());
-
-    // Check every minute if after 6pm
-    const timeCheckInterval = setInterval(() => {
-      setIsAfter6PM(checkIsAfter6PM());
-    }, 60000); // Check every 60 seconds
-
     // Cleanup on unmount
     return () => {
       if (recording) {
         recording.stopAndUnloadAsync().catch(() => {});
       }
-      clearInterval(timeCheckInterval);
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
     };
   }, []);
+
+  // Reload tasks and active timers when screen comes into focus
+  useEffect(() => {
+    if (isFocused && user) {
+      console.log("Screen focused, reloading tasks...");
+      loadTodayTasks();
+      loadActiveTimers();
+      loadTodayStatus();
+    }
+  }, [isFocused, user]);
+
+  // Subscribe to real-time updates for tasks
+  useEffect(() => {
+    if (!user) return;
+
+    const today = getTodayDate();
+
+    console.log("Setting up real-time subscription for user:", user.id);
+
+    // Subscribe to changes in daily_tasks table
+    const tasksSubscription = supabase
+      .channel("daily_tasks_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "daily_tasks",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("Task change detected:", payload);
+          // Reload tasks whenever there's a change
+          loadTodayTasks();
+        }
+      )
+      .subscribe((status) => {
+        console.log("Subscription status:", status);
+      });
+
+    return () => {
+      console.log("Unsubscribing from task changes");
+      tasksSubscription.unsubscribe();
+    };
+  }, [user]);
 
   // Hide/show navigation bars when recording + add cycle indicator to header
   useEffect(() => {
@@ -195,10 +223,8 @@ export default function PlanTrackScreen({
             paddingBottom: 20,
             paddingTop: 4,
           },
-      // Tab bar label always shows "Plan | Track"
-      tabBarLabel: "Plan | Track",
     });
-  }, [recording, tabNavigation, navigation, colors, cycleInfo, viewMode]);
+  }, [recording, tabNavigation, navigation, colors, cycleInfo]);
 
   // Load today's status from database
   const loadTodayStatus = async () => {
@@ -260,12 +286,6 @@ export default function PlanTrackScreen({
     }
   };
 
-  // Handle reflection trigger (from Track view)
-  const handleReflectionTrigger = () => {
-    setReflectionTriggered(true);
-    setViewMode("plan");
-  };
-
   // Load today's tasks from database
   const loadTodayTasks = async () => {
     try {
@@ -284,10 +304,22 @@ export default function PlanTrackScreen({
 
       if (error) throw error;
 
+      console.log("Loaded tasks:", tasksData);
       setTasks(tasksData || []);
     } catch (err) {
       console.error("Error loading tasks:", err);
     }
+  };
+
+  // Refresh data (pull to refresh)
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([
+      loadTodayStatus(),
+      loadTodayTasks(),
+      loadActiveTimers(),
+    ]);
+    setRefreshing(false);
   };
 
   // Add new task
@@ -365,6 +397,16 @@ export default function PlanTrackScreen({
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Check if there's already an active timer
+      if (activeTimers.length > 0) {
+        Alert.alert(
+          "Timer Already Active",
+          "You already have an active timer. Please stop it before starting a new one.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
       // Use API to create timer session
       const timerSession = await apiStartTimer(
         user.id,
@@ -383,19 +425,25 @@ export default function PlanTrackScreen({
         )
       );
 
-      // Add to active timers
-      setActiveTimers([
-        ...activeTimers,
-        {
-          id: timerSession.id,
-          taskId: task.id,
-          taskName: task.task_description,
-          startTime: new Date(),
-          elapsedSeconds: 0,
-        },
-      ]);
+      // Set single active timer
+      const newTimer = {
+        id: timerSession.id,
+        taskId: task.id,
+        taskName: task.task_description,
+        startTime: new Date(),
+        elapsedSeconds: 0,
+      };
+      setActiveTimers([newTimer]);
 
       console.log("Timer started for task:", task.task_description);
+
+      // Navigate to Capture screen in Focus Mode
+      tabNavigation.navigate("Capture", {
+        focusMode: true,
+        timerId: timerSession.id,
+        taskId: task.id,
+        taskName: task.task_description,
+      });
     } catch (err: any) {
       console.error("Error starting timer:", err);
       Alert.alert("Error", "Failed to start timer: " + err.message);
@@ -405,15 +453,17 @@ export default function PlanTrackScreen({
   // Stop timer
   const stopTimer = async (timer: ActiveTimer) => {
     try {
-      // Use API to stop timer
-      await apiStopTimer(timer.id, timer.taskId);
+      // Use API to stop timer (only pass taskId if it exists)
+      await apiStopTimer(timer.id, timer.taskId || undefined);
 
-      // Update local state
-      setTasks(
-        tasks.map((t) =>
-          t.id === timer.taskId ? { ...t, status: "completed" } : t
-        )
-      );
+      // Update local state only if task is linked and exists in today's tasks
+      if (timer.taskId) {
+        setTasks(
+          tasks.map((t) =>
+            t.id === timer.taskId ? { ...t, status: "completed" } : t
+          )
+        );
+      }
 
       // Remove from active timers
       setActiveTimers(activeTimers.filter((t) => t.id !== timer.id));
@@ -642,16 +692,11 @@ export default function PlanTrackScreen({
 
       // Success messages based on note type
       const messages = {
-        intention: "Intention set! Have a great day.",
-        reflection: "Reflection captured! Rest well.",
+        intention: "Intention set! ",
+        reflection: "Reflection captured! ",
       };
 
       Alert.alert("Success!", messages[noteType]);
-
-      // Reset reflection trigger after reflection is recorded
-      if (noteType === "reflection") {
-        setReflectionTriggered(false);
-      }
 
       // Reload today's status
       await loadTodayStatus();
@@ -674,57 +719,17 @@ export default function PlanTrackScreen({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Toggle Switch */}
-      {!recording && !uploading && (
-        <View style={[styles.toggleContainer, { backgroundColor: colors.ui }]}>
-          <TouchableOpacity
-            style={[
-              styles.toggleButton,
-              viewMode === "plan" && {
-                backgroundColor: colors.accent,
-              },
-            ]}
-            onPress={() => setViewMode("plan")}
-            activeOpacity={0.8}
-          >
-            <ThemedText
-              style={[
-                styles.toggleText,
-                {
-                  color: viewMode === "plan" ? colors.bg : colors.tx2,
-                },
-              ]}
-            >
-              Plan
-            </ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.toggleButton,
-              viewMode === "track" && {
-                backgroundColor: colors.accent,
-              },
-            ]}
-            onPress={() => setViewMode("track")}
-            activeOpacity={0.8}
-          >
-            <ThemedText
-              style={[
-                styles.toggleText,
-                {
-                  color: viewMode === "track" ? colors.bg : colors.tx2,
-                },
-              ]}
-            >
-              Track
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
-      )}
-
       <ScrollView
         style={styles.scrollContent}
         contentContainerStyle={styles.scrollContentContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent2}
+            colors={[colors.accent2]}
+          />
+        }
       >
         {uploading ? (
           <View style={styles.uploadingContainer}>
@@ -758,59 +763,37 @@ export default function PlanTrackScreen({
               {formatDuration(recordingDuration)}
             </ThemedText>
           </View>
-        ) : viewMode === "plan" ? (
-          // PLAN VIEW
+        ) : (
+          // MAIN VIEW
           <>
             {/* Date Header */}
-            {/* <View style={styles.dateHeader}>
+            <View style={styles.dateHeader}>
               <ThemedText style={[styles.dateText, { color: colors.tx }]}>
                 {formatTodayDate()}
               </ThemedText>
-            </View> */}
+            </View>
 
             {/* Set Intention Button */}
             <View style={[styles.section, { backgroundColor: colors.ui }]}>
               <View style={styles.sectionHeader}>
-                <Ionicons
-                  name="sunny-outline"
-                  size={24}
-                  color={colors.accent}
-                />
+                <Ionicons name="sunny-outline" size={24} color="#D4AF37" />
                 <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
-                  Set Intention
+                  Live with Intention
                 </ThemedText>
               </View>
 
-              {todayStatus.hasIntention ? (
-                <View style={styles.completedContainer}>
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={24}
-                    color={colors.accent}
-                  />
-                  <ThemedText
-                    style={[styles.completedText, { color: colors.tx2 }]}
-                  >
-                    Set at {todayStatus.intentionTime}
-                  </ThemedText>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  onPress={() => startRecording("intention")}
-                  style={[
-                    styles.actionButton,
-                    { backgroundColor: colors.accent },
-                  ]}
-                  activeOpacity={0.8}
+              <TouchableOpacity
+                onPress={() => startRecording("intention")}
+                style={[styles.actionButton, styles.intentionButton]}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="mic" size={24} color="#1a1a1a" />
+                <ThemedText
+                  style={[styles.actionButtonText, { color: "#1a1a1a" }]}
                 >
-                  <Ionicons name="mic" size={24} color={colors.bg} />
-                  <ThemedText
-                    style={[styles.actionButtonText, { color: colors.bg }]}
-                  >
-                    Set Today's Intention
-                  </ThemedText>
-                </TouchableOpacity>
-              )}
+                  Set Intention
+                </ThemedText>
+              </TouchableOpacity>
             </View>
 
             {/* Plan Your Day - Task Input */}
@@ -822,7 +805,7 @@ export default function PlanTrackScreen({
                   color={colors.accent2}
                 />
                 <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
-                  Plan Your Day
+                  Today's Flow
                 </ThemedText>
               </View>
 
@@ -858,195 +841,6 @@ export default function PlanTrackScreen({
 
               {/* Task List */}
               {tasks.length > 0 && (
-                <View style={styles.taskList}>
-                  {tasks.map((task) => (
-                    <View
-                      key={task.id}
-                      style={[
-                        styles.taskItem,
-                        { backgroundColor: colors.bg, borderColor: colors.ui3 },
-                      ]}
-                    >
-                      <View style={styles.taskContent}>
-                        <Ionicons
-                          name={
-                            task.status === "completed"
-                              ? "checkmark-circle"
-                              : "ellipse-outline"
-                          }
-                          size={20}
-                          color={
-                            task.status === "completed"
-                              ? colors.accent2
-                              : colors.tx3
-                          }
-                        />
-                        <ThemedText
-                          style={[
-                            styles.taskText,
-                            {
-                              color: colors.tx,
-                              textDecorationLine:
-                                task.status === "completed"
-                                  ? "line-through"
-                                  : "none",
-                            },
-                          ]}
-                        >
-                          {task.task_description}
-                        </ThemedText>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => deleteTask(task.id)}
-                        style={styles.deleteTaskButton}
-                      >
-                        <Ionicons name="close" size={20} color={colors.tx3} />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {tasks.length === 0 && (
-                <View style={styles.emptyTasksContainer}>
-                  <ThemedText
-                    style={[styles.emptyTasksText, { color: colors.tx3 }]}
-                  >
-                    No tasks yet. Add your first task above!
-                  </ThemedText>
-                </View>
-              )}
-            </View>
-
-            {/* Daily Reflection Button - Only show if triggered from Track view */}
-            {reflectionTriggered && (
-              <View style={[styles.section, { backgroundColor: colors.ui }]}>
-                <View style={styles.sectionHeader}>
-                  <Ionicons
-                    name="moon-outline"
-                    size={24}
-                    color={colors.accent}
-                  />
-                  <ThemedText
-                    style={[styles.sectionTitle, { color: colors.tx }]}
-                  >
-                    Daily Reflection
-                  </ThemedText>
-                </View>
-
-                {todayStatus.hasReflection ? (
-                  <View style={styles.completedContainer}>
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={24}
-                      color={colors.accent}
-                    />
-                    <ThemedText
-                      style={[styles.completedText, { color: colors.tx2 }]}
-                    >
-                      Reflected at {todayStatus.reflectionTime}
-                    </ThemedText>
-                  </View>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => startRecording("reflection")}
-                    style={[
-                      styles.actionButton,
-                      { backgroundColor: colors.accent },
-                    ]}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="mic" size={24} color={colors.bg} />
-                    <ThemedText
-                      style={[styles.actionButtonText, { color: colors.bg }]}
-                    >
-                      Add Reflection
-                    </ThemedText>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
-          </>
-        ) : (
-          // TRACK VIEW
-          <View style={styles.trackViewContainer}>
-            {/* Active Timer Bar */}
-            {activeTimers.length > 0 && (
-              <View
-                style={[styles.activeTimerBar, { backgroundColor: colors.ui }]}
-              >
-                <View style={styles.activeTimerHeader}>
-                  <Ionicons
-                    name="timer-outline"
-                    size={20}
-                    color={colors.accent2}
-                  />
-                  <ThemedText
-                    style={[styles.activeTimerTitle, { color: colors.tx }]}
-                  >
-                    Active Timers
-                  </ThemedText>
-                </View>
-                <View style={styles.activeTimerList}>
-                  {activeTimers.map((timer) => (
-                    <View
-                      key={timer.id}
-                      style={[
-                        styles.activeTimerItem,
-                        {
-                          backgroundColor: colors.bg,
-                          borderColor: colors.accent2,
-                        },
-                      ]}
-                    >
-                      <View style={styles.activeTimerContent}>
-                        <ThemedText
-                          style={[styles.activeTimerName, { color: colors.tx }]}
-                          numberOfLines={1}
-                        >
-                          {timer.taskName}
-                        </ThemedText>
-                        <ThemedText
-                          style={[
-                            styles.activeTimerTime,
-                            { color: colors.accent2 },
-                          ]}
-                        >
-                          {formatDuration(timer.elapsedSeconds)}
-                        </ThemedText>
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => stopTimer(timer)}
-                        style={[
-                          styles.stopTimerButton,
-                          { backgroundColor: colors.accent },
-                        ]}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="stop" size={16} color={colors.bg} />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* Today's Tasks */}
-            {tasks.length > 0 ? (
-              <View style={[styles.section, { backgroundColor: colors.ui }]}>
-                <View style={styles.sectionHeader}>
-                  <Ionicons
-                    name="checkmark-done-outline"
-                    size={24}
-                    color={colors.accent2}
-                  />
-                  <ThemedText
-                    style={[styles.sectionTitle, { color: colors.tx }]}
-                  >
-                    Today's Tasks
-                  </ThemedText>
-                </View>
-
                 <View style={styles.trackTaskList}>
                   {tasks.map((task) => (
                     <View
@@ -1128,77 +922,42 @@ export default function PlanTrackScreen({
                     </View>
                   ))}
                 </View>
-              </View>
-            ) : (
-              <View style={styles.placeholderContainer}>
-                <Ionicons name="list-outline" size={64} color={colors.tx3} />
-                <ThemedText
-                  style={[styles.placeholderText, { color: colors.tx2 }]}
-                >
-                  No tasks yet
-                </ThemedText>
-                <ThemedText
-                  style={[styles.placeholderSubtext, { color: colors.tx3 }]}
-                >
-                  Add tasks in the Plan tab to start tracking
-                </ThemedText>
-              </View>
-            )}
+              )}
 
-            {/* Reflection Trigger Button - Only show after 6pm and if no reflection yet */}
-            {isAfter6PM && !todayStatus.hasReflection && (
-              <View
-                style={[
-                  styles.reflectionTriggerSection,
-                  { backgroundColor: colors.ui },
-                ]}
-              >
-                <View style={styles.reflectionTriggerContent}>
-                  <Ionicons
-                    name="moon-outline"
-                    size={28}
-                    color={colors.accent}
-                  />
-                  <View style={styles.reflectionTriggerTextContainer}>
-                    <ThemedText
-                      style={[
-                        styles.reflectionTriggerTitle,
-                        { color: colors.tx },
-                      ]}
-                    >
-                      Ready to reflect on your day?
-                    </ThemedText>
-                    <ThemedText
-                      style={[
-                        styles.reflectionTriggerSubtext,
-                        { color: colors.tx3 },
-                      ]}
-                    >
-                      Take a moment to capture your thoughts
-                    </ThemedText>
-                  </View>
-                </View>
-                <TouchableOpacity
-                  onPress={handleReflectionTrigger}
-                  style={[
-                    styles.reflectionTriggerButton,
-                    { backgroundColor: colors.accent },
-                  ]}
-                  activeOpacity={0.8}
-                >
+              {tasks.length === 0 && (
+                <View style={styles.emptyTasksContainer}>
                   <ThemedText
-                    style={[
-                      styles.reflectionTriggerButtonText,
-                      { color: colors.bg },
-                    ]}
+                    style={[styles.emptyTasksText, { color: colors.tx3 }]}
                   >
-                    Begin Reflection
+                    No tasks yet. Add your first task above!
                   </ThemedText>
-                  <Ionicons name="arrow-forward" size={20} color={colors.bg} />
-                </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
+            {/* Daily Reflection Button - Always available */}
+            <View style={[styles.section, { backgroundColor: colors.ui }]}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="moon-outline" size={24} color="#7C3AED" />
+                <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
+                  Reflect
+                </ThemedText>
               </View>
-            )}
-          </View>
+
+              <TouchableOpacity
+                onPress={() => startRecording("reflection")}
+                style={[styles.actionButton, styles.reflectionButton]}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="mic" size={24} color="#ffffff" />
+                <ThemedText
+                  style={[styles.actionButtonText, { color: "#ffffff" }]}
+                >
+                  Add Reflection
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+          </>
         )}
       </ScrollView>
 
@@ -1224,23 +983,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  toggleContainer: {
-    flexDirection: "row",
-    margin: 16,
-    padding: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  toggleButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  toggleText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
   scrollContent: {
     flex: 1,
   },
@@ -1262,6 +1004,7 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
     gap: 8,
@@ -1281,6 +1024,28 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 16,
     fontWeight: "600",
+  },
+  intentionButton: {
+    backgroundColor: "#D4AF37",
+    shadowColor: "#D4AF37",
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  reflectionButton: {
+    backgroundColor: "#5e409d",
+    shadowColor: "#7C3AED",
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
   },
   completedContainer: {
     flexDirection: "row",
@@ -1326,59 +1091,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontVariant: ["tabular-nums"],
   },
-  trackViewContainer: {
-    flex: 1,
-  },
-  placeholderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 100,
-    gap: 12,
-  },
-  placeholderText: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginTop: 16,
-  },
-  placeholderSubtext: {
-    fontSize: 16,
-    textAlign: "center",
-  },
-  reflectionTriggerSection: {
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 24,
-    gap: 16,
-  },
-  reflectionTriggerContent: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-  },
-  reflectionTriggerTextContainer: {
-    flex: 1,
-    gap: 4,
-  },
-  reflectionTriggerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  reflectionTriggerSubtext: {
-    fontSize: 14,
-  },
-  reflectionTriggerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  reflectionTriggerButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
   taskInputContainer: {
     flexDirection: "row",
     gap: 8,
@@ -1399,31 +1111,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-  },
-  taskList: {
-    gap: 8,
-  },
-  taskItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  taskContent: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  taskText: {
-    fontSize: 16,
-    flex: 1,
-  },
-  deleteTaskButton: {
-    padding: 4,
   },
   emptyTasksContainer: {
     paddingVertical: 20,
@@ -1474,63 +1161,6 @@ const styles = StyleSheet.create({
   },
   taskStatusText: {
     fontSize: 12,
-    fontWeight: "600",
-  },
-  activeTimerBar: {
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-  },
-  activeTimerHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 12,
-  },
-  activeTimerTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  activeTimerList: {
-    gap: 12,
-  },
-  activeTimerItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 2,
-    borderRadius: 12,
-    padding: 14,
-    gap: 12,
-  },
-  activeTimerContent: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  activeTimerName: {
-    fontSize: 16,
-    fontWeight: "600",
-    flex: 1,
-  },
-  activeTimerTime: {
-    fontSize: 20,
-    fontWeight: "700",
-    fontVariant: ["tabular-nums"],
-    minWidth: 60,
-    textAlign: "right",
-  },
-  stopTimerButton: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 8,
-  },
-  stopTimerText: {
-    fontSize: 14,
     fontWeight: "600",
   },
 });

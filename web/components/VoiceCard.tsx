@@ -337,7 +337,7 @@ export default function VoiceCard({
               "Creating..."
             ) : (
               <>
-                Thought Expansio
+                Thought Expansion
                 <Expand className="w-5 h-5" />
               </>
             )}

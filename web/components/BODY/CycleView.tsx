@@ -31,6 +31,7 @@ type MediaItem = {
   file_url: string;
   file_type: "image" | "video";
   caption: string | null;
+  tags: string[] | null;
   original_date: string;
   log_date: string | null;
   created_at: string;

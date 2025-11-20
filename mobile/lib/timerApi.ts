@@ -55,6 +55,7 @@ export async function getActiveTimerIds(userId: string): Promise<string[]> {
 
 /**
  * Get all active timer sessions with full details (used for Active Timer Bar)
+ * Now returns ALL active timers regardless of date to handle timers that run past midnight
  */
 export async function getActiveTimers(
   userId: string,
@@ -75,33 +76,39 @@ export async function getActiveTimers(
       return [];
     }
 
-    // Load today's tasks to find task names
-    const { data: todayTasks, error: taskError } = await supabase
+    // Collect all timer session IDs
+    const timerSessionIds = activeSessions.map((s) => s.id);
+
+    // Load ALL tasks that are linked to active timers (not just today's tasks)
+    // This ensures we show timers that started on previous days
+    const { data: linkedTasks, error: taskError } = await supabase
       .from("daily_tasks")
       .select("*")
       .eq("user_id", userId)
-      .eq("task_date", taskDate);
+      .in("timer_session_id", timerSessionIds);
 
     if (taskError) throw taskError;
 
     // Convert to ActiveTimer format
     const timers: ActiveTimer[] = [];
     for (const session of activeSessions) {
-      const task = todayTasks?.find(
+      // Try to find linked task
+      const task = linkedTasks?.find(
         (t: any) => t.timer_session_id === session.id
       );
-      if (task) {
-        timers.push({
-          id: session.id,
-          taskId: task.id,
-          taskName: task.task_description,
-          startTime: new Date(session.start_time),
-          elapsedSeconds: Math.floor(
-            (new Date().getTime() - new Date(session.start_time).getTime()) /
-              1000
-          ),
-        });
-      }
+
+      // Always show the timer, even if no task is linked
+      // Use task info if available, otherwise use timer session name
+      timers.push({
+        id: session.id,
+        taskId: task?.id || "",
+        taskName: task?.task_description || session.name,
+        startTime: new Date(session.start_time),
+        elapsedSeconds: Math.floor(
+          (new Date().getTime() - new Date(session.start_time).getTime()) /
+            1000
+        ),
+      });
     }
 
     return timers;
