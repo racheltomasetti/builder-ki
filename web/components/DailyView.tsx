@@ -255,7 +255,9 @@ export default function DailyView({
         const date = new Date(today);
         date.setDate(date.getDate() - i);
         // Format date in local timezone, not UTC
-        const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const dateString = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
         // Stop when we reach before the current cycle start
         if (currentCycleStart && dateString < currentCycleStart) {
@@ -407,7 +409,7 @@ export default function DailyView({
           <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
             <div className="flex items-center gap-2 mb-4">
               <h3 className="text-xl italic text-flexoki-accent font-bold">
-                Daily Intention
+                Intention
               </h3>
             </div>
             <div className="space-y-2">
@@ -506,7 +508,7 @@ export default function DailyView({
           <section className="bg-flexoki-ui rounded-lg shadow-md p-6">
             <div className="flex items-center gap-2 mb-4">
               <h3 className="text-xl italic text-flexoki-accent font-bold">
-                Daily Reflection
+                Reflection
               </h3>
             </div>
             <div className="space-y-2">

@@ -187,9 +187,10 @@ export default function CaptureScreen({
     }
   };
 
-  // Hide/show navigation bars when recording or in Focus Mode + add cycle indicator to header
+  // Hide/show navigation bars when recording or in Focus Mode with active timer + add cycle indicator to header
   useEffect(() => {
-    const hideNav = recording || focusMode;
+    // Only hide nav when recording, NOT when in focus mode
+    const hideNav = recording;
     navigation.setOptions({
       headerShown: !hideNav,
       headerLeft: !hideNav
@@ -1310,8 +1311,8 @@ export default function CaptureScreen({
                   </View>
                 </View>
 
-                {/* Recently Uploaded Media - only show when NOT in focus mode */}
-                {!focusMode && recentMedia.length > 0 ? (
+                {/* Recently Uploaded Media - only show when there's NO active timer */}
+                {!timerId && recentMedia.length > 0 ? (
                   // Recently Uploaded Media
                   <View style={styles.recentSection}>
                     <ThemedText

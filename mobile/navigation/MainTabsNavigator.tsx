@@ -70,7 +70,7 @@ export default function MainTabsNavigator() {
         name="PlanTrack"
         component={PlanTrackScreen}
         options={{
-          tabBarLabel: "Flow",
+          tabBarLabel: "Explore",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
@@ -83,7 +83,7 @@ export default function MainTabsNavigator() {
                 fontFamily: "Perpetua",
               }}
             >
-              ~ FLOW ~
+              ~ EXPLORE ~
             </Text>
           ),
           headerTitleStyle: {
@@ -101,7 +101,7 @@ export default function MainTabsNavigator() {
         name="Capture"
         component={CaptureScreen}
         options={{
-          tabBarLabel: "Journal",
+          tabBarLabel: "Create",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="journal-outline" size={size} color={color} />
           ), // header title is current date
@@ -113,7 +113,7 @@ export default function MainTabsNavigator() {
                 fontFamily: "Perpetua",
               }}
             >
-              • CAPTURE •
+              • CREATE •
             </Text>
           ),
           headerTitleStyle: {
@@ -140,7 +140,7 @@ export default function MainTabsNavigator() {
         name="Community"
         component={CommunityScreen}
         options={{
-          tabBarLabel: "Community",
+          tabBarLabel: "Connect",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),

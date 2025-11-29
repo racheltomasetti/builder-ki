@@ -63,7 +63,7 @@ export default function DashboardPage() {
   const [allMedia, setAllMedia] = useState<MediaItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [viewMode, setViewMode] = useState<"feed" | "daily">("daily");
+  const [viewMode, setViewMode] = useState<"feed" | "daily">("feed");
   const [feedSubView, setFeedSubView] = useState<"voice" | "media">("voice");
   const [filters, setFilters] = useState<FilterState>({
     noteType: "all",
@@ -406,16 +406,6 @@ export default function DashboardPage() {
         {/* View Toggle */}
         <div className="flex justify-center gap-2 mb-6">
           <button
-            onClick={() => setViewMode("daily")}
-            className={`px-6 py-2 rounded-lg transition-all text-flexoki-tx ${
-              viewMode === "daily"
-                ? "bg-flexoki-accent font-bold"
-                : "bg-flexoki-ui-2 text-flexoki-tx border border-flexoki-ui-3 font-medium hover:text-xl hover:font-bold hover:text-flexoki-accent"
-            }`}
-          >
-            daily log
-          </button>
-          <button
             onClick={() => setViewMode("feed")}
             className={`px-6 py-2 rounded-lg transition-all text-flexoki-tx ${
               viewMode === "feed"
@@ -424,6 +414,16 @@ export default function DashboardPage() {
             }`}
           >
             stream of consciousness
+          </button>
+          <button
+            onClick={() => setViewMode("daily")}
+            className={`px-6 py-2 rounded-lg transition-all text-flexoki-tx ${
+              viewMode === "daily"
+                ? "bg-flexoki-accent font-bold"
+                : "bg-flexoki-ui-2 text-flexoki-tx border border-flexoki-ui-3 font-medium hover:text-xl hover:font-bold hover:text-flexoki-accent"
+            }`}
+          >
+            daily log
           </button>
         </div>
 

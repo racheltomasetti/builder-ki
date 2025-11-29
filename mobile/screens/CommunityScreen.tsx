@@ -1,8 +1,4 @@
-import {
-  View,
-  StyleSheet,
-  useColorScheme,
-} from "react-native";
+import { View, StyleSheet, useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "../lib/supabase";
 import { useThemeColors } from "../theme/colors";
@@ -16,7 +12,6 @@ export default function CommunityScreen({
   const isDark = colorScheme === "dark";
   const colors = useThemeColors(isDark);
 
-
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Centered placeholder content */}
@@ -29,10 +24,9 @@ export default function CommunityScreen({
           Coming Soon
         </ThemedText>
         <ThemedText style={[styles.description, { color: colors.tx3 }]}>
-          Connect with others on their cycle journey
+          Connect with others on their journey
         </ThemedText>
       </View>
-
     </View>
   );
 }

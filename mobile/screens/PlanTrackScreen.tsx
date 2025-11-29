@@ -34,6 +34,8 @@ import {
   type ActiveTimer,
 } from "../lib/timerApi";
 import { ThemedText } from "../components/ThemedText";
+import SegmentedControl from "../components/SegmentedControl";
+import TimelineView from "../components/TimelineView";
 
 type NoteType = "intention" | "reflection";
 
@@ -53,6 +55,47 @@ interface DailyTask {
   timer_session_id: string | null;
   task_date: string;
 }
+
+type Capture = {
+  id: string;
+  type: string;
+  file_url: string | null;
+  transcription: string | null;
+  note_type: string;
+  created_at: string;
+  cycle_day?: number | null;
+  cycle_phase?: string | null;
+  timer_session_ids?: string[] | null;
+};
+
+type MediaItem = {
+  id: string;
+  file_url: string;
+  file_type: string;
+  original_date: string;
+  caption: string | null;
+  created_at: string;
+  timer_session_ids?: string[] | null;
+};
+
+type TimerSession = {
+  id: string;
+  name: string;
+  start_time: string;
+  end_time: string | null;
+  status: string;
+  created_at: string;
+};
+
+type TimelineItem =
+  | {
+      type: "activity";
+      session: TimerSession;
+      linkedCaptures: Capture[];
+      timestamp: string;
+    }
+  | { type: "capture"; capture: Capture; timestamp: string }
+  | { type: "media"; media: MediaItem; timestamp: string };
 
 export default function PlanTrackScreen({
   navigation: tabNavigation,
@@ -80,6 +123,14 @@ export default function PlanTrackScreen({
   const [newTaskText, setNewTaskText] = useState("");
   const [activeTimers, setActiveTimers] = useState<ActiveTimer[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [viewMode, setViewMode] = useState(0); // 0 = Plan, 1 = Review
+  const [timelineData, setTimelineData] = useState<{
+    intention?: Capture;
+    timeline: TimelineItem[];
+    reflection?: Capture;
+  }>({
+    timeline: [],
+  });
 
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -106,6 +157,7 @@ export default function PlanTrackScreen({
         await loadCycleInfo(user.id);
         await loadTodayTasks();
         await loadActiveTimers();
+        await loadTimelineData();
       }
       setLoading(false);
     };
@@ -149,6 +201,7 @@ export default function PlanTrackScreen({
       loadTodayTasks();
       loadActiveTimers();
       loadTodayStatus();
+      loadTimelineData();
     }
   }, [isFocused, user]);
 
@@ -318,6 +371,7 @@ export default function PlanTrackScreen({
       loadTodayStatus(),
       loadTodayTasks(),
       loadActiveTimers(),
+      loadTimelineData(),
     ]);
     setRefreshing(false);
   };
@@ -386,6 +440,111 @@ export default function PlanTrackScreen({
       setActiveTimers(timers);
     } catch (err) {
       console.error("Error loading active timers:", err);
+    }
+  };
+
+  // Load timeline data for review view
+  const loadTimelineData = async () => {
+    try {
+      const today = getTodayDate();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Fetch captures for today
+      const { data: captures, error: capturesError } = await supabase
+        .from("captures")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("log_date", today)
+        .order("created_at", { ascending: true });
+
+      if (capturesError) throw capturesError;
+
+      // Fetch media for today
+      const { data: media, error: mediaError } = await supabase
+        .from("media_items")
+        .select("*")
+        .eq("user_id", user.id)
+        .or(`original_date.eq.${today},log_date.eq.${today}`)
+        .order("created_at", { ascending: true });
+
+      if (mediaError) throw mediaError;
+
+      // Fetch timer sessions for today
+      const { data: timerSessions, error: timersError } = await supabase
+        .from("timer_sessions")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("log_date", today)
+        .order("start_time", { ascending: true });
+
+      if (timersError) throw timersError;
+
+      // Organize captures by type
+      const intention = captures?.find((c) => c.note_type === "intention");
+      const reflection = captures?.find((c) => c.note_type === "reflection");
+      const dailyCaptures =
+        captures?.filter(
+          (c) =>
+            (c.note_type === "daily" || c.note_type === "general") &&
+            c.id !== intention?.id &&
+            c.id !== reflection?.id
+        ) || [];
+
+      // Build timeline with activities, captures, and media
+      const timeline: TimelineItem[] = [];
+
+      // Add activity blocks (timer sessions with linked captures)
+      timerSessions?.forEach((session) => {
+        const linkedCaptures = dailyCaptures.filter((capture) =>
+          capture.timer_session_ids?.includes(session.id)
+        );
+
+        timeline.push({
+          type: "activity",
+          session,
+          linkedCaptures,
+          timestamp: session.start_time,
+        });
+      });
+
+      // Add standalone captures (not linked to any timer)
+      dailyCaptures.forEach((capture) => {
+        const isLinkedToTimer =
+          capture.timer_session_ids && capture.timer_session_ids.length > 0;
+        if (!isLinkedToTimer) {
+          timeline.push({
+            type: "capture",
+            capture,
+            timestamp: capture.created_at,
+          });
+        }
+      });
+
+      // Add media items
+      media?.forEach((mediaItem) => {
+        timeline.push({
+          type: "media",
+          media: mediaItem,
+          timestamp: mediaItem.created_at,
+        });
+      });
+
+      // Sort timeline chronologically
+      timeline.sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
+
+      setTimelineData({
+        intention,
+        timeline,
+        reflection,
+      });
+    } catch (err) {
+      console.error("Error loading timeline data:", err);
     }
   };
 
@@ -766,197 +925,246 @@ export default function PlanTrackScreen({
         ) : (
           // MAIN VIEW
           <>
-            {/* Date Header */}
-            <View style={styles.dateHeader}>
-              <ThemedText style={[styles.dateText, { color: colors.tx }]}>
-                {formatTodayDate()}
-              </ThemedText>
+            {/* Segmented Control */}
+            <View style={styles.segmentedControlContainer}>
+              <SegmentedControl
+                segments={["Plan", "Track"]}
+                selectedIndex={viewMode}
+                onSegmentChange={setViewMode}
+                activeColor={colors.accent}
+                inactiveColor={colors.tx3}
+                textColor={colors.bg}
+                backgroundColor={colors.ui}
+              />
             </View>
 
-            {/* Set Intention Button */}
-            <View style={[styles.section, { backgroundColor: colors.ui }]}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="sunny-outline" size={24} color="#D4AF37" />
-                <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
-                  Live with Intention
-                </ThemedText>
-              </View>
+            {viewMode === 0 ? (
+              // PLAN MODE
+              <>
+                {/* Date Header */}
+                <View style={styles.dateHeader}>
+                  <ThemedText style={[styles.dateText, { color: colors.tx }]}>
+                    {formatTodayDate()}
+                  </ThemedText>
+                </View>
 
-              <TouchableOpacity
-                onPress={() => startRecording("intention")}
-                style={[styles.actionButton, styles.intentionButton]}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="mic" size={24} color="#1a1a1a" />
-                <ThemedText
-                  style={[styles.actionButtonText, { color: "#1a1a1a" }]}
-                >
-                  Set Intention
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-
-            {/* Plan Your Day - Task Input */}
-            <View style={[styles.section, { backgroundColor: colors.ui }]}>
-              <View style={styles.sectionHeader}>
-                <Ionicons
-                  name="list-outline"
-                  size={24}
-                  color={colors.accent2}
-                />
-                <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
-                  Today's Flow
-                </ThemedText>
-              </View>
-
-              {/* Task Input */}
-              <View style={styles.taskInputContainer}>
-                <TextInput
-                  style={[
-                    styles.taskInput,
-                    {
-                      backgroundColor: colors.bg,
-                      color: colors.tx,
-                      borderColor: colors.ui3,
-                    },
-                  ]}
-                  placeholder="add task..."
-                  placeholderTextColor={colors.tx3}
-                  value={newTaskText}
-                  onChangeText={setNewTaskText}
-                  onSubmitEditing={addTask}
-                  returnKeyType="done"
-                />
-                <TouchableOpacity
-                  onPress={addTask}
-                  style={[
-                    styles.addTaskButton,
-                    { backgroundColor: colors.accent2 },
-                  ]}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="add" size={24} color={colors.bg} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Task List */}
-              {tasks.length > 0 && (
-                <View style={styles.trackTaskList}>
-                  {tasks.map((task) => (
-                    <View
-                      key={task.id}
-                      style={[
-                        styles.trackTaskItem,
-                        { backgroundColor: colors.bg, borderColor: colors.ui3 },
-                      ]}
+                {/* Set Intention Button */}
+                <View style={[styles.section, { backgroundColor: colors.ui }]}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="sunny-outline" size={24} color="#D4AF37" />
+                    <ThemedText
+                      style={[styles.sectionTitle, { color: colors.tx }]}
                     >
-                      <View style={styles.trackTaskContent}>
-                        <Ionicons
-                          name={
-                            task.status === "completed"
-                              ? "checkmark-circle"
-                              : task.status === "in_progress"
-                              ? "radio-button-on"
-                              : "ellipse-outline"
-                          }
-                          size={24}
-                          color={
-                            task.status === "completed"
-                              ? colors.accent
-                              : task.status === "in_progress"
-                              ? colors.accent2
-                              : colors.tx3
-                          }
-                        />
-                        <ThemedText
+                      Live with Intention
+                    </ThemedText>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => startRecording("intention")}
+                    style={[styles.actionButton, styles.intentionButton]}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="mic" size={24} color="#1a1a1a" />
+                    <ThemedText
+                      style={[styles.actionButtonText, { color: "#1a1a1a" }]}
+                    >
+                      Set Intention
+                    </ThemedText>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Plan Your Day - Task Input */}
+                <View style={[styles.section, { backgroundColor: colors.ui }]}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons
+                      name="list-outline"
+                      size={24}
+                      color={colors.accent2}
+                    />
+                    <ThemedText
+                      style={[styles.sectionTitle, { color: colors.tx }]}
+                    >
+                      Today's Flow
+                    </ThemedText>
+                  </View>
+
+                  {/* Task Input */}
+                  <View style={styles.taskInputContainer}>
+                    <TextInput
+                      style={[
+                        styles.taskInput,
+                        {
+                          backgroundColor: colors.bg,
+                          color: colors.tx,
+                          borderColor: colors.ui3,
+                        },
+                      ]}
+                      placeholder="add task..."
+                      placeholderTextColor={colors.tx3}
+                      value={newTaskText}
+                      onChangeText={setNewTaskText}
+                      onSubmitEditing={addTask}
+                      returnKeyType="done"
+                    />
+                    <TouchableOpacity
+                      onPress={addTask}
+                      style={[
+                        styles.addTaskButton,
+                        { backgroundColor: colors.accent2 },
+                      ]}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="add" size={24} color={colors.bg} />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Task List */}
+                  {tasks.length > 0 && (
+                    <View style={styles.trackTaskList}>
+                      {tasks.map((task) => (
+                        <View
+                          key={task.id}
                           style={[
-                            styles.trackTaskText,
+                            styles.trackTaskItem,
                             {
-                              color: colors.tx,
-                              textDecorationLine:
-                                task.status === "completed"
-                                  ? "line-through"
-                                  : "none",
+                              backgroundColor: colors.bg,
+                              borderColor: colors.ui3,
                             },
                           ]}
                         >
-                          {task.task_description}
-                        </ThemedText>
-                      </View>
+                          <View style={styles.trackTaskContent}>
+                            <Ionicons
+                              name={
+                                task.status === "completed"
+                                  ? "checkmark-circle"
+                                  : task.status === "in_progress"
+                                  ? "radio-button-on"
+                                  : "ellipse-outline"
+                              }
+                              size={24}
+                              color={
+                                task.status === "completed"
+                                  ? colors.accent
+                                  : task.status === "in_progress"
+                                  ? colors.accent2
+                                  : colors.tx3
+                              }
+                            />
+                            <ThemedText
+                              style={[
+                                styles.trackTaskText,
+                                {
+                                  color: colors.tx,
+                                  textDecorationLine:
+                                    task.status === "completed"
+                                      ? "line-through"
+                                      : "none",
+                                },
+                              ]}
+                            >
+                              {task.task_description}
+                            </ThemedText>
+                          </View>
 
-                      {/* Start button for pending tasks */}
-                      {task.status === "pending" && (
-                        <TouchableOpacity
-                          onPress={() => startTimer(task)}
-                          style={[
-                            styles.startTaskButton,
-                            { backgroundColor: colors.accent2 },
-                          ]}
-                          activeOpacity={0.8}
-                        >
-                          <Ionicons name="play" size={16} color={colors.bg} />
-                          <ThemedText
-                            style={[
-                              styles.startTaskButtonText,
-                              { color: colors.bg },
-                            ]}
-                          >
-                            Start
-                          </ThemedText>
-                        </TouchableOpacity>
-                      )}
+                          {/* Start button for pending tasks */}
+                          {task.status === "pending" && (
+                            <TouchableOpacity
+                              onPress={() => startTimer(task)}
+                              style={[
+                                styles.startTaskButton,
+                                { backgroundColor: colors.accent2 },
+                              ]}
+                              activeOpacity={0.8}
+                            >
+                              <Ionicons
+                                name="play"
+                                size={16}
+                                color={colors.bg}
+                              />
+                              <ThemedText
+                                style={[
+                                  styles.startTaskButtonText,
+                                  { color: colors.bg },
+                                ]}
+                              >
+                                Start
+                              </ThemedText>
+                            </TouchableOpacity>
+                          )}
 
-                      {/* Status indicator for in-progress/completed tasks */}
-                      {task.status === "in_progress" && (
-                        <View style={styles.taskStatusBadge}>
-                          <ThemedText
-                            style={[
-                              styles.taskStatusText,
-                              { color: colors.accent2 },
-                            ]}
-                          >
-                            In Progress
-                          </ThemedText>
+                          {/* Status indicator for in-progress/completed tasks */}
+                          {task.status === "in_progress" && (
+                            <View style={styles.taskStatusBadge}>
+                              <ThemedText
+                                style={[
+                                  styles.taskStatusText,
+                                  { color: colors.accent2 },
+                                ]}
+                              >
+                                In Progress
+                              </ThemedText>
+                            </View>
+                          )}
                         </View>
-                      )}
+                      ))}
                     </View>
-                  ))}
-                </View>
-              )}
+                  )}
 
-              {tasks.length === 0 && (
-                <View style={styles.emptyTasksContainer}>
-                  <ThemedText
-                    style={[styles.emptyTasksText, { color: colors.tx3 }]}
+                  {tasks.length === 0 && (
+                    <View style={styles.emptyTasksContainer}>
+                      <ThemedText
+                        style={[styles.emptyTasksText, { color: colors.tx3 }]}
+                      >
+                        No tasks yet. Add your first task above!
+                      </ThemedText>
+                    </View>
+                  )}
+                </View>
+
+                {/* Daily Reflection Button - Always available */}
+                <View style={[styles.section, { backgroundColor: colors.ui }]}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="moon-outline" size={24} color="#7C3AED" />
+                    <ThemedText
+                      style={[styles.sectionTitle, { color: colors.tx }]}
+                    >
+                      Reflect
+                    </ThemedText>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => startRecording("reflection")}
+                    style={[styles.actionButton, styles.reflectionButton]}
+                    activeOpacity={0.8}
                   >
-                    No tasks yet. Add your first task above!
+                    <Ionicons name="mic" size={24} color="#ffffff" />
+                    <ThemedText
+                      style={[styles.actionButtonText, { color: "#ffffff" }]}
+                    >
+                      Add Reflection
+                    </ThemedText>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              // REVIEW MODE
+              <>
+                {/* Date Header */}
+                <View style={styles.dateHeader}>
+                  <ThemedText style={[styles.dateText, { color: colors.tx }]}>
+                    {formatTodayDate()}
                   </ThemedText>
                 </View>
-              )}
-            </View>
 
-            {/* Daily Reflection Button - Always available */}
-            <View style={[styles.section, { backgroundColor: colors.ui }]}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="moon-outline" size={24} color="#7C3AED" />
-                <ThemedText style={[styles.sectionTitle, { color: colors.tx }]}>
-                  Reflect
-                </ThemedText>
-              </View>
-
-              <TouchableOpacity
-                onPress={() => startRecording("reflection")}
-                style={[styles.actionButton, styles.reflectionButton]}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="mic" size={24} color="#ffffff" />
-                <ThemedText
-                  style={[styles.actionButtonText, { color: "#ffffff" }]}
-                >
-                  Add Reflection
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
+                {/* Timeline View */}
+                <TimelineView
+                  intention={timelineData.intention}
+                  timeline={timelineData.timeline}
+                  reflection={timelineData.reflection}
+                  isDark={isDark}
+                />
+              </>
+            )}
           </>
         )}
       </ScrollView>
@@ -988,6 +1196,9 @@ const styles = StyleSheet.create({
   },
   scrollContentContainer: {
     padding: 20,
+  },
+  segmentedControlContainer: {
+    marginBottom: 20,
   },
   dateHeader: {
     marginBottom: 24,
